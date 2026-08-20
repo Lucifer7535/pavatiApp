@@ -1,0 +1,35 @@
+{
+  "name": "pavati-pustak",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pāvati Pustak — Digital Trust, Donation & Receipt Management",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @pavati/shared && npm run build -w @pavati/receipt-engine && npm run build -w @pavati/api && npm run build -w @pavati/web",
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @pavati/api\" \"npm run dev -w @pavati/web\"",
+    "dev:api": "npm run dev -w @pavati/api",
+    "dev:web": "npm run dev -w @pavati/web",
+    "db:migrate": "npm run db:migrate -w @pavati/api",
+    "db:seed": "npm run db:seed -w @pavati/api",
+    "db:studio": "npm run db:studio -w @pavati/api",
+    "typecheck": "npm run typecheck -w @pavati/shared && npm run typecheck -w @pavati/receipt-engine && npm run typecheck -w @pavati/api && npm run typecheck -w @pavati/web",
+    "test": "npm run test -w @pavati/receipt-engine && npm run test -w @pavati/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true
+  }
+}

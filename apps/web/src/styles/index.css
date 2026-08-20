@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Mukta", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+
+  --color-saffron-50: #fff8ed;
+  --color-saffron-100: #ffefd5;
+  --color-saffron-200: #fed7aa;
+  --color-saffron-300: #fdba74;
+  --color-saffron-400: #fb923c;
+  --color-saffron-500: #f97316;
+  --color-saffron-600: #ea580c;
+  --color-saffron-700: #c2410c;
+
+  --color-maroon-500: #9f1239;
+  --color-maroon-600: #881337;
+  --color-maroon-700: #7f1d1d;
+  --color-maroon-800: #701a1a;
+
+  --color-gold-300: #fcd34d;
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #d4af37;
+
+  --color-cream-50: #fffdf5;
+  --color-cream-100: #fdf6e3;
+
+  --shadow-glow: 0 0 0 4px rgb(249 115 22 / 0.12);
+
+  --radius-card: 1rem;
+
+  --animate-fade-in: fade-in 0.4s ease-out;
+  --animate-slide-up: slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream-50 text-stone-800 antialiased;
+    font-feature-settings: "ss01";
+  }
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-400 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-stone-200/70 bg-white shadow-sm;
+  }
+  .btn-primary {
+    @apply btn bg-saffron-600 text-white shadow-sm hover:bg-saffron-700;
+  }
+  .btn-maroon {
+    @apply btn bg-maroon-700 text-white shadow-sm hover:bg-maroon-800;
+  }
+  .btn-outline {
+    @apply btn border border-stone-300 bg-white text-stone-700 hover:border-saffron-300 hover:bg-saffron-50;
+  }
+  .btn-ghost {
+    @apply btn text-stone-600 hover:bg-stone-100;
+  }
+  .input {
+    @apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-100 transition;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-stone-700;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+}
+
+::selection {
+  background: #fed7aa;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 999px; }

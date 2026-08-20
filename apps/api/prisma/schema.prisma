@@ -1,0 +1,428 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  PHONE
+  EMAIL
+  GOOGLE
+}
+
+enum TrustRole {
+  PRIMARY_ADMIN
+  ADMIN
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  JOINT_SECRETARY
+  TREASURER
+  COMMITTEE_MEMBER
+  MEMBER
+  VOLUNTEER
+  COLLECTOR
+}
+
+enum MemberStatus {
+  ACTIVE
+  INVITED
+  PENDING_APPROVAL
+  REMOVED
+}
+
+enum JoinMode {
+  OPEN
+  APPROVAL
+  INVITE_ONLY
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  ONLINE
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum DonationPrivacy {
+  PUBLIC
+  PRIVATE
+  ANONYMOUS
+}
+
+enum ReceiptStatus {
+  ACTIVE
+  VOID
+}
+
+enum PageSize {
+  A4
+  A5
+  A6
+  CUSTOM
+}
+
+enum NotificationChannel {
+  SMS
+  WHATSAPP
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum AnnouncementType {
+  GENERAL
+  FESTIVAL
+  MEETING
+  CAMPAIGN
+  EVENT
+  NOTICE
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  phone         String?       @unique
+  email         String?       @unique
+  passwordHash  String?
+  profileImage  String?
+  authProvider  AuthProvider  @default(PHONE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  memberships   TrustMember[]
+  announcements Announcement[]
+  auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
+}
+
+model OtpCode {
+  id        String    @id @default(uuid())
+  phone     String
+  codeHash  String
+  purpose   String    @default("LOGIN")
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  consumed  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([phone, purpose])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Trust {
+  id                    String     @id @default(uuid())
+  name                  String
+  uniqueCode            String     @unique
+  joinCode              String     @unique
+  logoUrl               String?
+  festivalTypes         String[]
+  description           String?
+  registrationNumber    String?
+  address               String?
+  city                  String?
+  state                 String?
+  country               String?    @default("India")
+  pinCode               String?
+  contactPhone          String?
+  contactEmail          String?
+  website               String?
+  upiId                 String?
+  financialYear         String?
+  festivalStartDate     DateTime?
+  festivalEndDate       DateTime?
+  joinMode              JoinMode   @default(OPEN)
+  showCommitteePublicly Boolean    @default(true)
+  showDonorsPublicly    Boolean    @default(true)
+  showDonationAmounts   Boolean    @default(true)
+  allowAnonymousDonations Boolean   @default(true)
+  notificationSms       Boolean    @default(true)
+  notificationWhatsapp  Boolean    @default(true)
+  notificationEmail     Boolean    @default(true)
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  members     TrustMember[]
+  donations   Donation[]
+  receipts    Receipt[]
+  templates   ReceiptTemplate[]
+  numberConfigs ReceiptNumberConfig[]
+  campaigns   PaymentCampaign[]
+  announcements Announcement[]
+  notifications Notification[]
+  auditLogs   AuditLog[]
+  invites     TrustInvite[]
+  joinRequests JoinRequest[]
+}
+
+model TrustMember {
+  id           String          @id @default(uuid())
+  trustId      String
+  trust        Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         TrustRole       @default(MEMBER)
+  permissions  String[]        // permission overrides (empty = use role defaults)
+  status       MemberStatus    @default(ACTIVE)
+  position     String?
+  contactVisible Boolean        @default(false)
+  introduction String?
+  joinedAt     DateTime        @default(now())
+
+  donations    Donation[]      @relation("CollectorDonations")
+  announcementReads AnnouncementRead[]
+
+  @@unique([trustId, userId])
+  @@index([userId])
+  @@index([trustId])
+}
+
+model Donor {
+  id        String     @id @default(uuid())
+  name      String
+  phone     String
+  address   String?
+  createdAt DateTime   @default(now())
+  donations Donation[]
+
+  @@unique([name, phone])
+}
+
+model Donation {
+  id            String          @id @default(uuid())
+  trustId       String
+  trust         Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  donorId       String?
+  donor         Donor?          @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donorName     String
+  phone         String?
+  email         String?
+  address       String?
+  amount        Int
+  category      String
+  paymentMode   PaymentMode
+  transactionRef String?
+  privacy       DonationPrivacy @default(PRIVATE)
+  donationDate  DateTime        @default(now())
+  collectorId   String?
+  collector     TrustMember?    @relation("CollectorDonations", fields: [collectorId], references: [id], onDelete: SetNull)
+  status        DonationStatus  @default(SUCCEEDED)
+  isOnline      Boolean         @default(false)
+  campaignId    String?
+  campaign      PaymentCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  notes         String?
+  createdAt     DateTime        @default(now())
+
+  receipts      Receipt[]
+  notifications Notification[]
+  paymentTransactions PaymentTransaction[]
+
+  @@index([trustId, donationDate])
+  @@index([trustId, paymentMode])
+  @@index([trustId, category])
+  @@index([collectorId])
+}
+
+model Receipt {
+  id                String        @id @default(uuid())
+  receiptNumber     String
+  donationId        String
+  donation          Donation      @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  trustId           String
+  trust             Trust         @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  templateId        String
+  template          ReceiptTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  pdfUrl            String?
+  verificationToken String        @unique
+  status            ReceiptStatus @default(ACTIVE)
+  voidedById        String?
+  voidReason        String?
+  generatedAt       DateTime      @default(now())
+
+  @@unique([trustId, receiptNumber])
+  @@index([trustId, generatedAt])
+  @@index([donationId])
+}
+
+model ReceiptTemplate {
+  id                  String          @id @default(uuid())
+  trustId             String
+  trust               Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  name                String
+  pageSize            PageSize        @default(A5)
+  widthMm             Int?
+  heightMm            Int?
+  backgroundImageUrl  String?
+  fieldConfigs        Json
+  active              Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  receipts            Receipt[]
+  numberConfigs       ReceiptNumberConfig[]
+
+  @@index([trustId])
+}
+
+model ReceiptNumberConfig {
+  id          String          @id @default(uuid())
+  trustId     String
+  trust       Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  templateId  String?
+  template    ReceiptTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  prefix      String          @default("RC")
+  separator   String          @default("-")
+  year        String
+  nextSequence Int            @default(1)
+  padLength   Int             @default(6)
+
+  @@unique([trustId, prefix, year])
+}
+
+model PaymentCampaign {
+  id              String          @id @default(uuid())
+  trustId         String
+  trust           Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  slug            String          @unique
+  category        String?
+  suggestedAmounts Int[]
+  active          Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+
+  donations       Donation[]
+}
+
+model PaymentTransaction {
+  id            String    @id @default(uuid())
+  donationId    String
+  donation      Donation  @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  provider      String    @default("MOCK")
+  orderId       String    @unique
+  paymentId     String?   @unique
+  amount        Int
+  currency      String    @default("INR")
+  status        String    @default("CREATED")
+  providerResponse Json?
+  webhookVerified Boolean  @default(false)
+  createdAt     DateTime  @default(now())
+}
+
+model Announcement {
+  id          String          @id @default(uuid())
+  trustId     String
+  trust       Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type        AnnouncementType @default(GENERAL)
+  title       String
+  content     String
+  mediaUrl    String?
+  pinned      Boolean         @default(false)
+  publishedAt DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  reads       AnnouncementRead[]
+
+  @@index([trustId, publishedAt])
+}
+
+model AnnouncementRead {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  memberId       String
+  member         TrustMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@unique([announcementId, memberId])
+}
+
+model Notification {
+  id              String              @id @default(uuid())
+  trustId         String
+  trust           Trust               @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  donationId      String?
+  donation        Donation?           @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  recipientPhone  String?
+  recipientEmail  String?
+  channel         NotificationChannel
+  message         String
+  status          NotificationStatus  @default(PENDING)
+  providerResponse String?
+  createdAt       DateTime            @default(now())
+
+  @@index([trustId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  trustId    String?
+  trust      Trust?   @relation(fields: [trustId], references: [id], onDelete: SetNull)
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([trustId, createdAt])
+  @@index([actorId])
+}
+
+model TrustInvite {
+  id        String   @id @default(uuid())
+  trustId   String
+  trust     Trust    @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  email     String?
+  phone     String?
+  token     String   @unique
+  role      TrustRole @default(MEMBER)
+  used      Boolean  @default(false)
+  createdById String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+}
+
+model JoinRequest {
+  id        String     @id @default(uuid())
+  trustId   String
+  trust     Trust      @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  userId    String
+  message   String?
+  status    String     @default("PENDING")
+  createdAt DateTime   @default(now())
+
+  @@unique([trustId, userId])
+}
