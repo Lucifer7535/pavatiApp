@@ -25,7 +25,7 @@ router.get(
       prisma.donation.count({ where: { trustId, status: 'PENDING' } }),
       prisma.trustMember.count({ where: { trustId, status: 'ACTIVE' } }),
       prisma.donation.findMany({
-        where: { trustId },
+        where: { trustId, status: 'SUCCEEDED' },
         include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 } },
         orderBy: { donationDate: 'desc' },
         take: 8,

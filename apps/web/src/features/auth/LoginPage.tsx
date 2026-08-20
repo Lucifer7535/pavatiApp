@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,6 +16,8 @@ const schema = z.object({
 type Form = z.infer<typeof schema>
 
 export default function LoginPage() {
+  const user = useAuth((s) => s.user)
+  if (user) return <Navigate to="/app" replace />
   const navigate = useNavigate()
   const location = useLocation()
   const [loading, setLoading] = useState(false)

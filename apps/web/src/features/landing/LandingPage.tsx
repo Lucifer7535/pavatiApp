@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, ReceiptText, ShieldCheck, Users, Wallet, Landmark, Smartphone, Bell } from 'lucide-react'
 import { Badge } from '../../components/ui'
 
@@ -18,7 +18,12 @@ const steps = [
   { n: '04', title: 'Reconcile & report', desc: 'Dashboards and reports keep accounts transparent for the committee.' },
 ]
 
+import { useAuth } from '../../lib/stores/auth'
+
 export default function LandingPage() {
+  const user = useAuth((s) => s.user)
+  // If already logged in, redirect to dashboard
+  if (user) return <Navigate to="/app" replace />
   return (
     <div className="min-h-screen bg-cream-50">
       <header className="sticky top-0 z-20 border-b border-stone-200/60 bg-cream-50/90 backdrop-blur">

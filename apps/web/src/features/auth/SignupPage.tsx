@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,6 +18,8 @@ const schema = z.object({
 type Form = z.infer<typeof schema>
 
 export default function SignupPage() {
+  const user = useAuth((s) => s.user)
+  if (user) return <Navigate to="/app" replace />
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema) as any })

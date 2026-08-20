@@ -159,9 +159,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="hidden items-center gap-3 lg:flex">
             <Badge color="saffron">{active?.role ?? 'Member'}</Badge>
-            <Link to="/app/donations/new" className="btn-primary px-3 py-2 text-xs">
-              <PlusCircle className="h-4 w-4" /> New Pāvati
-            </Link>
+
           </div>
         </header>
         <main className="mx-auto max-w-6xl p-4 sm:p-6">{children}</main>
