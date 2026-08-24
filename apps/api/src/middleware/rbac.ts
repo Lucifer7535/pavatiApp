@@ -45,10 +45,12 @@ export async function loadTrustContext(req: TrustContextRequest, _res: Response,
   }
 }
 
-export function requirePermission(permission: Permission) {
+export function requirePermission(permission: Permission | Permission[]) {
+  const perms = Array.isArray(permission) ? permission : [permission]
   return (req: TrustContextRequest, _res: Response, next: NextFunction) => {
-    if (!req.effectivePermissions?.includes(permission)) {
-      return next(new AppError(403, `Missing permission: ${permission}`))
+    const has = req.effectivePermissions
+    if (!has || !perms.some((p) => has.includes(p))) {
+      return next(new AppError(403, `Missing permission: ${perms.join(' or ')}`))
     }
     next()
   }

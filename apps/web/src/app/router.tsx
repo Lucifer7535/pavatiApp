@@ -8,7 +8,6 @@ import { Spinner } from '../components/ui'
 const LandingPage = lazy(() => import('../features/landing/LandingPage'))
 const LoginPage = lazy(() => import('../features/auth/LoginPage'))
 const SignupPage = lazy(() => import('../features/auth/SignupPage'))
-const OtpPage = lazy(() => import('../features/auth/OtpPage'))
 const ForgotPasswordPage = lazy(() => import('../features/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('../features/auth/ResetPasswordPage'))
 const OnboardingPage = lazy(() => import('../features/onboarding/OnboardingPage'))
@@ -17,7 +16,7 @@ const JoinTrustPage = lazy(() => import('../features/onboarding/JoinTrustPage'))
 const TrustSearchPage = lazy(() => import('../features/onboarding/TrustSearchPage'))
 const TrustPublicProfile = lazy(() => import('../features/trust/TrustPublicProfile'))
 const DonatePage = lazy(() => import('../features/donate/DonatePage'))
-const PaymentSuccessPage = lazy(() => import('../features/donate/PaymentSuccessPage'))
+const MemberDonatePage = lazy(() => import('../features/donate/MemberDonatePage'))
 const ReceiptVerifyPage = lazy(() => import('../features/receipts/ReceiptVerifyPage'))
 const AccountPage = lazy(() => import('../features/account/AccountPage'))
 const TrustDashboard = lazy(() => import('../features/dashboard/TrustDashboard'))
@@ -67,11 +66,23 @@ function RequireMembership({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-export function RequirePermission({ permission, children }: { permission: Permission; children: ReactNode }) {
+function RequireNoPermission({ permission, children }: { permission: Permission | Permission[]; children: ReactNode }) {
   const member = useActiveTrust()
   if (!member) return <Navigate to="/onboarding" replace />
   const perms = permissionsForRole(member.role as TrustRole)
-  if (!perms.includes(permission)) {
+  const excluded = Array.isArray(permission) ? permission : [permission]
+  if (excluded.some((p) => perms.includes(p))) {
+    return <Navigate to="/app/dashboard" replace />
+  }
+  return <>{children}</>
+}
+
+export function RequirePermission({ permission, children }: { permission: Permission | Permission[]; children: ReactNode }) {
+  const member = useActiveTrust()
+  if (!member) return <Navigate to="/onboarding" replace />
+  const perms = permissionsForRole(member.role as TrustRole)
+  const needed = Array.isArray(permission) ? permission : [permission]
+  if (!needed.some((p) => perms.includes(p))) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center p-8">
         <div className="text-center">
@@ -100,12 +111,10 @@ export const router = createBrowserRouter([
       { path: '/', element: <LandingPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/signup', element: <SignupPage /> },
-      { path: '/otp', element: <OtpPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
       { path: '/donate/:slug', element: <DonatePage /> },
       { path: '/donate', element: <DonatePage /> },
-      { path: '/payment-success', element: <PaymentSuccessPage /> },
       { path: '/trust/:trustId', element: <TrustPublicProfile /> },
       { path: '/receipt/verify/:token', element: <ReceiptVerifyPage /> },
 
@@ -131,10 +140,11 @@ export const router = createBrowserRouter([
             children: [
               { path: '/app', element: <DashboardLoader /> },
               { path: '/app/dashboard', element: <DashboardLoader /> },
-              { path: '/app/donations', element: <RequirePermission permission="donation:view"><DonationsPage /></RequirePermission> },
+              { path: '/app/donate', element: <RequireNoPermission permission="donation:create"><MemberDonatePage /></RequireNoPermission> },
+              { path: '/app/donations', element: <RequirePermission permission={['donation:view', 'donation:view_own']}><DonationsPage /></RequirePermission> },
               { path: '/app/donations/new', element: <RequirePermission permission="donation:create"><CreateDonationPage /></RequirePermission> },
-              { path: '/app/donations/:donationId', element: <RequirePermission permission="donation:view"><DonationDetailPage /></RequirePermission> },
-              { path: '/app/receipts', element: <RequirePermission permission="receipt:view"><ReceiptsPage /></RequirePermission> },
+              { path: '/app/donations/:donationId', element: <RequirePermission permission={['donation:view', 'donation:view_own']}><DonationDetailPage /></RequirePermission> },
+              { path: '/app/receipts', element: <RequirePermission permission={['receipt:view', 'donation:view_own']}><ReceiptsPage /></RequirePermission> },
               { path: '/app/receipts/:receiptId', element: <RequirePermission permission="receipt:view"><ReceiptPreviewPage /></RequirePermission> },
               { path: '/app/templates', element: <RequirePermission permission="template:manage"><TemplatesPage /></RequirePermission> },
               { path: '/app/templates/new', element: <RequirePermission permission="template:manage"><TemplateEditorPage /></RequirePermission> },

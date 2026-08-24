@@ -60,20 +60,20 @@ export const FESTIVALS = [
 export const PAYMENT_MODE = {
   CASH: 'CASH',
   UPI: 'UPI',
-  ONLINE: 'ONLINE',
   BANK_TRANSFER: 'BANK_TRANSFER',
   CARD: 'CARD',
   OTHER: 'OTHER',
+  MIXED: 'MIXED',
 } as const
 export type PaymentMode = (typeof PAYMENT_MODE)[keyof typeof PAYMENT_MODE]
 
 export const PAYMENT_MODE_LABELS: Record<PaymentMode, string> = {
   CASH: 'Cash',
   UPI: 'UPI',
-  ONLINE: 'Online Payment',
   BANK_TRANSFER: 'Bank Transfer',
   CARD: 'Card',
   OTHER: 'Other',
+  MIXED: 'Mixed',
 }
 
 export const DONATION_CATEGORIES = [

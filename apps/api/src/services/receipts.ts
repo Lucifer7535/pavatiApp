@@ -1,6 +1,7 @@
 import QRCode from 'qrcode'
 import type { Donation, Trust, TrustMember } from '@prisma/client'
 import type { ReceiptFieldConfig } from '@pavati/shared'
+import { PAYMENT_MODE_LABELS } from '@pavati/shared'
 import { randomBytes } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
 import { config } from '../config/index.js'
@@ -12,6 +13,10 @@ import { logger } from '../lib/logger.js'
 
 export async function generateQrPng(text: string): Promise<Uint8Array> {
   return QRCode.toBuffer(text, { type: 'png', width: 400, margin: 1, errorCorrectionLevel: 'M' })
+}
+
+function formatInrAmount(n: number): string {
+  return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n)
 }
 
 interface GenerateReceiptInput {
@@ -75,6 +80,15 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
   const logo = trust.logoUrl ? fileFromUrl(trust.logoUrl)?.buffer ?? null : null
   const qr = await generateQrPng(verificationUrl)
 
+  let paymentBreakdown: string | undefined
+  let transactionRef: string | undefined
+  if (donation.paymentMode === 'MIXED') {
+    const splits = await prisma.donationSplit.findMany({ where: { donationId: donation.id }, orderBy: { createdAt: 'asc' } })
+    paymentBreakdown = splits.map((s) => `${(PAYMENT_MODE_LABELS as Record<string, string>)[s.paymentMode] ?? s.paymentMode} ₹${formatInrAmount(s.amount)}`).join(' + ')
+    const refs = splits.map((s) => s.transactionRef).filter(Boolean)
+    if (refs.length) transactionRef = refs.join(' / ')
+  }
+
   const data: ReceiptData = {
     trustName: trust.name,
     trustAddress: [trust.address, trust.city, trust.pinCode].filter(Boolean).join(', '),
@@ -85,8 +99,9 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
     donorAddress: donation.address ?? undefined,
     amount: donation.amount,
     paymentMode: donation.paymentMode,
+    paymentBreakdown,
     category: donation.category,
-    transactionRef: donation.transactionRef ?? undefined,
+    transactionRef: transactionRef ?? donation.transactionRef ?? undefined,
     collectorName: input.collectorName ?? (input.collector ? `${input.collector.position || ''} ${input.collector.user?.name ?? ''}`.trim() : undefined),
     footerText: `धन्यवाद - Thank you for your generous support`,
   }

@@ -15,15 +15,24 @@ describe('ROLE_PERMISSIONS', () => {
     expect(p).not.toContain('donation:view')
   })
 
-  it('every member role can view receipts and announcements; all but collector can view donations', () => {
-    for (const role of ['MEMBER', 'VOLUNTEER', 'TREASURER', 'SECRETARY', 'PRESIDENT', 'ADMIN'] as const) {
+  it('committee roles view all donations; members and volunteers only their own', () => {
+    for (const role of ['TREASURER', 'SECRETARY', 'PRESIDENT', 'ADMIN'] as const) {
       const p = permissionsForRole(role)
       expect(p).toContain('donation:view')
       expect(p).toContain('receipt:view')
       expect(p).toContain('announcement:view')
     }
+    for (const role of ['MEMBER', 'VOLUNTEER'] as const) {
+      const p = permissionsForRole(role)
+      expect(p).not.toContain('donation:view')
+      expect(p).toContain('donation:view_own')
+      expect(p).toContain('receipt:view')
+      expect(p).toContain('announcement:view')
+      expect(p).toContain('donate')
+    }
     const collector = permissionsForRole('COLLECTOR')
     expect(collector).not.toContain('donation:view')
+    expect(collector).not.toContain('donation:view_own')
     expect(collector).toContain('receipt:view')
     expect(collector).toContain('receipt:create')
   })

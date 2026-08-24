@@ -2,16 +2,28 @@ import { useQuery } from '@tanstack/react-query'
 import { FileClock } from 'lucide-react'
 import { api } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
-import { Card, Spinner, Badge, PageHeader, EmptyState } from '../../components/ui'
+import { Button, Card, Spinner, Badge, PageHeader, EmptyState } from '../../components/ui'
 import { useActiveTrust } from '../../lib/stores/auth'
 import { timeAgo } from '../../lib/utils'
 
 export default function AuditLogPage() {
   const active = useActiveTrust()!
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['audit', active.trustId],
     queryFn: () => api.get<any[]>(`/trusts/${active.trustId}/audit-log`),
   })
+
+  if (isError) {
+    return (
+      <AppLayout>
+        <PageHeader title="Audit Log" subtitle="Every important action, recorded" />
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
+          <p className="text-sm text-stone-500">Could not load the audit log.</p>
+          <Button onClick={() => refetch()}>Retry</Button>
+        </div>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>

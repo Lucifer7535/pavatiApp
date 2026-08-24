@@ -47,6 +47,7 @@ enum PaymentMode {
   BANK_TRANSFER
   CARD
   OTHER
+  MIXED
 }
 
 enum DonationStatus {
@@ -112,19 +113,6 @@ model User {
   announcements Announcement[]
   auditLogs     AuditLog[]
   refreshTokens RefreshToken[]
-}
-
-model OtpCode {
-  id        String    @id @default(uuid())
-  phone     String
-  codeHash  String
-  purpose   String    @default("LOGIN")
-  expiresAt DateTime
-  attempts  Int       @default(0)
-  consumed  Boolean   @default(false)
-  createdAt DateTime  @default(now())
-
-  @@index([phone, purpose])
 }
 
 model RefreshToken {
@@ -199,6 +187,8 @@ model TrustMember {
   joinedAt     DateTime        @default(now())
 
   donations    Donation[]      @relation("CollectorDonations")
+  submittedDonations Donation[] @relation("SubmittedDonations")
+  verifiedSplits DonationSplit[] @relation("VerifiedSplits")
   announcementReads AnnouncementRead[]
 
   @@unique([trustId, userId])
@@ -235,6 +225,8 @@ model Donation {
   donationDate  DateTime        @default(now())
   collectorId   String?
   collector     TrustMember?    @relation("CollectorDonations", fields: [collectorId], references: [id], onDelete: SetNull)
+  submittedById String?
+  submitter     TrustMember?    @relation("SubmittedDonations", fields: [submittedById], references: [id], onDelete: SetNull)
   status        DonationStatus  @default(SUCCEEDED)
   isOnline      Boolean         @default(false)
   campaignId    String?
@@ -245,11 +237,28 @@ model Donation {
   receipts      Receipt[]
   notifications Notification[]
   paymentTransactions PaymentTransaction[]
+  splits        DonationSplit[]
 
   @@index([trustId, donationDate])
   @@index([trustId, paymentMode])
   @@index([trustId, category])
   @@index([collectorId])
+}
+
+model DonationSplit {
+  id             String       @id @default(uuid())
+  donationId     String
+  donation       Donation     @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  paymentMode    PaymentMode
+  amount         Int
+  transactionRef String?
+  proofUrl       String?
+  verifiedById   String?
+  verifiedBy     TrustMember? @relation("VerifiedSplits", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([donationId])
 }
 
 model Receipt {
@@ -317,6 +326,7 @@ model PaymentCampaign {
   slug            String          @unique
   category        String?
   suggestedAmounts Int[]
+  qrCodeUrl       String?
   active          Boolean         @default(true)
   createdAt       DateTime        @default(now())
 

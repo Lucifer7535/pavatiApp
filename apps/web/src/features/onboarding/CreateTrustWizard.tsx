@@ -11,6 +11,7 @@ import { useAuth } from '../../lib/stores/auth'
 import { Button, Card, Input, Select, Textarea } from '../../components/ui'
 import { fileToDataUrl } from '../../lib/utils'
 import FestivalPicker from '../../components/FestivalPicker'
+import LogoutButton from '../../components/LogoutButton'
 
 const schema = z.object({
   name: z.string().min(2, 'Trust name must be at least 2 characters'),
@@ -72,9 +73,12 @@ export default function CreateTrustWizard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10">
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <Link to="/onboarding" className="mb-6 flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+        <div className="mb-6 flex items-center gap-2">
+          <Link to="/onboarding" className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <LogoutButton />
+        </div>
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-maroon-700 text-2xl text-white"><Landmark className="h-7 w-7" /></div>
           <h1 className="mt-4 text-3xl font-bold text-stone-900">Create your trust</h1>

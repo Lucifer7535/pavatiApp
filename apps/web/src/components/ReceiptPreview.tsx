@@ -25,6 +25,7 @@ export interface PreviewData {
   amount: number
   category: string
   paymentMode: string
+  paymentBreakdown?: string
   transactionRef?: string
   collectorName?: string
   footerText?: string
@@ -34,11 +35,13 @@ export function ReceiptCanvasPreview({
   template,
   data,
   scale = 1.6,
+  fit = true,
   className,
 }: {
   template: ReceiptTemplateView
   data: PreviewData
   scale?: number
+  fit?: boolean
   className?: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -77,9 +80,9 @@ export function ReceiptCanvasPreview({
 
   if (error) return <div className="flex h-40 items-center justify-center text-sm text-red-600">{error}</div>
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className={cn('flex flex-col gap-2', fit ? 'items-center' : 'items-start')}>
       {!canvasRef.current && <Spinner label="Rendering preview…" />}
-      <canvas ref={canvasRef} className={cn('h-auto max-w-full', className)} />
+      <canvas ref={canvasRef} className={cn('block', fit ? 'h-auto max-w-full' : 'h-auto w-full', className)} />
     </div>
   )
 }

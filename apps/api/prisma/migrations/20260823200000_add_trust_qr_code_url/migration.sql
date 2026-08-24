@@ -1,0 +1,1 @@
+ALTER TABLE "Trust" ADD COLUMN "qrCodeUrl" TEXT;

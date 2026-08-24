@@ -25,6 +25,8 @@ describe('app smoke', () => {
   it('returns 401 for protected routes without a token', async () => {
     expect((await request(app).get('/api/v1/auth/me')).status).toBe(401)
     expect((await request(app).get('/api/v1/trusts/096dd518-28fe-4b70-8ea9-2a6a0aea0252/donations')).status).toBe(401)
+    expect((await request(app).get('/api/v1/trusts/096dd518-28fe-4b70-8ea9-2a6a0aea0252/audit-log')).status).toBe(401)
+    expect((await request(app).post('/api/v1/trusts/096dd518-28fe-4b70-8ea9-2a6a0aea0252/my-donations')).status).toBe(401)
   })
 
   it('rejects malformed login bodies with 422', async () => {

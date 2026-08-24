@@ -150,7 +150,14 @@ router.post(
   asyncHandler(async (req: AuthedRequest, res) => {
     const trust = await prisma.trust.findUnique({ where: { id: req.params.trustId } })
     if (!trust) throw new AppError(404, 'Trust not found')
-    if (trust.joinCode.toLowerCase() !== req.body.code.toLowerCase()) throw new AppError(400, 'Invalid join code')
+    // INVITE_ONLY always requires a valid code; OPEN/APPROVAL allow code-less one-tap join
+    if (trust.joinMode === 'INVITE_ONLY') {
+      if (!req.body.code) throw new AppError(400, 'A join code is required for this trust')
+      if (trust.joinCode.toLowerCase() !== req.body.code.toLowerCase()) throw new AppError(400, 'Invalid join code')
+    } else if (req.body.code) {
+      // Optional code validation for OPEN/APPROVAL — if provided it must match
+      if (trust.joinCode.toLowerCase() !== req.body.code.toLowerCase()) throw new AppError(400, 'Invalid join code')
+    }
     const existing = await prisma.trustMember.findUnique({
       where: { trustId_userId: { trustId: trust.id, userId: req.user!.id } },
     })
@@ -187,6 +194,20 @@ router.get(
       orderBy: { joinedAt: 'asc' },
     })
     ok(res, committee.map((m) => ({ id: m.id, role: m.role, position: m.position, contactVisible: m.contactVisible, introduction: m.introduction, joinedAt: m.joinedAt, user: showPublic ? publicUser(m.user) : { id: m.user.id, name: m.user.name, profileImage: m.user.profileImage } })))
+  })
+)
+
+router.delete(
+  '/:trustId',
+  requireAuth,
+  loadTrustContext,
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    if (req.trustMember!.role !== 'PRIMARY_ADMIN') throw new AppError(403, 'Only the trust creator can delete this trust')
+    const trust = await prisma.trust.findUnique({ where: { id: req.trustId } })
+    if (!trust) throw new AppError(404, 'Trust not found')
+    await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'TRUST_DELETED', entityType: 'Trust', entityId: req.trustId, metadata: { name: trust.name } })
+    await prisma.trust.delete({ where: { id: req.trustId } })
+    ok(res, { message: 'Trust deleted' })
   })
 )
 

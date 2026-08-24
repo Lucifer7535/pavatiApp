@@ -20,7 +20,7 @@ router.get(
     })
     if (!campaign || !campaign.active) throw new AppError(404, 'Campaign not found')
     ok(res, {
-      campaign: { id: campaign.id, name: campaign.name, description: campaign.description, category: campaign.category, suggestedAmounts: campaign.suggestedAmounts },
+      campaign: { id: campaign.id, name: campaign.name, description: campaign.description, category: campaign.category, suggestedAmounts: campaign.suggestedAmounts, qrCodeUrl: campaign.qrCodeUrl },
       trust: { id: campaign.trust.id, name: campaign.trust.name, logoUrl: campaign.trust.logoUrl, description: campaign.trust.description, city: campaign.trust.city, upiId: campaign.trust.upiId, festivalTypes: campaign.trust.festivalTypes, allowAnonymousDonations: campaign.trust.allowAnonymousDonations },
     })
   })
@@ -58,6 +58,7 @@ router.post(
         slug,
         category: body.category ?? null,
         suggestedAmounts: body.suggestedAmounts ?? [],
+        qrCodeUrl: body.qrCodeUrl ?? null,
       },
     })
     await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'CAMPAIGN_CREATED', entityType: 'PaymentCampaign', entityId: campaign.id, metadata: { slug } })
@@ -80,6 +81,7 @@ router.patch(
         ...(body.description !== undefined && { description: body.description }),
         ...(body.category !== undefined && { category: body.category }),
         ...(body.suggestedAmounts !== undefined && { suggestedAmounts: body.suggestedAmounts }),
+        ...(body.qrCodeUrl !== undefined && { qrCodeUrl: body.qrCodeUrl }),
       },
     })
     await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'CAMPAIGN_UPDATED', entityType: 'PaymentCampaign', entityId: campaign.id })

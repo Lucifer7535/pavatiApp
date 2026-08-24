@@ -70,6 +70,9 @@
   .btn-maroon {
     @apply btn bg-maroon-700 text-white shadow-sm hover:bg-maroon-800;
   }
+  .btn-whatsapp {
+    @apply btn bg-emerald-500 text-white shadow-sm hover:bg-emerald-600;
+  }
   .btn-outline {
     @apply btn border border-stone-300 bg-white text-stone-700 hover:border-saffron-300 hover:bg-saffron-50;
   }

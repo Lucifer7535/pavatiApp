@@ -12,6 +12,19 @@ import TemplateFieldOverlay from '../../components/TemplateFieldOverlay'
 import { useActiveTrust } from '../../lib/stores/auth'
 import { fileToDataUrl } from '../../lib/utils'
 
+const ZOOMS: Array<number | 'fit'> = ['fit', 0.75, 1, 1.4, 2]
+
+const PX_PER_MM = 96 / 25.4
+
+function imageDims(src: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+    img.onerror = () => reject(new Error('Could not read image dimensions'))
+    img.src = src
+  })
+}
+
 const SAMPLE: any = {
   trustName: 'Shree Ganesh Mitra Mandal',
   trustAddress: 'Ganesh Mandir Road, Kothrud, Pune, 411038',
@@ -37,7 +50,7 @@ export default function TemplateEditorPage() {
   const [widthMm, setWidthMm] = useState(148)
   const [heightMm, setHeightMm] = useState(83)
   const [bgUrl, setBgUrl] = useState<string | null>(null)
-  const [fields, setFields] = useState<ReceiptFieldConfig[]>(DEFAULT_FIELDS.map((f) => ({ ...f })))
+  const [fields, setFields] = useState<ReceiptFieldConfig[]>([])
 
   useEffect(() => {
     if (isNew) return
@@ -65,20 +78,29 @@ export default function TemplateEditorPage() {
     setFields((prev) => prev.map((f, idx) => (idx === i ? { ...f, ...patch } : f)))
   }
 
-  const availableFields = FIELD_KEYS.filter((k) => !fields.some((f) => f.key === k))
-
   const addField = (key: (typeof FIELD_KEYS)[number]) => {
     const def = DEFAULT_FIELDS.find((d) => d.key === key)
     setFields([...fields, def ? { ...def } : { key, label: FIELD_LABELS[key], x: 4, y: 90, width: 40, height: 7, fontSize: 14, fontFamily: 'Mukta', color: '#4a1f0c', align: 'left', bold: false, visible: true }])
+    setSelected(fields.length)
   }
 
   const onBg = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const dataUrl = await fileToDataUrl(file)
-    const res = await uploadFile(dataUrl)
-    setBgUrl(res.url)
-    toast.success('Background uploaded')
+    try {
+      const dataUrl = await fileToDataUrl(file)
+      const { width, height } = await imageDims(dataUrl)
+      const wMm = Math.round((width / PX_PER_MM) * 10) / 10
+      const hMm = Math.round((height / PX_PER_MM) * 10) / 10
+      const res = await uploadFile(dataUrl)
+      setBgUrl(res.url)
+      setPageSize('CUSTOM')
+      setWidthMm(wMm)
+      setHeightMm(hMm)
+      toast.success(`Background uploaded — page set to ${wMm} × ${hMm} mm`)
+    } catch (err: any) {
+      toast.error(err.message ?? 'Upload failed')
+    }
   }
 
   const save = async () => {
@@ -103,7 +125,8 @@ export default function TemplateEditorPage() {
 
   const [selected, setSelected] = useState<number | null>(null)
   const sel = selected !== null ? fields[selected] : null
-  const [zoom, setZoom] = useState(1.4)
+  const [zoom, setZoom] = useState<number | 'fit'>('fit')
+  const [editZoom, setEditZoom] = useState<number | 'fit'>('fit')
   const page = pagePx(pageSize, widthMm, heightMm)
   const aspect = page.width / page.height
   const sampleValues = useMemo(() => buildFieldValues(SAMPLE as any), [])
@@ -153,9 +176,9 @@ export default function TemplateEditorPage() {
 
               <Card>
                 <CardHeader title="Fields" action={
-                  <Select value="" onChange={(e) => { if (e.target.value) { addField(e.target.value as (typeof FIELD_KEYS)[number]); e.target.value = '' } }} className="w-44" disabled={availableFields.length === 0}>
-                    <option value="">{availableFields.length === 0 ? 'All fields added' : '＋ Add field…'}</option>
-                    {availableFields.map((k) => <option key={k} value={k}>{FIELD_LABELS[k]}</option>)}
+                  <Select value="" onChange={(e) => { if (e.target.value) { addField(e.target.value as (typeof FIELD_KEYS)[number]); e.target.value = '' } }} className="w-44">
+                    <option value="">＋ Add field…</option>
+                    {FIELD_KEYS.map((k) => <option key={k} value={k}>{FIELD_LABELS[k]}</option>)}
                   </Select>
                 } />
                 <div className="max-h-80 space-y-1 overflow-y-auto p-3">
@@ -175,30 +198,46 @@ export default function TemplateEditorPage() {
 
             <div className="space-y-5">
               <div className="rounded-2xl border border-stone-200 bg-white p-4">
-                <p className="text-sm font-semibold text-stone-500">Visual editor</p>
-                <p className="mb-3 text-xs text-stone-400">Drag a field box onto the image to position it, use the corner handle to resize, and click a box to edit its style.</p>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-stone-500">Visual editor</p>
+                  <div className="w-24 shrink-0">
+                    <Select value={editZoom === 'fit' ? 'fit' : String(editZoom)} onChange={(e) => setEditZoom(e.target.value === 'fit' ? 'fit' : Number(e.target.value))}>
+                      {ZOOMS.map((z) => <option key={String(z)} value={String(z)}>{z === 'fit' ? 'Fit' : `${z}×`}</option>)}
+                    </Select>
+                  </div>
+                </div>
                 <div className="max-h-[60vh] overflow-auto rounded-lg border border-stone-100 bg-stone-50 p-3">
-                  <TemplateFieldOverlay
-                    fields={fields}
-                    aspect={aspect}
-                    bgUrl={bgUrl}
-                    values={sampleValues}
-                    selected={selected}
-                    onSelect={setSelected}
-                    onUpdate={updateField}
-                  />
+                  {fields.length === 0 ? (
+                    <div className="flex min-h-44 items-center justify-center px-6 text-center text-xs text-stone-400">No fields yet — add them from the Fields panel</div>
+                  ) : (
+                    <div style={editZoom === 'fit' ? undefined : { width: `${editZoom * 100}%` }}>
+                      <TemplateFieldOverlay
+                        fields={fields}
+                        aspect={aspect}
+                        bgUrl={bgUrl}
+                        values={sampleValues}
+                        selected={selected}
+                        onSelect={setSelected}
+                        onUpdate={updateField}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-stone-200 bg-white p-4">
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-3 flex items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-stone-500">Live preview</p>
-                  <Select value={String(zoom)} onChange={(e) => setZoom(Number(e.target.value))} className="w-24">
-                    {[0.5, 0.75, 1, 1.4, 2].map((z) => <option key={z} value={z}>{z}×</option>)}
-                  </Select>
+                  <div className="w-24 shrink-0">
+                    <Select value={zoom === 'fit' ? 'fit' : String(zoom)} onChange={(e) => setZoom(e.target.value === 'fit' ? 'fit' : Number(e.target.value))}>
+                      {ZOOMS.map((z) => <option key={String(z)} value={String(z)}>{z === 'fit' ? 'Fit' : `${z}×`}</option>)}
+                    </Select>
+                  </div>
                 </div>
                 <div className="max-h-[70vh] overflow-auto rounded-lg border border-stone-100 bg-stone-50 p-3">
-                  <ReceiptCanvasPreview template={template} data={SAMPLE} scale={zoom} className="mx-auto rounded-lg shadow" />
+                  <div style={zoom === 'fit' ? undefined : { width: `${zoom * 100}%` }}>
+                    <ReceiptCanvasPreview template={template} data={SAMPLE} scale={zoom === 'fit' ? 1.4 : Math.max(1.4, zoom)} fit={zoom === 'fit'} className="rounded-lg shadow" />
+                  </div>
                 </div>
               </div>
 

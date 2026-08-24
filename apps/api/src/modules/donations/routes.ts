@@ -1,31 +1,64 @@
 import { Router } from 'express'
 import { z } from '@pavati/shared'
-import { Prisma } from '@prisma/client'
+import { Prisma, type DonationStatus, type Trust } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { validateBody, validateQuery } from '../../middleware/validate.js'
-import { createDonationSchema, createOnlineDonationSchema, mockPaymentCompleteSchema, PAYMENT_MODE, type PaymentMode } from '@pavati/shared'
-import { paymentProvider } from '../../providers/payment.js'
+import { createDonationSchema, selfDonationSchema, PAYMENT_MODE, type PaymentMode } from '@pavati/shared'
 import { generateReceipt } from '../../services/receipts.js'
-import { sendReceiptNotifications } from '../../services/notifications.js'
+import { sendReceiptNotifications, buildReceiptWhatsAppUrl } from '../../services/notifications.js'
 import { audit } from '../../services/audit.js'
 
 const router = Router()
 
-router.use('/:trustId/donations', requireAuth, loadTrustContext)
+router.use(['/:trustId/donations', '/:trustId/my-donations'], requireAuth, loadTrustContext)
 
 const listQuery = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   paymentMode: z.enum(Object.values(PAYMENT_MODE) as [string, ...string[]]).optional(),
+  status: z.enum(['PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED', 'CANCELLED']).optional(),
   category: z.string().optional(),
   collectorId: z.string().uuid().optional(),
   q: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 })
+
+type InputSplit = { paymentMode: PaymentMode; amount: number; transactionRef?: string | null; proofUrl?: string | null }
+
+function resolveSplits(body: z.infer<typeof createDonationSchema>): InputSplit[] {
+  if (body.splits?.length) return body.splits as InputSplit[]
+  return [{ paymentMode: (body.paymentMode ?? 'CASH') as PaymentMode, amount: body.amount, transactionRef: body.transactionRef ?? null, proofUrl: null }]
+}
+
+async function issueReceiptForDonation(trust: Trust, donationId: string, actorId?: string | null) {
+  const donation = await prisma.donation.findUniqueOrThrow({ where: { id: donationId } })
+  const collector = donation.collectorId
+    ? await prisma.trustMember.findUnique({ where: { id: donation.collectorId }, include: { user: true } })
+    : null
+  const receipt = await generateReceipt({
+    donationId: donation.id,
+    trust,
+    donation,
+    collector,
+    actorId,
+  })
+  await audit({ actorId: actorId ?? null, trustId: trust.id, action: 'DONATION_VERIFIED', entityType: 'Donation', entityId: donation.id, metadata: { amount: donation.amount, receipt: receipt.receiptNumber } })
+  await sendReceiptNotifications({
+    trustId: trust.id,
+    donorName: donation.donorName,
+    donorPhone: donation.phone,
+    donorEmail: null,
+    amount: donation.amount,
+    receiptNumber: receipt.receiptNumber,
+    receiptVerificationToken: receipt.verificationToken,
+    channels: { sms: trust.notificationSms, whatsapp: trust.notificationWhatsapp, email: trust.notificationEmail },
+  })
+  return receipt
+}
 
 router.post(
   '/:trustId/donations',
@@ -36,6 +69,19 @@ router.post(
     const trust = await prisma.trust.findUnique({ where: { id: req.trustId! } })
     if (!trust) throw new AppError(404, 'Trust not found')
 
+    let campaignId: string | null = null
+    if (body.campaignId) {
+      const campaign = await prisma.paymentCampaign.findFirst({ where: { id: body.campaignId, trustId: trust.id } })
+      if (!campaign) throw new AppError(400, 'Payment link not found')
+      campaignId = campaign.id
+    }
+
+    const inputSplits = resolveSplits(body)
+    const distinctModes = new Set(inputSplits.map((s) => s.paymentMode))
+    const paymentMode = (distinctModes.size > 1 ? 'MIXED' : inputSplits[0].paymentMode) as PaymentMode
+    const now = new Date()
+    const donationStatus = body.awaitingPayment && inputSplits.some((s) => s.paymentMode !== 'CASH') ? 'PENDING' : 'SUCCEEDED'
+
     const donation = await prisma.donation.create({
       data: {
         trustId: trust.id,
@@ -44,56 +90,79 @@ router.post(
         address: body.address ?? null,
         amount: Math.round(body.amount),
         category: body.category,
-        paymentMode: body.paymentMode,
-        transactionRef: body.transactionRef ?? null,
+        paymentMode: paymentMode as never,
+        transactionRef: inputSplits.length === 1 ? inputSplits[0].transactionRef ?? null : null,
         privacy: body.privacy,
         donationDate: body.paymentDate ? new Date(body.paymentDate) : new Date(),
         collectorId: req.trustMember!.id,
-        status: 'SUCCEEDED',
+        status: donationStatus,
         isOnline: false,
         notes: body.notes ?? null,
+        campaignId,
+        splits: {
+          create: inputSplits.map((s) => ({
+            paymentMode: s.paymentMode as never,
+            amount: Math.round(s.amount),
+            transactionRef: s.transactionRef ?? null,
+            proofUrl: s.proofUrl ?? null,
+            verifiedAt: s.paymentMode === 'CASH' || !body.awaitingPayment ? now : null,
+            verifiedById: s.paymentMode === 'CASH' || !body.awaitingPayment ? req.trustMember!.id : null,
+          })),
+        },
       },
+      include: { splits: true },
     })
 
-    const receipt = await generateReceipt({
-      donationId: donation.id,
-      trust,
-      donation,
-      collector: req.trustMember,
-      collectorName: req.user!.name,
-      actorId: req.user!.id,
-    })
+    let receipt: Awaited<ReturnType<typeof generateReceipt>> | null = null
+    let whatsappShareUrl: string | null = null
 
-    await audit({ actorId: req.user!.id, trustId: trust.id, action: 'DONATION_CREATED', entityType: 'Donation', entityId: donation.id, metadata: { amount: donation.amount, mode: donation.paymentMode, receipt: receipt.receiptNumber } })
+    if (donation.status === 'SUCCEEDED') {
+      receipt = await generateReceipt({
+        donationId: donation.id,
+        trust,
+        donation,
+        collector: req.trustMember,
+        collectorName: req.user!.name,
+        actorId: req.user!.id,
+      })
+      whatsappShareUrl = buildReceiptWhatsAppUrl({ donorPhone: donation.phone, amount: donation.amount, receiptNumber: receipt.receiptNumber, receiptVerificationToken: receipt.verificationToken }, trust.notificationWhatsapp)
+    }
 
-    await sendReceiptNotifications({
-      trustId: trust.id,
-      donorName: donation.donorName,
-      donorPhone: donation.phone,
-      donorEmail: null,
-      amount: donation.amount,
-      receiptNumber: receipt.receiptNumber,
-      receiptVerificationToken: receipt.verificationToken,
-      channels: { sms: trust.notificationSms, whatsapp: trust.notificationWhatsapp, email: trust.notificationEmail },
-    })
+    await audit({ actorId: req.user!.id, trustId: trust.id, action: 'DONATION_CREATED', entityType: 'Donation', entityId: donation.id, metadata: { amount: donation.amount, mode: donation.paymentMode, status: donation.status, receipt: receipt?.receiptNumber ?? null } })
 
-    ok(res, { donation, receipt }, 201)
+    if (receipt) {
+      await sendReceiptNotifications({
+        trustId: trust.id,
+        donorName: donation.donorName,
+        donorPhone: donation.phone,
+        donorEmail: null,
+        amount: donation.amount,
+        receiptNumber: receipt.receiptNumber,
+        receiptVerificationToken: receipt.verificationToken,
+        channels: { sms: trust.notificationSms, whatsapp: trust.notificationWhatsapp, email: trust.notificationEmail },
+      })
+    }
+
+    ok(res, { donation, receipt, whatsappShareUrl }, 201)
   })
 )
 
 router.get(
   '/:trustId/donations',
-  requirePermission('donation:view'),
+  requirePermission(['donation:view', 'donation:view_own']),
   validateQuery(listQuery),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof listQuery>
+    const ownOnly = !req.effectivePermissions?.includes('donation:view')
     const where: Prisma.DonationWhereInput = { trustId: req.trustId }
+    if (ownOnly) where.submittedById = req.trustMember!.id
     if (q.from || q.to) {
       where.donationDate = {}
       if (q.from) where.donationDate.gte = new Date(q.from)
       if (q.to) where.donationDate.lte = new Date(q.to)
     }
     if (q.paymentMode) where.paymentMode = q.paymentMode as PaymentMode
+    if (q.status) where.status = q.status as DonationStatus
     if (q.category) where.category = q.category
     if (q.collectorId) where.collectorId = q.collectorId
     if (q.q) where.donorName = { contains: q.q, mode: 'insensitive' }
@@ -104,7 +173,7 @@ router.get(
       prisma.donation.count({ where }),
       prisma.donation.findMany({
         where,
-        include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { include: { user: true } }, campaign: true },
+        include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { include: { user: true } }, campaign: true, splits: { orderBy: { createdAt: 'asc' } } },
         orderBy: { donationDate: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -116,11 +185,16 @@ router.get(
 
 router.get(
   '/:trustId/donations/:donationId',
-  requirePermission('donation:view'),
+  requirePermission(['donation:view', 'donation:view_own']),
   asyncHandler(async (req: TrustContextRequest, res) => {
+    const ownOnly = !req.effectivePermissions?.includes('donation:view')
     const donation = await prisma.donation.findFirst({
-      where: { id: req.params.donationId, trustId: req.trustId },
-      include: { receipts: true, collector: { include: { user: true } }, campaign: true },
+      where: {
+        id: req.params.donationId,
+        trustId: req.trustId,
+        ...(ownOnly ? { submittedById: req.trustMember!.id } : {}),
+      },
+      include: { receipts: true, collector: { include: { user: true } }, campaign: true, splits: { orderBy: { createdAt: 'asc' }, include: { verifiedBy: { include: { user: true } } } } },
     })
     if (!donation) throw new AppError(404, 'Donation not found')
     ok(res, donation)
@@ -143,101 +217,83 @@ router.post(
   })
 )
 
-async function createPendingOnlineDonation(trustId: string, body: z.infer<typeof createOnlineDonationSchema>) {
-  const trust = await prisma.trust.findUnique({ where: { id: trustId } })
-  if (!trust) throw new AppError(404, 'Trust not found')
-  if (body.anonymous && !trust.allowAnonymousDonations) throw new AppError(400, 'This trust does not allow anonymous donations')
-
-  const donation = await prisma.donation.create({
-    data: {
-      trustId: trust.id,
-      donorName: body.anonymous ? 'Anonymous Donor' : (body.donorName ?? 'Guest Donor'),
-      phone: body.phone ?? null,
-      email: body.email ?? null,
-      amount: Math.round(body.amount),
-      category: body.category,
-      paymentMode: 'ONLINE',
-      privacy: body.anonymous ? 'ANONYMOUS' : 'PRIVATE',
-      status: 'PENDING',
-      isOnline: true,
-      campaignId: body.campaignId ?? null,
-    },
-  })
-  const order = await paymentProvider.createOrder(donation.amount, donation.id)
-  await prisma.paymentTransaction.create({
-    data: { donationId: donation.id, provider: order.provider, orderId: order.orderId, amount: donation.amount, status: 'CREATED' },
-  })
-  return { trust, donation, order }
-}
-
 router.post(
-  '/:trustId/payments/online',
-  validateBody(createOnlineDonationSchema),
+  '/:trustId/donations/:donationId/splits/:splitId/verify',
+  requirePermission('donation:verify'),
   asyncHandler(async (req: TrustContextRequest, res) => {
-    const result = await createPendingOnlineDonation(req.params.trustId, req.body)
-    ok(res, {
-      trustId: result.trust.id,
-      trustName: result.trust.name,
-      trustLogo: result.trust.logoUrl,
-      trustUpiId: result.trust.upiId,
-      orderId: result.order.orderId,
-      paymentId: `pay_${Date.now()}`,
-      amount: result.donation.amount,
-      donationId: result.donation.id,
-      provider: result.order.provider,
-    }, 201)
+    const donation = await prisma.donation.findFirst({
+      where: { id: req.params.donationId, trustId: req.trustId },
+      include: { splits: true },
+    })
+    if (!donation) throw new AppError(404, 'Donation not found')
+    if (donation.status === 'CANCELLED') throw new AppError(400, 'Donation is voided')
+    const split = donation.splits.find((s) => s.id === req.params.splitId)
+    if (!split) throw new AppError(404, 'Payment split not found')
+    if (split.verifiedAt) throw new AppError(400, 'Split already verified')
+
+    await prisma.donationSplit.update({
+      where: { id: split.id },
+      data: { verifiedAt: new Date(), verifiedById: req.trustMember!.id },
+    })
+
+    let receipt = null
+    const remaining = await prisma.donationSplit.count({ where: { donationId: donation.id, verifiedAt: null } })
+    if (remaining === 0 && donation.status === 'PENDING') {
+      await prisma.donation.update({ where: { id: donation.id }, data: { status: 'SUCCEEDED' } })
+      const trust = await prisma.trust.findUniqueOrThrow({ where: { id: req.trustId! } })
+      receipt = await issueReceiptForDonation(trust, donation.id, req.user!.id)
+    }
+
+    const result = await prisma.donation.findUnique({ where: { id: donation.id }, include: { splits: { orderBy: { createdAt: 'asc' }, include: { verifiedBy: { include: { user: true } } } } } })
+    ok(res, { donation: result, receipt })
   })
 )
 
 router.post(
-  '/mock/complete',
-  validateBody(mockPaymentCompleteSchema),
-  asyncHandler(async (req, res) => {
-    const { orderId, paymentId } = req.body
-    const tx = await prisma.paymentTransaction.findUnique({ where: { orderId } })
-    if (!tx) throw new AppError(404, 'Order not found')
-    if (tx.status === 'SUCCEEDED') {
-      const donation = await prisma.donation.findUnique({ where: { id: tx.donationId }, include: { trust: true, collector: true } })
-      const receipt = await prisma.receipt.findFirst({ where: { donationId: tx.donationId } })
-      return ok(res, { alreadyProcessed: true, donation, receipt })
-    }
-    await prisma.$transaction(async (t) => {
-      await t.paymentTransaction.update({ where: { id: tx.id }, data: { status: 'SUCCEEDED', paymentId, webhookVerified: true } })
-      return t.donation.update({ where: { id: tx.donationId }, data: { status: 'SUCCEEDED' } })
-    })
-    const donation = await prisma.donation.findUnique({ where: { id: tx.donationId }, include: { trust: true } })
-    const trust = donation!.trust
-    const receipt = await generateReceipt({ donationId: donation!.id, trust, donation: donation! })
-    await audit({ actorId: null, trustId: trust.id, action: 'DONATION_CREATED', entityType: 'Donation', entityId: donation!.id, metadata: { amount: donation!.amount, mode: 'ONLINE', orderId } })
-    await sendReceiptNotifications({
-      trustId: trust.id,
-      donorName: donation!.donorName,
-      donorPhone: donation!.phone,
-      donorEmail: donation!.email,
-      amount: donation!.amount,
-      receiptNumber: receipt.receiptNumber,
-      receiptVerificationToken: receipt.verificationToken,
-      channels: { sms: trust.notificationSms, whatsapp: trust.notificationWhatsapp, email: trust.notificationEmail },
-    })
-    ok(res, { success: true, donation, receipt, verificationUrl: `/receipt/verify/${receipt.verificationToken}` })
-  })
-)
+  '/:trustId/my-donations',
+  requirePermission('donate'),
+  validateBody(selfDonationSchema),
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    const body = req.body as z.infer<typeof selfDonationSchema>
+    const trust = await prisma.trust.findUnique({ where: { id: req.trustId! } })
+    if (!trust) throw new AppError(404, 'Trust not found')
 
-router.post(
-  '/webhook',
-  asyncHandler(async (req, res) => {
-    const signature = req.headers['x-razorpay-signature'] as string | undefined
-    if (!signature) throw new AppError(400, 'Missing webhook signature')
-    const event = req.body?.event
-    const orderId = req.body?.payload?.order?.entity?.id as string | undefined
-    if (!orderId) throw new AppError(400, 'Missing order id in payload')
-    const tx = await prisma.paymentTransaction.findUnique({ where: { orderId } })
-    if (!tx) throw new AppError(404, 'Order not found')
-    await prisma.paymentTransaction.update({ where: { id: tx.id }, data: { status: event === 'payment.captured' ? 'SUCCEEDED' : 'FAILED', webhookVerified: true, providerResponse: req.body } })
-    if (event === 'payment.captured') {
-      await prisma.donation.update({ where: { id: tx.donationId }, data: { status: 'SUCCEEDED' } })
+    let campaignId: string | null = null
+    if (body.campaignId) {
+      const campaign = await prisma.paymentCampaign.findFirst({ where: { id: body.campaignId, trustId: trust.id } })
+      if (!campaign) throw new AppError(400, 'Payment link not found')
+      campaignId = campaign.id
     }
-    ok(res, { received: true })
+
+    const donation = await prisma.donation.create({
+      data: {
+        trustId: trust.id,
+        donorName: req.user!.name,
+        phone: req.user!.phone ?? null,
+        amount: Math.round(body.amount),
+        category: body.category ?? 'General Donation',
+        paymentMode: 'UPI',
+        transactionRef: body.transactionRef ?? null,
+        privacy: body.privacy,
+        donationDate: new Date(),
+        status: 'PENDING',
+        isOnline: true,
+        campaignId,
+        submittedById: req.trustMember!.id,
+        splits: {
+          create: [{
+            paymentMode: 'UPI',
+            amount: Math.round(body.amount),
+            transactionRef: body.transactionRef ?? null,
+            proofUrl: body.proofUrl ?? null,
+          }],
+        },
+      },
+      include: { splits: true, campaign: true },
+    })
+
+    await audit({ actorId: req.user!.id, trustId: trust.id, action: 'DONATION_SUBMITTED', entityType: 'Donation', entityId: donation.id, metadata: { amount: donation.amount } })
+    ok(res, { donation }, 201)
   })
 )
 

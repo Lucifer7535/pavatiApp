@@ -18,7 +18,7 @@ interface Summary {
   todayCollected: number
   cashCollected: number
   upiCollected: number
-  onlineCollected: number
+  bankTransferCollected: number
   memberCount: number
   byMode: { mode: string; amount: number; count: number }[]
   byCategory: { category: string; amount: number; count: number }[]
@@ -63,7 +63,7 @@ export default function ReportsPage() {
             <StatCard label="Total collected" value={formatINR(summary.totalCollected)} icon={<TrendingUp className="h-5 w-5" />} accent="saffron" sub={`${summary.totalDonations} donations`} />
             <StatCard label="Today" value={formatINR(summary.todayCollected)} icon={<Wallet className="h-5 w-5" />} accent="gold" sub={`${summary.todayDonations} donations`} />
             <StatCard label="Cash / UPI" value={`${formatINR(summary.cashCollected)} / ${formatINR(summary.upiCollected)}`} icon={<Banknote className="h-5 w-5" />} accent="green" />
-            <StatCard label="Online" value={formatINR(summary.onlineCollected)} icon={<Smartphone className="h-5 w-5" />} accent="blue" sub={`${summary.memberCount} members`} />
+            <StatCard label="Bank Transfer" value={formatINR(summary.bankTransferCollected)} icon={<Smartphone className="h-5 w-5" />} accent="blue" sub={`${summary.memberCount} members`} />
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">

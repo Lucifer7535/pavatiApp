@@ -69,6 +69,7 @@ export interface ReceiptData {
   donorAddress?: string
   amount: number
   paymentMode: string
+  paymentBreakdown?: string
   category: string
   transactionRef?: string
   collectorName?: string

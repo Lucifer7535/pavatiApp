@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Landmark, Search, PlusCircle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../lib/stores/auth'
+import LogoutButton from '../../components/LogoutButton'
+import AppLogo from '../../components/AppLogo'
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
@@ -10,11 +12,14 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10">
       <div className="mx-auto max-w-3xl px-4 py-12">
-        <Link to="/app" className="mb-6 flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+        <div className="mb-6 flex items-center gap-2">
+          <Link to="/app" className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <LogoutButton />
+        </div>
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-maroon-700 text-2xl text-white">🪔</div>
+          <AppLogo className="mx-auto h-14 w-14 rounded-2xl" />
           <h1 className="mt-4 text-3xl font-bold text-stone-900">Welcome to Pāvati Pustak</h1>
           <p className="mt-2 text-stone-600">Create a new trust or join an existing one to start managing pāvatis.</p>
         </div>

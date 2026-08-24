@@ -24,11 +24,13 @@ router.use('/:trustId/receipts', requireAuth, loadTrustContext)
 
 router.get(
   '/:trustId/receipts',
-  requirePermission('receipt:view'),
+  requirePermission(['receipt:view', 'donation:view_own']),
   validateQuery(listQuery),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof listQuery>
+    const ownOnly = !req.effectivePermissions?.includes('receipt:view') || !req.effectivePermissions?.includes('donation:view')
     const where: Prisma.ReceiptWhereInput = { trustId: req.trustId }
+    if (ownOnly) where.donation = { submittedById: req.trustMember!.id }
     if (q.status) where.status = q.status
     if (q.from || q.to) {
       where.generatedAt = {}

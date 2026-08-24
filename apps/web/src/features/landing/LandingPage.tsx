@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, ReceiptText, ShieldCheck, Users, Wallet, Landmark, Smartphone, Bell } from 'lucide-react'
 import { Badge } from '../../components/ui'
+import AppLogo from '../../components/AppLogo'
 
 const features = [
   { icon: Landmark, title: 'One Trust, One Book', desc: 'Replace paper pāvatis with a single digital register that stores every donation, receipt, and member.' },
@@ -29,7 +30,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-20 border-b border-stone-200/60 bg-cream-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-maroon-700 text-lg text-white">🪔</div>
+            <AppLogo className="h-9 w-9" />
             <div>
               <p className="font-bold leading-tight text-stone-900">Pāvati Pustak</p>
               <p className="text-[10px] text-stone-500">Digital Trust & Donation Management</p>
@@ -56,9 +57,6 @@ export default function LandingPage() {
             <Link to="/signup" className="btn-maroon px-6 py-3 text-base">
               Start your trust <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/donate/ganpati-2026" className="btn-outline px-6 py-3 text-base">
-              See a live donate page
-            </Link>
           </div>
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-stone-500">
             <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Verifiable receipts</span>
@@ -79,7 +77,7 @@ export default function LandingPage() {
                 <p className="mt-1 text-sm text-stone-600">Ganpati Donation · Donor: Rajesh Patil</p>
                 <p className="mt-1 text-xs text-stone-400">धन्यवाद - Thank you for your support</p>
               </div>
-              <div className="h-16 w-full rounded-lg" style={{ backgroundImage: 'url(/uploads/images/bg_pavati.jpg)', backgroundSize: 'cover', opacity: 0.85 }} />
+              <div className="h-16 w-full rounded-lg" style={{ backgroundImage: 'url(/rec_img.jpg)', backgroundSize: 'cover', opacity: 0.85 }} />
             </div>
           </div>
         </div>

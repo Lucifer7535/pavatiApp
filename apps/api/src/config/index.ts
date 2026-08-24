@@ -11,5 +11,6 @@ export const config = {
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? 'http://localhost:4000',
   uploadDir: process.env.UPLOAD_DIR ?? './uploads',
   mockMode: process.env.MOCK_MODE !== 'false',
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
   env: process.env.NODE_ENV ?? 'development',
 }

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Wallet, Users, TrendingUp, Clock, PlusCircle, Megaphone, Link2, ReceiptText } from 'lucide-react'
+import { Wallet, Users, TrendingUp, Clock, PlusCircle, Megaphone, Link2, ReceiptText, HeartHandshake, CheckCircle2 } from 'lucide-react'
 import { api } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Card, CardHeader, Spinner, StatCard, Badge, EmptyState, Button } from '../../components/ui'
@@ -8,20 +8,32 @@ import { formatINR, timeAgo, cn } from '../../lib/utils'
 import { PAYMENT_MODE_LABELS } from '@pavati/shared'
 
 interface Dashboard {
+  scope?: 'all' | 'own'
+  // scope: all
   totalCollected: number
   totalDonors: number
   cashCollected: number
   upiCollected: number
-  onlineCollected: number
+  bankTransferCollected: number
   todayCollected: number
   pendingCount: number
   memberCount: number
   recentTransactions: any[]
   recentMembers: { id: string; name: string; role: string; profileImage: string | null; joinedAt: string }[]
   campaigns: any[]
+  // scope: own
+  myTotal?: number
+  myPendingCount?: number
+  myRecentDonations?: any[]
+  announcements?: any[]
 }
 
-const modeColor: Record<string, string> = { CASH: 'bg-emerald-100 text-emerald-700', UPI: 'bg-sky-100 text-sky-700', ONLINE: 'bg-purple-100 text-purple-700', BANK_TRANSFER: 'bg-blue-100 text-blue-700', CARD: 'bg-amber-100 text-amber-700', OTHER: 'bg-stone-100 text-stone-600' }
+const modeColor: Record<string, string> = { CASH: 'bg-emerald-100 text-emerald-700', UPI: 'bg-sky-100 text-sky-700', BANK_TRANSFER: 'bg-blue-100 text-blue-700', CARD: 'bg-amber-100 text-amber-700', OTHER: 'bg-stone-100 text-stone-600', MIXED: 'bg-stone-100 text-stone-600' }
+const statusBadge: Record<string, { color: 'green' | 'gold' | 'default'; label: string }> = {
+  SUCCEEDED: { color: 'green', label: 'Received' },
+  PENDING: { color: 'gold', label: 'Awaiting confirmation' },
+  CANCELLED: { color: 'default', label: 'Voided' },
+}
 
 export default function TrustDashboard({ trustId }: { trustId: string }) {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -42,7 +54,73 @@ export default function TrustDashboard({ trustId }: { trustId: string }) {
 
   return (
     <AppLayout>
-      {isLoading || !data ? <Spinner /> : (
+      {isLoading || !data ? <Spinner /> : data.scope === 'own' ? (
+        <div className="space-y-6">
+          <Link to="/app/donate" className="card group flex items-center gap-4 border-saffron-200 bg-gradient-to-r from-saffron-50 to-cream-100 p-5 hover:border-saffron-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-maroon-700 text-white transition-colors group-hover:bg-maroon-800"><HeartHandshake className="h-6 w-6" /></div>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-stone-900">Make a donation</p>
+              <p className="text-sm text-stone-500">Pay via UPI and submit for verification</p>
+            </div>
+            <span className="btn-primary shrink-0">Donate</span>
+          </Link>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <StatCard label="My total donated" value={formatINR(data.myTotal ?? 0)} icon={<TrendingUp className="h-5 w-5" />} accent="saffron" />
+            <StatCard label="Awaiting confirmation" value={data.myPendingCount ?? 0} icon={<Clock className="h-5 w-5" />} accent="gold" sub="pending verification" />
+            <StatCard label="My donations" value={(data.myRecentDonations ?? []).length} icon={<Wallet className="h-5 w-5" />} accent="green" />
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-5">
+            <Card className="lg:col-span-3">
+              <CardHeader title="My donations" action={<Link to="/app/donations" className="text-sm font-semibold text-saffron-600 hover:underline">View all</Link>} />
+              {(data.myRecentDonations ?? []).length === 0 ? (
+                <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="No donations yet" description="Your donations will appear here after you submit one." action={<Link to="/app/donate" className="btn-primary"><HeartHandshake className="h-4 w-4" /> Donate now</Link>} />
+              ) : (
+                <div className="divide-y divide-stone-100">
+                  {(data.myRecentDonations ?? []).map((d) => {
+                    const st = statusBadge[d.status] ?? { color: 'default' as const, label: d.status }
+                    const receipt = d.receipts?.[0]
+                    return (
+                      <Link key={d.id} to={`/app/donations/${d.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-stone-50">
+                        <CheckCircle2 className={cn('h-4 w-4 shrink-0', d.status === 'SUCCEEDED' ? 'text-emerald-500' : 'text-amber-400')} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-stone-800">{d.category}</p>
+                          <p className="text-xs text-stone-400">{timeAgo(d.donationDate)}{receipt ? ` · Pāvati ${receipt.receiptNumber}` : ''}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-stone-900">{formatINR(d.amount)}</p>
+                          <Badge color={st.color}>{st.label}</Badge>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+
+            <div className="space-y-6 lg:col-span-2">
+              <Card>
+                <CardHeader title="Announcements" action={<Link to="/app/announcements" className="text-sm font-semibold text-saffron-600 hover:underline">View all</Link>} />
+                <div className="space-y-2 p-4">
+                  {(data.announcements ?? []).length === 0 && <p className="py-2 text-center text-sm text-stone-400">No announcements yet</p>}
+                  {(data.announcements ?? []).map((a) => (
+                    <div key={a.id} className="rounded-xl border border-stone-100 p-3">
+                      <div className="flex items-center gap-2">
+                        <Megaphone className="h-4 w-4 shrink-0 text-maroon-500" />
+                        <p className="min-w-0 flex-1 truncate text-sm font-medium text-stone-800">{a.title}</p>
+                        {a.pinned && <span className="text-[10px] font-bold uppercase text-gold-500">Pinned</span>}
+                      </div>
+                      <p className="mt-1 line-clamp-2 pl-6 text-xs text-stone-500">{a.content}</p>
+                      <p className="mt-1 pl-6 text-[11px] text-stone-400">{timeAgo(a.publishedAt)}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      ) : (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Total collected" value={formatINR(data.totalCollected)} icon={<TrendingUp className="h-5 w-5" />} accent="saffron" sub={`${data.totalDonors} donors`} />

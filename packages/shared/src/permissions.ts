@@ -13,6 +13,8 @@ export const PERMISSION = {
   DONATION_CREATE: 'donation:create',
   DONATION_REFUND: 'donation:refund',
   DONATION_VOID: 'donation:void',
+  DONATION_VERIFY: 'donation:verify',
+  DONATION_VIEW_OWN: 'donation:view_own',
   RECEIPT_CREATE: 'receipt:create',
   RECEIPT_VIEW: 'receipt:view',
   RECEIPT_REPRINT: 'receipt:reprint',
@@ -37,14 +39,14 @@ export type Permission = (typeof PERMISSION)[keyof typeof PERMISSION]
 export const ALL_PERMISSIONS = Object.values(PERMISSION) as Permission[]
 
 const everyone: Permission[] = [
-  PERMISSION.TRUST_VIEW,
-  PERMISSION.ANNOUNCEMENT_VIEW,
-  PERMISSION.DONATE,
-  PERMISSION.DONATION_VIEW,
-  PERMISSION.RECEIPT_VIEW,
-  PERMISSION.CAMPAIGN_VIEW,
-  PERMISSION.MEMBER_VIEW_OWN,
-]
+    PERMISSION.TRUST_VIEW,
+    PERMISSION.ANNOUNCEMENT_VIEW,
+    PERMISSION.DONATE,
+    PERMISSION.DONATION_VIEW_OWN,
+    PERMISSION.RECEIPT_VIEW,
+    PERMISSION.CAMPAIGN_VIEW,
+    PERMISSION.MEMBER_VIEW_OWN,
+  ]
 
 const ops: Permission[] = [
   PERMISSION.DONATION_CREATE,
@@ -67,6 +69,7 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
     PERMISSION.DONATION_CREATE,
     PERMISSION.DONATION_REFUND,
     PERMISSION.DONATION_VOID,
+    PERMISSION.DONATION_VERIFY,
     PERMISSION.RECEIPT_CREATE,
     PERMISSION.RECEIPT_VIEW,
     PERMISSION.RECEIPT_REPRINT,
@@ -89,6 +92,7 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
   [ROLE.PRESIDENT]: [
     ...everyone,
     ...ops,
+    PERMISSION.DONATION_VIEW,
     PERMISSION.MEMBER_VIEW,
     PERMISSION.REPORT_VIEW,
     PERMISSION.ANNOUNCEMENT_CREATE,
@@ -97,6 +101,7 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
   [ROLE.VICE_PRESIDENT]: [
     ...everyone,
     ...ops,
+    PERMISSION.DONATION_VIEW,
     PERMISSION.MEMBER_VIEW,
     PERMISSION.REPORT_VIEW,
     PERMISSION.ANNOUNCEMENT_CREATE,
@@ -104,6 +109,7 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
   [ROLE.SECRETARY]: [
     ...everyone,
     ...ops,
+    PERMISSION.DONATION_VIEW,
     PERMISSION.MEMBER_VIEW,
     PERMISSION.MEMBER_INVITE,
     PERMISSION.MEMBER_ADD,
@@ -112,7 +118,7 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
     PERMISSION.ANNOUNCEMENT_DELETE,
     PERMISSION.ANNOUNCEMENT_PIN,
   ],
-  [ROLE.JOINT_SECRETARY]: [...everyone, ...ops, PERMISSION.MEMBER_VIEW, PERMISSION.ANNOUNCEMENT_CREATE],
+  [ROLE.JOINT_SECRETARY]: [...everyone, ...ops, PERMISSION.DONATION_VIEW, PERMISSION.MEMBER_VIEW, PERMISSION.ANNOUNCEMENT_CREATE],
   [ROLE.TREASURER]: [
     ...everyone,
     ...ops,
@@ -120,9 +126,10 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
     PERMISSION.REPORT_VIEW,
     PERMISSION.DONATION_REFUND,
     PERMISSION.DONATION_VOID,
+    PERMISSION.DONATION_VERIFY,
     PERMISSION.RECEIPT_VOID,
   ],
-  [ROLE.COMMITTEE_MEMBER]: [...everyone, ...ops, PERMISSION.MEMBER_VIEW, PERMISSION.REPORT_VIEW],
+  [ROLE.COMMITTEE_MEMBER]: [...everyone, ...ops, PERMISSION.DONATION_VIEW, PERMISSION.MEMBER_VIEW, PERMISSION.REPORT_VIEW],
   [ROLE.MEMBER]: everyone,
   [ROLE.VOLUNTEER]: everyone,
   [ROLE.COLLECTOR]: [PERMISSION.DONATION_CREATE, PERMISSION.RECEIPT_CREATE, PERMISSION.RECEIPT_VIEW, PERMISSION.RECEIPT_REPRINT, PERMISSION.TRUST_VIEW, PERMISSION.ANNOUNCEMENT_VIEW, PERMISSION.DONATE, PERMISSION.MEMBER_VIEW_OWN, PERMISSION.CAMPAIGN_VIEW],
@@ -145,6 +152,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'donation:create': 'Create donations',
   'donation:refund': 'Refund donations',
   'donation:void': 'Void donations',
+  'donation:view_own': 'View own donations',
   'receipt:create': 'Create receipts',
   'receipt:view': 'View receipts',
   'receipt:reprint': 'Reprint receipts',
@@ -161,6 +169,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'settings:update': 'Update trust settings',
   'notification:manage': 'Manage notifications',
   'audit:view': 'View audit log',
+  'donation:verify': 'Verify UPI payments',
   donate: 'Make donations',
   'member:view_own': 'View own membership',
 }

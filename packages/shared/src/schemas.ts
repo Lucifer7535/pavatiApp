@@ -14,7 +14,36 @@ function vals<T extends Record<string, string>>(obj: T): [T[keyof T], ...T[keyof
 
 const phone = z.string().trim().refine((v) => /^[6-9]\d{9}$/.test(v), 'Enter a valid 10-digit Indian mobile number')
 const phoneOrEmpty = z.string().trim().refine((v) => v === '' || /^[6-9]\d{9}$/.test(v), 'Enter a valid 10-digit Indian mobile number')
-const email = z.string().email('Enter a valid email address')
+
+// Stricter than zod's default: requires a dotted local part or plain handle, no consecutive
+// dots, and a real TLD of 2+ letters. Blocks "a@b", "a@b..com", "a@b.c" style junk.
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/
+
+export const DISPOSABLE_EMAIL_DOMAINS = [
+  'mailinator.com', 'yopmail.com', 'yopmail.fr', 'guerrillamail.com', 'sharklasers.com',
+  '10minutemail.com', 'tempmail.com', 'temp-mail.org', 'throwawaymail.com', 'trashmail.com',
+  'getnada.com', 'dispostable.com', 'fakeinbox.com', 'maildrop.cc', 'mailnesia.com',
+  'spamgourmet.com', 'burnermail.io', 'moakt.com', 'mohmal.com', 'emailondeck.com',
+  'tempr.email', 'tmpmail.org', '1secmail.com', '1secmail.net', 'mailcatch.com',
+  'mytemp.email', 'spam4.me', 'grr.la', 'inboxbear.com', 'discard.email',
+] as const
+
+export function isDisposableEmail(value: string): boolean {
+  const domain = value.trim().toLowerCase().split('@')[1]
+  if (!domain) return false
+  return (DISPOSABLE_EMAIL_DOMAINS as readonly string[]).includes(domain)
+}
+
+export const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(EMAIL_REGEX, 'Enter a valid email address')
+  .refine((v) => {
+    const local = v.split('@')[0] ?? ''
+    return !local.startsWith('.') && !local.endsWith('.') && !local.includes('..')
+  }, 'Enter a valid email address')
+  .refine((v) => !isDisposableEmail(v), 'Temporary/disposable email addresses are not allowed')
 
 export const loginSchema = z.object({
   email: email,
@@ -27,12 +56,6 @@ export const registerSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   phone: phoneOrEmpty.optional(),
 })
-export const requestOtpSchema = z.object({ phone })
-export const verifyOtpSchema = z.object({
-  phone,
-  otp: z.string().regex(/^\d{6}$/, 'OTP must be 6 digits'),
-})
-
 export const forgotPasswordSchema = z.object({ email })
 export const resetPasswordSchema = z.object({
   token: z.string().min(1),
@@ -73,7 +96,7 @@ export const createTrustSchema = z.object({
 
 export const updateTrustSchema = createTrustSchema.partial()
 
-export const joinByCodeSchema = z.object({ code: z.string().min(3).max(20) })
+export const joinByCodeSchema = z.object({ code: z.string().min(3).max(20).optional() })
 
 export const addMemberSchema = z.object({
   userId: z.string().uuid().optional(),
@@ -96,36 +119,57 @@ export const updateMemberSchema = z.object({
 
 export const donationCategorySchema = z.string().trim().min(1, 'Category is required').max(50)
 
-export const createDonationSchema = z.object({
-  trustId: z.string().uuid(),
-  donorName: z.string().min(2, 'Donor name is required'),
-  phone: phoneOrEmpty.optional(),
-  address: z.string().optional().nullable(),
-  amount: z.number().positive('Amount must be greater than 0'),
-  category: donationCategorySchema,
-  paymentMode: z.enum(vals(PAYMENT_MODE)),
+export const donationSplitSchema = z.object({
+  paymentMode: z.enum(vals(PAYMENT_MODE).filter((m) => m !== 'MIXED') as [string, ...string[]]),
+  amount: z.number().positive('Split amount must be greater than 0'),
   transactionRef: z.string().optional().nullable(),
-  paymentDate: z.string().optional(),
-  privacy: z.enum(vals(PRIVACY)).default('PRIVATE'),
-  notes: z.string().optional().nullable(),
+  proofUrl: z.string().optional().nullable(),
 })
 
-export const createOnlineDonationSchema = z.object({
-  trustId: z.string().uuid(),
-  campaignId: z.string().uuid().optional(),
-  donorName: z.string().min(2).optional(),
-  phone: phoneOrEmpty.optional(),
-  email: email.optional(),
-  amount: z.number().positive(),
-  category: donationCategorySchema,
-  anonymous: z.boolean().default(false),
-})
+export const createDonationSchema = z
+  .object({
+    trustId: z.string().uuid(),
+    donorName: z.string().min(2, 'Donor name is required'),
+    phone: phoneOrEmpty.optional(),
+    address: z.string().optional().nullable(),
+    amount: z.number().positive('Amount must be greater than 0'),
+    category: donationCategorySchema,
+    paymentMode: z.enum(vals(PAYMENT_MODE)).optional(),
+    transactionRef: z.string().optional().nullable(),
+    paymentDate: z.string().optional(),
+    privacy: z.enum(vals(PRIVACY)).default('PRIVATE'),
+    notes: z.string().optional().nullable(),
+    campaignId: z.string().uuid().optional().nullable(),
+    splits: z.array(donationSplitSchema).min(1, 'At least one payment split is required').max(5).optional(),
+    awaitingPayment: z.boolean().default(false),
+  })
+  .superRefine((data, ctx) => {
+    if (data.splits && data.splits.length > 0) {
+      const sum = data.splits.reduce((acc, s) => acc + s.amount, 0)
+      if (Math.round(sum) !== Math.round(data.amount)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['splits'], message: 'Split amounts must add up to the donation amount' })
+      }
+      if (data.awaitingPayment && data.splits.every((s) => s.paymentMode === 'CASH')) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['awaitingPayment'], message: 'Cash payments are received immediately' })
+      }
+    }
+  })
 
 export const createCampaignSchema = z.object({
   name: z.string().min(2, 'Campaign name is required'),
   description: z.string().optional().nullable(),
   category: donationCategorySchema.optional().nullable(),
   suggestedAmounts: z.array(z.number()).optional(),
+  qrCodeUrl: z.string().optional().nullable(),
+})
+
+export const selfDonationSchema = z.object({
+  amount: z.number().int().positive('Amount must be greater than 0').max(10_000_000),
+  category: donationCategorySchema.optional(),
+  campaignId: z.string().uuid().optional().nullable(),
+  transactionRef: z.string().optional().nullable(),
+  proofUrl: z.string().url('Invalid proof URL').optional().nullable(),
+  privacy: z.enum(vals(PRIVACY)).default('PRIVATE'),
 })
 
 export const createAnnouncementSchema = z.object({
@@ -188,18 +232,13 @@ export const changePasswordSchema = z.object({
 
 export const slugSchema = z.string().min(3).max(40).regex(/^[a-z0-9-]+$/, 'Use lowercase letters, numbers and hyphens')
 
-export const mockPaymentCompleteSchema = z.object({
-  orderId: z.string().min(1),
-  paymentId: z.string().min(1),
-})
-
 export const amountSchema = z.number().positive().max(10_000_000)
 
-export { phone, phoneOrEmpty, email, SUGGESTED_AMOUNTS }
+export { phone, phoneOrEmpty, SUGGESTED_AMOUNTS }
 export type CreateTrustInput = z.infer<typeof createTrustSchema>
 export type UpdateTrustInput = z.infer<typeof updateTrustSchema>
 export type CreateDonationInput = z.infer<typeof createDonationSchema>
-export type CreateOnlineDonationInput = z.infer<typeof createOnlineDonationSchema>
+export type SelfDonationInput = z.infer<typeof selfDonationSchema>
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>
 export type CreateAnnouncementInput = z.infer<typeof createAnnouncementSchema>
 export type CreateTemplateInput = z.infer<typeof createTemplateSchema>

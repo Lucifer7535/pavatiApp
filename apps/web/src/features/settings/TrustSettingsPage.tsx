@@ -1,21 +1,24 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Settings, Upload, Copy, Check } from 'lucide-react'
+import { Settings, Upload, Copy, Check, AlertTriangle } from 'lucide-react'
 import { JOIN_MODE } from '@pavati/shared'
 import { api, uploadFile } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Button, Card, CardHeader, Input, Select, Textarea, Badge, Spinner, PageHeader } from '../../components/ui'
-import { useActiveTrust } from '../../lib/stores/auth'
+import { useActiveTrust, useAuth } from '../../lib/stores/auth'
 import { fileToDataUrl } from '../../lib/utils'
 import FestivalPicker from '../../components/FestivalPicker'
 
 export default function TrustSettingsPage() {
   const active = useActiveTrust()!
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [copied, setCopied] = useState(false)
   const [trust, setTrust] = useState<any>(null)
   const [form, setForm] = useState<any>({})
+  const [confirmName, setConfirmName] = useState('')
 
   useQuery({
     queryKey: ['trust', active.trustId],
@@ -36,6 +39,18 @@ export default function TrustSettingsPage() {
   const save = useMutation({
     mutationFn: () => api.patch(`/trusts/${active.trustId}`, form),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['trust', active.trustId] }); toast.success('Settings saved') },
+    onError: (e: any) => toast.error(e.message),
+  })
+
+  const deleteTrust = useMutation({
+    mutationFn: () => api.del(`/trusts/${active.trustId}`),
+    onSuccess: async () => {
+      toast.success('Trust deleted permanently')
+      qc.clear()
+      const me = await api.get<{ user: any; memberships: any[] }>('/auth/me')
+      useAuth.getState().setSession(me)
+      navigate('/onboarding')
+    },
     onError: (e: any) => toast.error(e.message),
   })
 
@@ -129,6 +144,39 @@ export default function TrustSettingsPage() {
       <div className="mt-6 flex justify-end">
         <Button className="px-8" onClick={() => save.mutate()} loading={save.isPending}><Settings className="h-4 w-4" /> Save all settings</Button>
       </div>
+
+      {active.role === 'PRIMARY_ADMIN' && (
+        <Card className="mt-6 border-red-200">
+          <CardHeader title="Danger zone" />
+          <div className="p-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+              <div>
+                <p className="text-sm font-semibold text-stone-800">Delete this trust permanently</p>
+                <p className="mt-1 text-xs text-stone-500">
+                  This removes all donations, receipts, members, campaigns and announcements. Only you, as the trust creator, can do this. This cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Input
+                placeholder={`Type "${trust.name}" to confirm`}
+                value={confirmName}
+                onChange={(e) => setConfirmName(e.target.value)}
+                className="sm:max-w-xs"
+              />
+              <Button
+                variant="danger"
+                disabled={confirmName !== trust.name || deleteTrust.isPending}
+                loading={deleteTrust.isPending}
+                onClick={() => deleteTrust.mutate()}
+              >
+                Delete trust forever
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
     </AppLayout>
   )
 }

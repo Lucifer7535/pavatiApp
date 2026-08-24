@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Megaphone, Pin, Trash2, PlusCircle, BellRing } from 'lucide-react'
 import { toast } from 'sonner'
+import { permissionsForRole, type TrustRole } from '@pavati/shared'
 import { api } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Card, Badge, Spinner, EmptyState, PageHeader, Pagination, Button } from '../../components/ui'
@@ -15,6 +16,10 @@ export default function AnnouncementsPage() {
   const active = useActiveTrust()!
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const perms = permissionsForRole(active.role as TrustRole) as string[]
+  const canCreate = perms.includes('announcement:create')
+  const canPin = perms.includes('announcement:pin')
+  const canDelete = perms.includes('announcement:delete')
 
   const { data, isLoading } = useQuery({
     queryKey: ['announcements', active.trustId, page],
@@ -35,9 +40,9 @@ export default function AnnouncementsPage() {
 
   return (
     <AppLayout>
-      <PageHeader title="Announcements" subtitle="Keep members and donors informed" action={<Link to="/app/announcements/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> New announcement</Link>} />
+      <PageHeader title="Announcements" subtitle="Keep members and donors informed" action={canCreate && <Link to="/app/announcements/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> New announcement</Link>} />
       {isLoading || !data ? <Spinner /> : data.items.length === 0 ? (
-        <Card><EmptyState icon={<Megaphone className="h-6 w-6" />} title="No announcements yet" description="Share festive updates with your members." action={<Link to="/app/announcements/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> New announcement</Link>} /></Card>
+        <Card><EmptyState icon={<Megaphone className="h-6 w-6" />} title="No announcements yet" description={canCreate ? 'Share festive updates with your members.' : 'Updates from your trust will appear here.'} action={canCreate && <Link to="/app/announcements/new" className="btn-primary"><PlusCircle className="h-4 w-4" /> New announcement</Link>} /></Card>
       ) : (
         <>
           <div className="space-y-3">
@@ -56,10 +61,12 @@ export default function AnnouncementsPage() {
                       <p className="mt-2 text-xs text-stone-400">{a.author?.name} · {timeAgo(a.publishedAt)}</p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-1">
-                    <button onClick={() => pin.mutate(a.id)} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-maroon-600" title={a.pinned ? 'Unpin' : 'Pin'}><Pin className={`h-4 w-4 ${a.pinned ? 'text-maroon-600' : ''}`} /></button>
-                    <button onClick={() => confirm('Delete this announcement?') && del.mutate(a.id)} className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600" title="Delete"><Trash2 className="h-4 w-4" /></button>
-                  </div>
+                  {(canPin || canDelete) && (
+                    <div className="flex shrink-0 gap-1">
+                      {canPin && <button onClick={() => pin.mutate(a.id)} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-maroon-600" title={a.pinned ? 'Unpin' : 'Pin'}><Pin className={`h-4 w-4 ${a.pinned ? 'text-maroon-600' : ''}`} /></button>}
+                      {canDelete && <button onClick={() => confirm('Delete this announcement?') && del.mutate(a.id)} className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600" title="Delete"><Trash2 className="h-4 w-4" /></button>}
+                    </div>
+                  )}
                 </div>
               </Card>
             ))}

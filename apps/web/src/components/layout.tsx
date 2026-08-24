@@ -1,26 +1,34 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ReceiptText, Users, Megaphone, Link2, BarChart3, Bell, Settings, FileClock, Wallet, Menu, ChevronDown, LogOut, PlusCircle, UserCircle2 } from 'lucide-react'
+import { LayoutDashboard, ReceiptText, Users, Megaphone, Link2, BarChart3, Bell, Settings, FileClock, Wallet, Menu, ChevronDown, LogOut, PlusCircle, UserCircle2, HeartHandshake } from 'lucide-react'
 import { useAuth, useActiveTrust } from '../lib/stores/auth'
-import { clearTokens } from '../lib/api'
+import { useLogout } from '../lib/auth-actions'
 import { cn } from '../lib/utils'
 import { Badge } from './ui'
+import AppLogo from './AppLogo'
 import { permissionsForRole } from '@pavati/shared'
 
 const navItems = (permissionCheck: (p: string) => boolean) => [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard, always: true },
-  { to: '/app/donations', label: 'Donations', icon: Wallet, perm: 'donation:view' },
+  { to: '/app/donate', label: 'Donate', icon: HeartHandshake, notPerm: 'donation:create' },
+  { to: '/app/donations', label: 'Donations', icon: Wallet, perm: 'donation:view_own' },
   { to: '/app/receipts', label: 'Receipts', icon: ReceiptText, perm: 'receipt:view' },
   { to: '/app/templates', label: 'Templates', icon: FileClock, perm: 'template:manage' },
   { to: '/app/members', label: 'Members', icon: Users, perm: 'member:view' },
   { to: '/app/committee', label: 'Committee', icon: Users, perm: 'member:view' },
   { to: '/app/announcements', label: 'Announcements', icon: Megaphone, perm: 'announcement:view' },
-  { to: '/app/campaigns', label: 'Payment Links', icon: Link2, perm: 'campaign:view' },
+  { to: '/app/campaigns', label: 'Payment Links', icon: Link2, perm: 'campaign:manage' },
   { to: '/app/reports', label: 'Reports', icon: BarChart3, perm: 'report:view' },
   { to: '/app/notifications', label: 'Notifications', icon: Bell, perm: 'notification:manage' },
   { to: '/app/settings', label: 'Trust Settings', icon: Settings, perm: 'settings:update' },
   { to: '/app/audit', label: 'Audit Log', icon: FileClock, perm: 'audit:view' },
-].filter((i) => i.always || (i.perm ? permissionCheck(i.perm) : true))
+].filter((i) => {
+  const item = i as typeof i & { perm?: string; notPerm?: string }
+  if (item.always) return true
+  if (item.perm) return permissionCheck(item.perm)
+  if (item.notPerm) return !permissionCheck(item.notPerm)
+  return true
+})
 
 function TrustSwitcher() {
   const memberships = useAuth((s) => s.memberships)
@@ -84,22 +92,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const active = useActiveTrust()
   const member = active
   const perms = member ? permissionsForRole(member.role as never) : []
-  const navigate = useNavigate()
 
   const items = navItems((p) => (perms as string[]).includes(p))
 
-  const logout = () => {
-    const rt = localStorage.getItem('pp_refresh')
-    if (rt) fetch('/api/v1/auth/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: rt }) }).catch(() => {})
-    clearTokens()
-    useAuth.getState().logout()
-    navigate('/login')
-  }
+  const logout = useLogout()
 
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-maroon-700 text-lg text-white">🪔</div>
+        <AppLogo className="h-9 w-9" />
         <div>
           <p className="font-bold leading-tight text-stone-900">Pāvati Pustak</p>
           <p className="text-[10px] text-stone-500">Digital Trust & Receipts</p>

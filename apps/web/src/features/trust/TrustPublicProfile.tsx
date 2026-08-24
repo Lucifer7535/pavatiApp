@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Users, MapPin, Calendar, Heart } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Users, MapPin, Calendar, Heart, UserPlus } from 'lucide-react'
+import { toast } from 'sonner'
 import { api } from '../../lib/api'
-import { Badge, Card, Spinner } from '../../components/ui'
+import { Badge, Button, Card, Spinner } from '../../components/ui'
 import { formatINR } from '../../lib/utils'
+import { useAuth } from '../../lib/stores/auth'
 
 interface TrustPublic {
   id: string
@@ -27,12 +29,38 @@ interface TrustPublic {
 
 export default function TrustPublicProfile() {
   const { trustId } = useParams()
+  const navigate = useNavigate()
+  const user = useAuth((s) => s.user)
+  const memberships = useAuth((s) => s.memberships)
+  const setSession = useAuth((s) => s.setSession)
   const [trust, setTrust] = useState<TrustPublic | null>(null)
   const [loading, setLoading] = useState(true)
+  const [joining, setJoining] = useState(false)
+  const isMember = !!user && memberships.some((m) => m.trustId === trustId)
 
   useEffect(() => {
     api.get<TrustPublic>(`/trusts/${trustId}`).then(setTrust).finally(() => setLoading(false))
   }, [trustId])
+
+  const join = async () => {
+    if (!trustId || !user) return
+    setJoining(true)
+    try {
+      const res = await api.post<{ status?: string; message?: string }>(`/trusts/${trustId}/join`, {})
+      if (res.status === 'PENDING_APPROVAL') {
+        toast.success('Join request submitted for admin approval')
+        return
+      }
+      toast.success('Joined! Taking you to the app…')
+      const me = await api.get<{ user: any; memberships: any[] }>('/auth/me')
+      setSession(me)
+      navigate('/app')
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setJoining(false)
+    }
+  }
 
   if (loading) return <div className="p-10"><Spinner /></div>
   if (!trust) return <div className="p-10 text-center text-stone-500">Trust not found</div>
@@ -79,7 +107,20 @@ export default function TrustPublicProfile() {
           {trust.contactPhone && <p className="mt-1 text-sm text-stone-500">📞 {trust.contactPhone}</p>}
           {trust.contactEmail && <p className="mt-1 text-sm text-stone-500">✉️ {trust.contactEmail}</p>}
           {trust.upiId && <p className="mt-1 text-sm text-stone-500">🏦 UPI: {trust.upiId}</p>}
-          <Link to={`/donate?trust=${trust.id}`} className="btn-maroon mt-5 w-full">Donate to {trust.name}</Link>
+          {isMember ? (
+            <Link to="/app" className="btn-primary mt-5 w-full">Open app to donate</Link>
+          ) : user ? (
+            <Button className="mt-5 w-full" onClick={join} loading={joining}>
+              <UserPlus className="mr-2 inline h-4 w-4" /> Join this trust
+            </Button>
+          ) : (
+            <Link to={`/donate?trust=${trust.id}`} className="btn-maroon mt-5 w-full">Donate to {trust.name}</Link>
+          )}
+          {!isMember && user && (
+            <Link to={`/donate?trust=${trust.id}`} className="mt-3 block text-center text-xs font-semibold text-saffron-600 hover:underline">
+              Or just view donation options →
+            </Link>
+          )}
         </Card>
 
         {trust.committee.length > 0 && (

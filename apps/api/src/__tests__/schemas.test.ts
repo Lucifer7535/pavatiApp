@@ -2,13 +2,66 @@ import { describe, expect, it } from 'vitest'
 import {
   createCampaignSchema,
   createDonationSchema,
-  createOnlineDonationSchema,
   createTemplateSchema,
   createTrustSchema,
+  joinByCodeSchema,
   registerSchema,
+  selfDonationSchema,
   updateTrustSchema,
-  verifyOtpSchema,
 } from '@pavati/shared'
+
+describe('registerSchema', () => {
+  const base = { name: 'Test User', password: 'secret123' }
+
+  it('accepts normal emails, normalising case and whitespace', () => {
+    expect(registerSchema.safeParse({ ...base, email: 'user@example.com' }).success).toBe(true)
+    const r = registerSchema.safeParse({ ...base, email: '  USER@Example.co.in  ' })
+    expect(r.success).toBe(true)
+    if (r.success) expect(r.data.email).toBe('user@example.co.in')
+  })
+
+  it('rejects malformed emails', () => {
+    for (const bad of ['plainaddress', 'a@b', 'a@b.c', 'a..b@test.com', 'a@b..com', '@test.com']) {
+      expect(registerSchema.safeParse({ ...base, email: bad }).success).toBe(false)
+    }
+  })
+
+  it('rejects disposable email domains case-insensitively', () => {
+    expect(registerSchema.safeParse({ ...base, email: 'x@mailinator.com' }).success).toBe(false)
+    expect(registerSchema.safeParse({ ...base, email: 'x@Mailinator.COM' }).success).toBe(false)
+    expect(registerSchema.safeParse({ ...base, email: 'x@yopmail.fr' }).success).toBe(false)
+  })
+})
+
+describe('joinByCodeSchema', () => {
+  it('accepts an optional code', () => {
+    expect(joinByCodeSchema.safeParse({}).success).toBe(true)
+  })
+  it('still validates a provided code shape', () => {
+    expect(joinByCodeSchema.safeParse({ code: 'ABC123' }).success).toBe(true)
+    expect(joinByCodeSchema.safeParse({ code: '' }).success).toBe(false)
+  })
+})
+
+describe('selfDonationSchema', () => {
+  const base = { amount: 500, category: 'DAAN' }
+  it('accepts a minimal self donation', () => {
+    const r = selfDonationSchema.safeParse(base)
+    expect(r.success).toBe(true)
+    if (r.success) expect(r.data.privacy).toBe('PRIVATE')
+  })
+  it('rejects zero or negative amounts', () => {
+    expect(selfDonationSchema.safeParse({ ...base, amount: 0 }).success).toBe(false)
+    expect(selfDonationSchema.safeParse({ ...base, amount: -100 }).success).toBe(false)
+  })
+  it('rejects amounts above the cap', () => {
+    expect(selfDonationSchema.safeParse({ ...base, amount: 10_000_001 }).success).toBe(false)
+  })
+  it('requires a valid proof URL when provided', () => {
+    expect(selfDonationSchema.safeParse({ ...base, proofUrl: 'https://example.com/proof.png' }).success).toBe(true)
+    expect(selfDonationSchema.safeParse({ ...base, proofUrl: 'not-a-url' }).success).toBe(false)
+  })
+})
 
 describe('createDonationSchema', () => {
   const base = {
@@ -37,27 +90,56 @@ describe('createDonationSchema', () => {
     expect(() => createDonationSchema.parse({ ...base, phone: '12345' })).toThrow()
     expect(() => createDonationSchema.parse({ ...base, phone: '9876543210' })).not.toThrow()
   })
-})
 
-describe('createOnlineDonationSchema', () => {
-  const base = {
-    trustId: '096dd518-28fe-4b70-8ea9-2a6a0aea0252',
-    amount: 1100,
-    category: 'Ganpati Donation',
-  }
-
-  it('accepts an anonymous online donation without contact details', () => {
-    const out = createOnlineDonationSchema.parse({ ...base, anonymous: true })
-    expect(out.anonymous).toBe(true)
+  it('accepts splits that sum to the amount', () => {
+    expect(
+      createDonationSchema.parse({
+        ...base,
+        amount: 1000,
+        paymentMode: undefined,
+        splits: [
+          { paymentMode: 'CASH', amount: 500 },
+          { paymentMode: 'UPI', amount: 500, transactionRef: '123456789012' },
+        ],
+      }),
+    ).toMatchObject({ amount: 1000 })
   })
 
-  it('requires a name when not anonymous', () => {
-    expect(() => createOnlineDonationSchema.parse({ ...base, anonymous: false })).not.toThrow()
+  it('rejects splits whose sum differs from the amount', () => {
+    expect(() =>
+      createDonationSchema.parse({
+        ...base,
+        amount: 1000,
+        paymentMode: undefined,
+        splits: [
+          { paymentMode: 'CASH', amount: 400 },
+          { paymentMode: 'UPI', amount: 500 },
+        ],
+      }),
+    ).toThrow(/add up/)
   })
 
-  it('validates email format when provided', () => {
-    expect(() => createOnlineDonationSchema.parse({ ...base, email: 'nope' })).toThrow()
-    expect(() => createOnlineDonationSchema.parse({ ...base, email: 'donor@test.in' })).not.toThrow()
+  it('rejects awaitingPayment with only cash splits', () => {
+    expect(() =>
+      createDonationSchema.parse({
+        ...base,
+        splits: [{ paymentMode: 'CASH', amount: 501 }],
+        awaitingPayment: true,
+      }),
+    ).toThrow(/Cash payments/)
+  })
+
+  it('allows awaitingPayment when an online split exists', () => {
+    expect(() =>
+      createDonationSchema.parse({
+        ...base,
+        splits: [
+          { paymentMode: 'CASH', amount: 1 },
+          { paymentMode: 'UPI', amount: 500 },
+        ],
+        awaitingPayment: true,
+      }),
+    ).not.toThrow()
   })
 })
 
@@ -142,11 +224,6 @@ describe('custom categories across donation & campaign schemas', () => {
     expect(out.category).toBe('Gudi Padwa')
   })
 
-  it('createOnlineDonationSchema accepts a custom festival as category', () => {
-    const out = createOnlineDonationSchema.parse({ trustId: uuid, amount: 1100, category: 'My Local Utsav 2026', anonymous: true })
-    expect(out.category).toBe('My Local Utsav 2026')
-  })
-
   it('createCampaignSchema accepts a custom festival as category', () => {
     const out = createCampaignSchema.parse({ name: 'Gudi Padwa Fund', category: 'Gudi Padwa' })
     expect(out.category).toBe('Gudi Padwa')
@@ -157,14 +234,9 @@ describe('custom categories across donation & campaign schemas', () => {
   })
 })
 
-describe('registerSchema & verifyOtpSchema', () => {
+describe('registerSchema', () => {
   it('requires a strong enough password', () => {
     expect(() => registerSchema.parse({ name: 'Test User', email: 't@test.in', password: '123' })).toThrow()
     expect(() => registerSchema.parse({ name: 'Test User', email: 't@test.in', password: '123456' })).not.toThrow()
-  })
-
-  it('requires a 6-digit OTP', () => {
-    expect(verifyOtpSchema.parse({ phone: '9876543210', otp: '123456' })).toBeTruthy()
-    expect(() => verifyOtpSchema.parse({ phone: '9876543210', otp: '12ab' })).toThrow()
   })
 })

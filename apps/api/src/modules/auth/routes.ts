@@ -2,41 +2,36 @@ import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
+import { OAuth2Client } from 'google-auth-library'
 import { prisma } from '../../lib/prisma.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth, type AuthedRequest } from '../../middleware/auth.js'
 import { validateBody } from '../../middleware/validate.js'
-import { authRateLimiter, otpRateLimiter } from '../../middleware/rateLimit.js'
+import { authRateLimiter, loginRateLimiter, registerRateLimiter, assertNotLocked, recordLoginFailure, resetLoginFailures } from '../../middleware/rateLimit.js'
 import {
   forgotPasswordSchema,
   googleAuthSchema,
   loginSchema,
   registerSchema,
-  requestOtpSchema,
   resetPasswordSchema,
-  verifyOtpSchema,
 } from '@pavati/shared'
 import { config } from '../../config/index.js'
-import { otpProvider } from '../../providers/otp.js'
 import { publicUser, verifyRefreshToken } from '../../lib/jwt.js'
 import { buildAuthResponse, createRefreshRecord } from '../../lib/session.js'
 import { audit } from '../../services/audit.js'
 
 const router = Router()
 
-async function findOrCreateUser(data: { phone?: string; email?: string; name: string; authProvider: 'PHONE' | 'EMAIL' | 'GOOGLE'; profileImage?: string | null }) {
-  let user = data.phone
-    ? await prisma.user.findUnique({ where: { phone: data.phone } })
-    : data.email
-      ? await prisma.user.findUnique({ where: { email: data.email } })
-      : null
+const googleOAuthClient = new OAuth2Client(config.googleClientId)
+
+async function findOrCreateUser(data: { email: string; name: string; profileImage?: string | null }) {
+  let user = await prisma.user.findUnique({ where: { email: data.email } })
   if (!user) {
     user = await prisma.user.create({
       data: {
         name: data.name,
-        phone: data.phone ?? null,
-        email: data.email ?? null,
-        authProvider: data.authProvider,
+        email: data.email,
+        authProvider: 'GOOGLE',
         profileImage: data.profileImage ?? null,
       },
     })
@@ -47,7 +42,7 @@ async function findOrCreateUser(data: { phone?: string; email?: string; name: st
 
 router.post(
   '/register',
-  authRateLimiter(),
+  registerRateLimiter(),
   validateBody(registerSchema),
   asyncHandler(async (req, res) => {
     const { name, email, password, phone } = req.body
@@ -66,61 +61,18 @@ router.post(
 
 router.post(
   '/login',
-  authRateLimiter(),
+  loginRateLimiter(),
   validateBody(loginSchema),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body
+    assertNotLocked(email)
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user?.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
+      recordLoginFailure(email)
       throw new AppError(401, 'Invalid email or password')
     }
+    resetLoginFailures(email)
     await audit({ actorId: user.id, action: 'LOGIN' })
-    const session = await buildAuthResponse(user)
-    await createRefreshRecord(user.id, session.refreshToken)
-    ok(res, session)
-  })
-)
-
-router.post(
-  '/phone/request-otp',
-  otpRateLimiter(),
-  validateBody(requestOtpSchema),
-  asyncHandler(async (req, res) => {
-    const { phone } = req.body
-    const otp = otpProvider.generate()
-    const codeHash = crypto.createHash('sha256').update(otp).digest('hex')
-    await prisma.otpCode.deleteMany({ where: { phone, purpose: 'LOGIN' } })
-    await prisma.otpCode.create({
-      data: { phone, codeHash, purpose: 'LOGIN', expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
-    })
-    const sent = await otpProvider.send(phone, otp)
-    ok(res, {
-      message: 'OTP sent',
-      expiresIn: 300,
-      ...(config.mockMode ? { devOtp: sent.devCode } : {}),
-    })
-  })
-)
-
-router.post(
-  '/phone/verify',
-  authRateLimiter(),
-  validateBody(verifyOtpSchema),
-  asyncHandler(async (req, res) => {
-    const { phone, otp } = req.body
-    const record = await prisma.otpCode.findFirst({
-      where: { phone, purpose: 'LOGIN', consumed: false },
-      orderBy: { createdAt: 'desc' },
-    })
-    if (!record) throw new AppError(400, 'No OTP request found. Please request a new OTP.')
-    if (record.expiresAt < new Date()) throw new AppError(400, 'OTP expired. Please request a new one.')
-    const hash = crypto.createHash('sha256').update(otp).digest('hex')
-    if (hash !== record.codeHash) {
-      await prisma.otpCode.update({ where: { id: record.id }, data: { attempts: { increment: 1 } } })
-      throw new AppError(400, 'Invalid OTP')
-    }
-    await prisma.otpCode.update({ where: { id: record.id }, data: { consumed: true } })
-    const user = await findOrCreateUser({ phone, name: 'New User', authProvider: 'PHONE' })
     const session = await buildAuthResponse(user)
     await createRefreshRecord(user.id, session.refreshToken)
     ok(res, session)
@@ -132,14 +84,38 @@ router.post(
   authRateLimiter(),
   validateBody(googleAuthSchema),
   asyncHandler(async (req, res) => {
-    const { profile } = req.body
-    const email = profile?.email ?? `${req.body.idToken.slice(0, 12)}@mock.google`
+    const { idToken } = req.body
+    let email: string
+    let name: string
+    let picture: string | undefined
+
+    if (config.mockMode) {
+      const profile = req.body.profile
+      email = profile?.email ?? `${idToken.slice(0, 12)}@mock.google`
+      name = profile?.name ?? 'Google User'
+      picture = profile?.picture
+    } else {
+      if (!config.googleClientId) throw new AppError(503, 'Google login is not configured')
+      try {
+        const ticket = await googleOAuthClient.verifyIdToken({ idToken, audience: config.googleClientId })
+        const payload = ticket.getPayload()
+        if (!payload?.email) throw new AppError(401, 'Google account has no email')
+        if (!payload.email_verified) throw new AppError(401, 'Google email is not verified')
+        email = payload.email
+        name = payload.name ?? 'Google User'
+        picture = payload.picture
+      } catch (e) {
+        if (e instanceof AppError) throw e
+        throw new AppError(401, 'Invalid Google token')
+      }
+    }
+
     const user = await findOrCreateUser({
       email,
-      name: profile?.name ?? 'Google User',
-      authProvider: 'GOOGLE',
-      profileImage: profile?.picture ?? null,
+      name,
+      profileImage: picture ?? null,
     })
+    await audit({ actorId: user.id, action: 'LOGIN' })
     const session = await buildAuthResponse(user)
     await createRefreshRecord(user.id, session.refreshToken)
     ok(res, session)
@@ -230,7 +206,7 @@ router.get(
         id: m.id,
         trustId: m.trustId,
         role: m.role,
-        trust: { id: m.trust.id, name: m.trust.name, logoUrl: m.trust.logoUrl, uniqueCode: m.trust.uniqueCode, festivalTypes: m.trust.festivalTypes, city: m.trust.city },
+        trust: { id: m.trust.id, name: m.trust.name, logoUrl: m.trust.logoUrl, uniqueCode: m.trust.uniqueCode, festivalTypes: m.trust.festivalTypes, city: m.trust.city, upiId: m.trust.upiId },
       })),
     })
   })

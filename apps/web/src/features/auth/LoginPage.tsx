@@ -4,10 +4,14 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { ArrowLeft, Smartphone } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { api, setTokens } from '../../lib/api'
 import { useAuth } from '../../lib/stores/auth'
 import { Input, Button, Card } from '../../components/ui'
+import AppLogo from '../../components/AppLogo'
+import GoogleSignInButton from './GoogleSignInButton'
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -42,6 +46,20 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleCredential = async (credential: string) => {
+    setLoading(true)
+    try {
+      const res = await api.post('/auth/google', { idToken: credential })
+      await applySession(res)
+      toast.success('Welcome!')
+      navigate((location.state as any)?.from ?? '/app')
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const mockGoogle = async () => {
     setLoading(true)
     try {
@@ -66,7 +84,7 @@ export default function LoginPage() {
           <ArrowLeft className="h-4 w-4" /> Back to home
         </Link>
         <div className="mb-6 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-maroon-700 text-2xl text-white">🪔</div>
+          <AppLogo className="mx-auto h-14 w-14 rounded-2xl" />
           <h1 className="mt-4 text-2xl font-bold text-stone-900">Welcome back</h1>
           <p className="mt-1 text-sm text-stone-500">Log in to your Pāvati Pustak account</p>
         </div>
@@ -91,18 +109,14 @@ export default function LoginPage() {
           <div className="my-4 flex items-center gap-3 text-xs text-stone-400">
             <span className="h-px flex-1 bg-stone-200" /> or <span className="h-px flex-1 bg-stone-200" />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="outline" onClick={() => navigate('/otp')}>
-              <Smartphone className="h-4 w-4" /> Phone OTP
+          {googleClientId ? (
+            <GoogleSignInButton clientId={googleClientId} onCredential={handleGoogleCredential} onError={() => toast.error('Could not load Google sign-in')} />
+          ) : (
+            <Button type="button" variant="outline" onClick={mockGoogle} disabled={loading} className="w-full">
+              <span className="text-base">G</span> Continue with Google
             </Button>
-            <Button type="button" variant="outline" onClick={mockGoogle} disabled={loading}>
-              <span className="text-base">G</span> Google
-            </Button>
-          </div>
+          )}
         </Card>
-        <p className="mt-4 text-center text-xs text-stone-400">
-          Demo accounts: admin@pavati.in · treasurer@pavati.in · member@pavati.in (password: pavati123)
-        </p>
       </div>
     </div>
   )

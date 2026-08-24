@@ -14,6 +14,7 @@ export interface Membership {
     logoUrl: string | null
     festivalTypes: string[]
     city: string | null
+    upiId: string | null
   }
 }
 

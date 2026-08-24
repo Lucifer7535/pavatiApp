@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Check, Search } from 'lucide-react'
 import { api } from '../../lib/api'
+import LogoutButton from '../../components/LogoutButton'
 import { useAuth } from '../../lib/stores/auth'
 import { Button, Card, Input } from '../../components/ui'
 
@@ -71,9 +72,12 @@ export default function JoinTrustPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10">
       <div className="mx-auto max-w-md px-4 py-12">
-        <Link to="/onboarding" className="mb-6 flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+        <div className="mb-6 flex items-center gap-2">
+          <Link to="/onboarding" className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <LogoutButton />
+        </div>
         <div className="mb-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-maroon-700 text-2xl text-white"><Search className="h-7 w-7" /></div>
           <h1 className="mt-4 text-2xl font-bold text-stone-900">Join a trust</h1>

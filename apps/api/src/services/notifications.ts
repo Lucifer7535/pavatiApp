@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js'
 import { config } from '../config/index.js'
-import { emailProvider, smsProvider, whatsappProvider, type MessageSender } from '../providers/messaging.js'
+import { emailProvider, smsProvider, type MessageSender } from '../providers/messaging.js'
 import { logger } from '../lib/logger.js'
 import { formatINR, NOTIFICATION_CHANNEL } from '@pavati/shared'
 
@@ -15,7 +15,14 @@ export interface DonationReceiptNotificationInput {
   channels: { sms: boolean; whatsapp: boolean; email: boolean }
 }
 
-function buildMessage(input: Omit<DonationReceiptNotificationInput, 'channels'>): string {
+export interface ReceiptShareInput {
+  donorPhone?: string | null
+  amount: number
+  receiptNumber: string
+  receiptVerificationToken: string
+}
+
+export function buildReceiptMessage(input: Omit<ReceiptShareInput, 'donorPhone'>): string {
   return [
     `Thank you for your contribution.`,
     `Donation Amount: ${formatINR(input.amount)}`,
@@ -24,17 +31,26 @@ function buildMessage(input: Omit<DonationReceiptNotificationInput, 'channels'>)
   ].join('\n')
 }
 
+export function buildWhatsAppUrl(phone: string | null | undefined, message: string): string {
+  const text = encodeURIComponent(message)
+  const digits = phone?.replace(/\D/g, '')
+  return digits ? `https://wa.me/91${digits}?text=${text}` : `https://wa.me/?text=${text}`
+}
+
+export function buildReceiptWhatsAppUrl(input: ReceiptShareInput, whatsappEnabled: boolean): string | null {
+  if (!whatsappEnabled) return null
+  return buildWhatsAppUrl(input.donorPhone ?? null, buildReceiptMessage(input))
+}
+
 const channelSender: Record<string, MessageSender> = {
   SMS: smsProvider,
-  WHATSAPP: whatsappProvider,
   EMAIL: emailProvider,
 }
 
 export async function sendReceiptNotifications(input: DonationReceiptNotificationInput): Promise<void> {
-  const message = buildMessage(input)
+  const message = buildReceiptMessage(input)
   const jobs: Array<{ channel: string; to: string | null | undefined }> = [
     { channel: 'SMS', to: input.channels.sms ? input.donorPhone : null },
-    { channel: 'WHATSAPP', to: input.channels.whatsapp ? input.donorPhone : null },
     { channel: 'EMAIL', to: input.channels.email ? input.donorEmail : null },
   ]
 

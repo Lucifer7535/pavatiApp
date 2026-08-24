@@ -9,6 +9,7 @@ function formatAmount(n: number): string {
 
 export function buildFieldValues(data: ReceiptData): Record<string, string> {
   const mode = data.paymentMode as PaymentMode
+  const modeLabel = PAYMENT_MODE_LABELS[mode] ?? data.paymentMode
   return {
     trustName: data.trustName,
     trustAddress: data.trustAddress ?? '',
@@ -19,7 +20,7 @@ export function buildFieldValues(data: ReceiptData): Record<string, string> {
     donorAddress: data.donorAddress ?? '',
     amount: formatAmount(data.amount),
     amountInWords: amountInWords(data.amount),
-    paymentMode: PAYMENT_MODE_LABELS[mode] ?? data.paymentMode,
+    paymentMode: data.paymentBreakdown ? `${modeLabel} (${data.paymentBreakdown})` : modeLabel,
     donationCategory: data.category,
     transactionRef: data.transactionRef ?? '',
     collectorName: data.collectorName ?? '',
