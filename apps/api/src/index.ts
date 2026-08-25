@@ -43,7 +43,11 @@ export function createApp() {
       }
       if (!/^[A-Za-z0-9][A-Za-z0-9/_.-]*$/.test(key) || key.includes('..')) throw new AppError(400, 'Invalid file path')
       res.setHeader('Cache-Control', 'private, max-age=300')
-      res.redirect(302, await presignedGetUrl(key))
+      if (config.r2PublicUrl) {
+        res.redirect(302, `${config.r2PublicUrl}/${key}`)
+      } else {
+        res.redirect(302, await presignedGetUrl(key))
+      }
     }))
   } else {
     const uploadsDir = path.isAbsolute(config.uploadDir) ? config.uploadDir : path.join(process.cwd(), config.uploadDir)
