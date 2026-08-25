@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import { OAuth2Client } from 'google-auth-library'
 import { prisma } from '../../lib/prisma.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
+import { sendEmail } from '../../lib/email.js'
 import { requireAuth, type AuthedRequest } from '../../middleware/auth.js'
 import { validateBody } from '../../middleware/validate.js'
 import { authRateLimiter, loginRateLimiter, registerRateLimiter, assertNotLocked, recordLoginFailure, resetLoginFailures } from '../../middleware/rateLimit.js'
@@ -136,6 +137,12 @@ router.post(
         ok(res, { message: 'Password reset link sent', devResetUrl: resetUrl })
         return
       }
+      await sendEmail({
+        to: email,
+        subject: 'Reset your Pāvati Pustak password',
+        html: `<p>Hi ${user.name ?? ''},</p><p>Click the link below to reset your password. This link expires in 30 minutes.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#831843;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password</a></p><p>Or copy this URL: ${resetUrl}</p><p>If you didn't request this, ignore this email.</p>`,
+        text: `Reset your password: ${resetUrl}`,
+      })
     }
     ok(res, { message: 'If an account exists with that email, a reset link has been sent.' })
   })

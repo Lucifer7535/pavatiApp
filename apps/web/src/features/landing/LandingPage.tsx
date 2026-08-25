@@ -37,7 +37,7 @@ export default function LandingPage() {
             </div>
           </Link>
           <nav className="flex items-center gap-2">
-            <Link to="/login" className="btn-ghost hidden sm:inline-flex">Log in</Link>
+            <Link to="/login" className="btn-ghost inline-flex">Log in</Link>
             <Link to="/signup" className="btn-primary">Get started</Link>
           </nav>
         </div>

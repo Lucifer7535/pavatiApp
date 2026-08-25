@@ -18,5 +18,7 @@ export const config = {
   webDistDir: process.env.WEB_DIST_DIR ?? '',
   mockMode: process.env.MOCK_MODE !== 'false',
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
+  resendApiKey: process.env.RESEND_API_KEY ?? '',
+  resendFromEmail: process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev',
   env: process.env.NODE_ENV ?? 'development',
 }

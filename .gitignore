@@ -5,6 +5,9 @@ coverage/
 .env
 .env.local
 .env.r2
+.env.resend
+.env.google
+.env.heroku
 apps/api/uploads/
 *.log
 .DS_Store
