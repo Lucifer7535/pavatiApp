@@ -65,7 +65,7 @@ export async function saveBuffer(buffer: Buffer, ext: string, subdir = ''): Prom
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     await fs.promises.writeFile(path.join(dir, filename), buffer)
   }
-  return { url: `${config.publicBaseUrl}${UPLOAD_URL_PREFIX}${rel}`, filename: rel }
+  return { url: r2Active() && config.r2PublicUrl ? `${config.r2PublicUrl}/${rel}` : `${config.publicBaseUrl}${UPLOAD_URL_PREFIX}${rel}`, filename: rel }
 }
 
 export async function savePdf(buffer: Uint8Array, subdir: string): Promise<StoredFile> {
