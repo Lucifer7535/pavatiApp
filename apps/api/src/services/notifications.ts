@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js'
 import { config } from '../config/index.js'
-import { emailProvider, smsProvider, type MessageSender } from '../providers/messaging.js'
+import { emailProvider, type MessageSender } from '../providers/messaging.js'
 import { logger } from '../lib/logger.js'
 import { formatINR, NOTIFICATION_CHANNEL } from '@pavati/shared'
 
@@ -43,14 +43,12 @@ export function buildReceiptWhatsAppUrl(input: ReceiptShareInput, whatsappEnable
 }
 
 const channelSender: Record<string, MessageSender> = {
-  SMS: smsProvider,
   EMAIL: emailProvider,
 }
 
 export async function sendReceiptNotifications(input: DonationReceiptNotificationInput): Promise<void> {
   const message = buildReceiptMessage(input)
   const jobs: Array<{ channel: string; to: string | null | undefined }> = [
-    { channel: 'SMS', to: input.channels.sms ? input.donorPhone : null },
     { channel: 'EMAIL', to: input.channels.email ? input.donorEmail : null },
   ]
 

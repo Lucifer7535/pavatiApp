@@ -1,28 +1,28 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { BellRing, MessageSquare, Mail, Send } from 'lucide-react'
+import { BellRing, Mail, Send } from 'lucide-react'
 import { api } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Card, CardHeader, Spinner, Badge, PageHeader, Pagination, Button } from '../../components/ui'
 import { useActiveTrust } from '../../lib/stores/auth'
 import { timeAgo } from '../../lib/utils'
 
-const channelIcon = { SMS: MessageSquare, WHATSAPP: Send, EMAIL: Mail }
-const channelColor: Record<string, string> = { SMS: 'blue', WHATSAPP: 'green', EMAIL: 'purple' }
+const channelIcon = { WHATSAPP: Send, EMAIL: Mail }
+const channelColor: Record<string, string> = { WHATSAPP: 'green', EMAIL: 'purple' }
 const statusColor: Record<string, string> = { PENDING: 'gold', SENT: 'blue', DELIVERED: 'green', FAILED: 'red' }
 
 export default function NotificationsPage() {
   const active = useActiveTrust()!
   const [page, setPage] = useState(1)
-  const [settings, setSettings] = useState<{ notificationSms: boolean; notificationWhatsapp: boolean; notificationEmail: boolean } | null>(null)
+  const [settings, setSettings] = useState<{ notificationWhatsapp: boolean; notificationEmail: boolean } | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['notifications', active.trustId, page],
     queryFn: async () => {
       const [list, s] = await Promise.all([
         api.get<{ total: number; page: number; pageSize: number; items: any[] }>(`/trusts/${active.trustId}/notifications`, { page, pageSize: 30 }),
-        api.get<{ notificationSms: boolean; notificationWhatsapp: boolean; notificationEmail: boolean }>(`/trusts/${active.trustId}/notifications/settings`),
+        api.get<{ notificationWhatsapp: boolean; notificationEmail: boolean }>(`/trusts/${active.trustId}/notifications/settings`),
       ])
       setSettings(s)
       return list
@@ -30,7 +30,7 @@ export default function NotificationsPage() {
   })
 
   const saveSettings = useMutation({
-    mutationFn: () => api.patch(`/trusts/${active.trustId}/notifications/settings`, { sms: settings!.notificationSms, whatsapp: settings!.notificationWhatsapp, email: settings!.notificationEmail }),
+    mutationFn: () => api.patch(`/trusts/${active.trustId}/notifications/settings`, { sms: false, whatsapp: settings!.notificationWhatsapp, email: settings!.notificationEmail }),
     onSuccess: () => { toast.success('Notification settings saved') },
     onError: (e: any) => toast.error(e.message),
   })
@@ -75,9 +75,8 @@ export default function NotificationsPage() {
             {!settings ? <Spinner /> : (
               <>
                 {([
-                  ['notificationSms', 'SMS', 'Text message with receipt link'],
                   ['notificationWhatsapp', 'WhatsApp', 'WhatsApp message to donor'],
-                  ['notificationEmail', 'Email', 'Email with PDF receipt attached'],
+                  ['notificationEmail', 'Email', 'Email with receipt details and verification link'],
                 ] as const).map(([key, label, desc]) => (
                   <label key={key} className="flex items-start gap-3 rounded-xl border border-stone-100 p-3">
                     <input
@@ -93,7 +92,6 @@ export default function NotificationsPage() {
                   </label>
                 ))}
                 <Button className="w-full" onClick={() => saveSettings.mutate()} loading={saveSettings.isPending}>Save settings</Button>
-                <p className="text-center text-xs text-stone-400">Mock mode: messages are logged to the API console.</p>
               </>
             )}
           </div>
