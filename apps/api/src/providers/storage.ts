@@ -73,9 +73,12 @@ export async function savePdf(buffer: Uint8Array, subdir: string): Promise<Store
 }
 
 function keyFromUrl(url: string): string | null {
+  if (config.r2PublicUrl && url.startsWith(config.r2PublicUrl + '/')) {
+    return url.slice(config.r2PublicUrl.length + 1)
+  }
   const prefix = `${config.publicBaseUrl}${UPLOAD_URL_PREFIX}`
-  if (!url.startsWith(prefix)) return null
-  return url.slice(prefix.length)
+  if (url.startsWith(prefix)) return url.slice(prefix.length)
+  return null
 }
 
 export async function fileFromUrl(url: string): Promise<{ path: string; buffer: Buffer } | null> {
