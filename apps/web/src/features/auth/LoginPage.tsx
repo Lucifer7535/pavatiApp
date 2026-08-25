@@ -11,7 +11,7 @@ import { Input, Button, Card } from '../../components/ui'
 import AppLogo from '../../components/AppLogo'
 import GoogleSignInButton from './GoogleSignInButton'
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+const googleClientId: string | undefined = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
