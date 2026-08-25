@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build -w @pavati/shared && npm run build -w @pavati/receipt-engine && npm run build -w @pavati/api && npm run build -w @pavati/web",
-    "heroku-postbuild": "npm run build",
+    "heroku-postbuild": "npx prisma generate --schema apps/api/prisma/schema.prisma && npm run build",
     "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @pavati/api\" \"npm run dev -w @pavati/web\"",
     "dev:api": "npm run dev -w @pavati/api",
     "dev:web": "npm run dev -w @pavati/web",
