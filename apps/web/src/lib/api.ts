@@ -131,3 +131,7 @@ export async function getReceiptPdfUrl(id: string) {
   const blob = await fetchPdf(id)
   return URL.createObjectURL(blob)
 }
+
+export async function getReceiptPdfBlob(id: string): Promise<Blob> {
+  return fetchPdf(id)
+}
