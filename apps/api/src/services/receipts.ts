@@ -76,8 +76,8 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
   const verificationToken = randomBytes(16).toString('hex')
   const verificationUrl = `${config.webOrigin}/receipt/verify/${verificationToken}`
 
-  const background = template.backgroundImageUrl ? fileFromUrl(template.backgroundImageUrl)?.buffer ?? null : null
-  const logo = trust.logoUrl ? fileFromUrl(trust.logoUrl)?.buffer ?? null : null
+  const background = template.backgroundImageUrl ? (await fileFromUrl(template.backgroundImageUrl))?.buffer ?? null : null
+  const logo = trust.logoUrl ? (await fileFromUrl(trust.logoUrl))?.buffer ?? null : null
   const qr = await generateQrPng(verificationUrl)
 
   let paymentBreakdown: string | undefined

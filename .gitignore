@@ -4,6 +4,8 @@ build/
 coverage/
 .env
 .env.local
+.env.r2
+apps/api/uploads/
 *.log
 .DS_Store
 apps/api/prisma/dev.db

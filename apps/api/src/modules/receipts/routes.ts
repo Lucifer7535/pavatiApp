@@ -98,7 +98,7 @@ router.get(
     const isDonor = await prisma.donation.findFirst({ where: { id: receipt.donationId, phone: req.user!.phone ?? undefined } })
     if (!isTrustMember && !isDonor) throw new AppError(403, 'Not authorized to view this receipt')
     if (!receipt.pdfUrl) throw new AppError(404, 'PDF not generated')
-    const file = fileFromUrl(receipt.pdfUrl)
+    const file = await fileFromUrl(receipt.pdfUrl)
     if (!file) throw new AppError(404, 'PDF file missing')
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', `attachment; filename="${receipt.receiptNumber}.pdf"`)

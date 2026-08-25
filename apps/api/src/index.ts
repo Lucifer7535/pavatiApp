@@ -5,8 +5,10 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { config } from './config/index.js'
 import { logger } from './lib/logger.js'
+import { AppError, asyncHandler } from './lib/http.js'
 import { errorHandler, notFound } from './middleware/error.js'
 import { globalRateLimiter } from './middleware/rateLimit.js'
+import { r2Active, presignedGetUrl } from './providers/storage.js'
 import authRoutes from './modules/auth/routes.js'
 import trustRoutes from './modules/trusts/routes.js'
 import memberRoutes from './modules/members/routes.js'
@@ -31,9 +33,23 @@ export function createApp() {
   app.use(cookieParser())
   app.use(globalRateLimiter())
 
-  const uploadsDir = path.isAbsolute(config.uploadDir) ? config.uploadDir : path.join(process.cwd(), config.uploadDir)
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
-  app.use('/uploads', express.static(uploadsDir))
+  if (r2Active()) {
+    app.get(/^\/uploads\/(.+)$/, asyncHandler(async (req, res) => {
+      let key: string
+      try {
+        key = decodeURIComponent(req.params[0])
+      } catch {
+        throw new AppError(400, 'Invalid file path')
+      }
+      if (!/^[A-Za-z0-9][A-Za-z0-9/_.-]*$/.test(key) || key.includes('..')) throw new AppError(400, 'Invalid file path')
+      res.setHeader('Cache-Control', 'private, max-age=300')
+      res.redirect(302, await presignedGetUrl(key))
+    }))
+  } else {
+    const uploadsDir = path.isAbsolute(config.uploadDir) ? config.uploadDir : path.join(process.cwd(), config.uploadDir)
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
+    app.use('/uploads', express.static(uploadsDir))
+  }
 
   app.get('/health', (_req, res) => res.json({ ok: true, service: 'pavati-api', time: new Date().toISOString() }))
 
@@ -53,6 +69,14 @@ export function createApp() {
   app.use('/api/v1/receipts', receiptRoutes)
   app.use('/api/v1/users', userRoutes)
   app.use('/api/v1/uploads', uploadRoutes)
+
+  if (config.webDistDir) {
+    const distDir = path.isAbsolute(config.webDistDir) ? config.webDistDir : path.join(process.cwd(), config.webDistDir)
+    app.use(express.static(distDir))
+    app.get(/^(?!\/api\/|\/uploads\/|\/health$).*/, (_req, res) => {
+      res.sendFile(path.join(distDir, 'index.html'))
+    })
+  }
 
   app.use(notFound)
   app.use(errorHandler)
