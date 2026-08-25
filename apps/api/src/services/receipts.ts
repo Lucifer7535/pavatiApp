@@ -151,6 +151,7 @@ export async function verifyReceiptData(token: string) {
     verified: receipt.status === 'ACTIVE',
     receiptNumber: receipt.receiptNumber,
     trustName: receipt.trust.name,
+    trustLogo: receipt.trust.logoUrl ?? null,
     donationDate: receipt.donation.donationDate,
     amount: receipt.donation.amount,
     donorName: privacy === 'ANONYMOUS' ? 'Anonymous Donor' : receipt.donation.donorName,

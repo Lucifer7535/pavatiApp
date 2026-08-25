@@ -95,6 +95,12 @@ export default function ReceiptVerifyPage() {
             </Card>
           </div>
         )}
+
+        <div className="mt-6 flex gap-3">
+          <Link to="/" className="btn-outline flex-1 text-center">Home</Link>
+          <Link to="/login" className="btn-outline flex-1 text-center">Login</Link>
+          <Link to="/signup" className="btn-primary flex-1 text-center">Sign up</Link>
+        </div>
       </div>
     </div>
   )
