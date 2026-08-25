@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ShieldCheck, XCircle, Download } from 'lucide-react'
-import { api } from '../../lib/api'
+import { api, downloadReceiptPdf } from '../../lib/api'
 import { Card, Spinner } from '../../components/ui'
 import { formatINR } from '../../lib/utils'
 
 interface VerifyData {
-  valid: boolean
+  id: string
+  verified: boolean
   trustName: string
   trustLogo: string | null
   receiptNumber: string
-  receiptStatus: string
+  status: string
   generatedAt: string
   donorName: string
   amount: number
@@ -18,6 +19,7 @@ interface VerifyData {
   category: string
   donationDate: string
   verificationToken: string
+  pdfUrl: string | null
 }
 
 export default function ReceiptVerifyPage() {
@@ -47,7 +49,7 @@ export default function ReceiptVerifyPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10 p-4">
-      <div className="w-full max-w-md animate-slide-up">
+      <div className="w-full max-w-2xl animate-slide-up">
         <Card className="overflow-hidden">
           <div className="bg-emerald-500 p-6 text-center text-white">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/20"><ShieldCheck className="h-8 w-8" /></div>
@@ -61,7 +63,7 @@ export default function ReceiptVerifyPage() {
               </div>
               <div>
                 <p className="font-bold text-stone-900">{data.trustName}</p>
-                <p className="font-mono text-xs text-stone-500">{data.receiptNumber} · {data.receiptStatus}</p>
+                <p className="font-mono text-xs text-stone-500">{data.receiptNumber} · {data.status}</p>
               </div>
             </div>
             <div className="mt-5 space-y-2 rounded-2xl bg-stone-50 p-4 text-sm">
@@ -74,9 +76,26 @@ export default function ReceiptVerifyPage() {
             <p className="mt-4 text-center text-xs text-stone-400">Verified via secure link · This receipt is authentic</p>
           </div>
         </Card>
+
+        {data.pdfUrl && (
+          <div className="mt-6">
+            <Card className="overflow-hidden">
+              <div className="p-4">
+                <iframe
+                  src={data.pdfUrl}
+                  className="h-[60vh] w-full rounded-xl border border-stone-200"
+                  title={`Receipt ${data.receiptNumber}`}
+                />
+              </div>
+              <div className="border-t border-stone-100 px-6 py-4">
+                <button onClick={() => downloadReceiptPdf(data.id)} className="btn-primary w-full">
+                  <Download className="h-4 w-4" /> Download PDF
+                </button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )
 }
-
-void Download

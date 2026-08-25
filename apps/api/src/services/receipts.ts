@@ -147,6 +147,7 @@ export async function verifyReceiptData(token: string) {
   if (!receipt) return null
   const privacy = receipt.donation.privacy
   return {
+    id: receipt.id,
     verified: receipt.status === 'ACTIVE',
     receiptNumber: receipt.receiptNumber,
     trustName: receipt.trust.name,
@@ -154,5 +155,6 @@ export async function verifyReceiptData(token: string) {
     amount: receipt.donation.amount,
     donorName: privacy === 'ANONYMOUS' ? 'Anonymous Donor' : receipt.donation.donorName,
     status: receipt.status,
+    pdfUrl: receipt.pdfUrl,
   }
 }

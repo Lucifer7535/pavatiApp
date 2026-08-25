@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ArrowLeft, Check, Copy, Download, MessageCircle, Plus, Trash2, Upload } from 'lucide-react'
 import { PAYMENT_MODE, PAYMENT_MODE_LABELS, PRIVACY, formatINR } from '@pavati/shared'
-import { api, uploadFile, downloadReceiptPdf, getReceiptPdfBlob } from '../../lib/api'
+import { api, uploadFile, downloadReceiptPdf } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Button, Card, CardHeader, Input, Select, Textarea } from '../../components/ui'
 import { useActiveTrust } from '../../lib/stores/auth'
@@ -46,7 +46,6 @@ export default function CreateDonationPage() {
   const [splits, setSplits] = useState<SplitRow[]>([emptySplit()])
   const [awaitingPayment, setAwaitingPayment] = useState(false)
   const [result, setResult] = useState<{ donation: any; receipt: any; whatsappShareUrl?: string | null } | null>(null)
-  const [sharing, setSharing] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema) as any, defaultValues: { category: 'Ganpati Donation', privacy: 'PRIVATE', paymentDate: new Date().toISOString().slice(0, 10) } })
 
   const { data: campaigns } = useQuery({
@@ -63,30 +62,6 @@ export default function CreateDonationPage() {
     setCopiedUpi(true)
     toast.success('UPI ID copied!')
     setTimeout(() => setCopiedUpi(false), 2000)
-  }
-
-  const shareWhatsApp = async () => {
-    if (!result?.receipt) return
-    setSharing(true)
-    const message = [
-      `Thank you for your contribution.`,
-      `Donation Amount: ${formatINR(result.donation.amount)}`,
-      `Receipt No: ${result.receipt.receiptNumber}`,
-      `View your receipt: ${window.location.origin}/receipt/verify/${result.receipt.verificationToken}`,
-    ].join('\n')
-    try {
-      if (navigator.share) {
-        const blob = await getReceiptPdfBlob(result.receipt.id)
-        const file = new File([blob], `Paavati-${result.receipt.receiptNumber}.pdf`, { type: 'application/pdf' })
-        await navigator.share({ files: [file], text: message })
-      } else {
-        window.open(result.whatsappShareUrl ?? `https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
-      }
-    } catch (e: any) {
-      if (e.name !== 'AbortError') toast.error(e.message ?? 'Failed to share')
-    } finally {
-      setSharing(false)
-    }
   }
 
   const setSplit = (i: number, patch: Partial<SplitRow>) => {
@@ -149,9 +124,9 @@ export default function CreateDonationPage() {
                 <div className="mt-5 grid gap-2">
                   <button onClick={() => downloadReceiptPdf(result.receipt.id)} className="btn-primary"><Download className="h-4 w-4" /> Download PDF</button>
                   {result.whatsappShareUrl && (
-                    <button onClick={shareWhatsApp} disabled={sharing} className="btn-whatsapp">
-                      <MessageCircle className="h-4 w-4" /> {sharing ? 'Sharing…' : 'Send receipt on WhatsApp'}
-                    </button>
+                    <a href={result.whatsappShareUrl} target="_blank" rel="noreferrer" className="btn-whatsapp">
+                      <MessageCircle className="h-4 w-4" /> Send receipt on WhatsApp
+                    </a>
                   )}
                   <Button variant="outline" onClick={() => { setResult(null); setSplits([emptySplit()]); setAwaitingPayment(false); setUpiCampaignId('') }}>Record another</Button>
                   <Button variant="ghost" onClick={() => navigate('/app/donations')}>View all donations</Button>
