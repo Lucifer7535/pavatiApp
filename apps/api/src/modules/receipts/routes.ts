@@ -115,7 +115,7 @@ router.post(
         const result = await emailProvider.send(email, message, `${config.webOrigin}/receipt/verify/${receipt.verificationToken}`)
         await prisma.notification.create({
           data: {
-            trustId: req.trustId,
+            trustId: req.trustId!,
             recipientEmail: email,
             channel: 'EMAIL',
             message,
@@ -127,7 +127,7 @@ router.post(
       }
     }
 
-    await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'SETTINGS_UPDATED', entityType: 'Receipt', entityId: receipt.id, metadata: { action: 'manual_send', channels: req.body.channels, sent } })
+    await audit({ actorId: req.user!.id, trustId: req.trustId!, action: 'SETTINGS_UPDATED', entityType: 'Receipt', entityId: receipt.id, metadata: { action: 'manual_send', channels: req.body.channels, sent } })
 
     ok(res, { sent })
   })
