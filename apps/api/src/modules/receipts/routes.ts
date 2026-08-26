@@ -7,8 +7,11 @@ import { requireAuth, type AuthedRequest } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { validateBody, validateQuery } from '../../middleware/validate.js'
 import { generateReceipt, verifyReceiptData } from '../../services/receipts.js'
+import { buildReceiptMessage } from '../../services/notifications.js'
+import { emailProvider } from '../../providers/messaging.js'
 import { audit } from '../../services/audit.js'
 import { fileFromUrl } from '../../providers/storage.js'
+import { config } from '../../config/index.js'
 
 const router = Router()
 
@@ -82,6 +85,51 @@ router.post(
     })
     await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'RECEIPT_VOIDED', entityType: 'Receipt', entityId: receipt.id, metadata: { reason: req.body.reason } })
     ok(res, { message: 'Receipt voided' })
+  })
+)
+
+router.post(
+  '/:trustId/receipts/:receiptId/send',
+  requirePermission('receipt:view'),
+  validateBody(z.object({ channels: z.array(z.enum(['email'])).min(1) })),
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    const receipt = await prisma.receipt.findFirst({
+      where: { id: req.params.receiptId, trustId: req.trustId },
+      include: { donation: true },
+    })
+    if (!receipt) throw new AppError(404, 'Receipt not found')
+    if (receipt.status !== 'ACTIVE') throw new AppError(400, 'Receipt is not active')
+    if (!receipt.donation) throw new AppError(400, 'Donation not found for this receipt')
+
+    const sent: string[] = []
+
+    for (const channel of req.body.channels) {
+      if (channel === 'email') {
+        const email = receipt.donation.email
+        if (!email) continue
+        const message = buildReceiptMessage({
+          amount: receipt.donation.amount,
+          receiptNumber: receipt.receiptNumber,
+          receiptVerificationToken: receipt.verificationToken,
+        })
+        const result = await emailProvider.send(email, message, `${config.webOrigin}/receipt/verify/${receipt.verificationToken}`)
+        await prisma.notification.create({
+          data: {
+            trustId: req.trustId,
+            recipientEmail: email,
+            channel: 'EMAIL',
+            message,
+            status: result.ok ? 'SENT' : 'FAILED',
+            providerResponse: result.providerResponse,
+          },
+        })
+        if (result.ok) sent.push('email')
+      }
+    }
+
+    await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'SETTINGS_UPDATED', entityType: 'Receipt', entityId: receipt.id, metadata: { action: 'manual_send', channels: req.body.channels, sent } })
+
+    ok(res, { sent })
   })
 )
 
