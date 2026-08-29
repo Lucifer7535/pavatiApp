@@ -12,7 +12,7 @@ import { categoryOptions, useTrustFestivals } from '../../lib/festivals'
 
 const statusColor: Record<string, string> = { SUCCEEDED: 'green', PENDING: 'gold', FAILED: 'red', REFUNDED: 'blue', CANCELLED: 'default' }
 const statusLabel: Record<string, string> = { PENDING: 'Awaiting confirmation' }
-const modeColor: Record<string, string> = { CASH: 'green', UPI: 'blue', BANK_TRANSFER: 'blue', CARD: 'gold', OTHER: 'default', MIXED: 'default' }
+const modeColor: Record<string, string> = { CASH: 'green', UPI: 'blue', MIXED: 'default' }
 
 export default function DonationsPage() {
   const active = useActiveTrust()!

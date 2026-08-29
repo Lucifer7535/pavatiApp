@@ -135,3 +135,20 @@ export async function getReceiptPdfUrl(id: string) {
 export async function getReceiptPdfBlob(id: string): Promise<Blob> {
   return fetchPdf(id)
 }
+
+export async function exportDonationsCsv(trustId: string) {
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/trusts/${trustId}/reports/export`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new ApiError(res.status, 'Failed to export CSV')
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'donations-export.csv'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}

@@ -14,7 +14,6 @@ interface Dashboard {
   totalDonors: number
   cashCollected: number
   upiCollected: number
-  bankTransferCollected: number
   todayCollected: number
   pendingCount: number
   memberCount: number
@@ -28,7 +27,7 @@ interface Dashboard {
   announcements?: any[]
 }
 
-const modeColor: Record<string, string> = { CASH: 'bg-emerald-100 text-emerald-700', UPI: 'bg-sky-100 text-sky-700', BANK_TRANSFER: 'bg-blue-100 text-blue-700', CARD: 'bg-amber-100 text-amber-700', OTHER: 'bg-stone-100 text-stone-600', MIXED: 'bg-stone-100 text-stone-600' }
+const modeColor: Record<string, string> = { CASH: 'bg-emerald-100 text-emerald-700', UPI: 'bg-sky-100 text-sky-700', MIXED: 'bg-stone-100 text-stone-600' }
 const statusBadge: Record<string, { color: 'green' | 'gold' | 'default'; label: string }> = {
   SUCCEEDED: { color: 'green', label: 'Received' },
   PENDING: { color: 'gold', label: 'Awaiting confirmation' },

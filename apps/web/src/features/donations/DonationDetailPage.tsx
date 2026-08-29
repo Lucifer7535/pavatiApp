@@ -9,7 +9,7 @@ import { formatINR, timeAgo } from '../../lib/utils'
 import { PAYMENT_MODE_LABELS, permissionsForRole, type TrustRole } from '@pavati/shared'
 import { useActiveTrust } from '../../lib/stores/auth'
 
-const modeColor: Record<string, string> = { CASH: 'green', UPI: 'blue', BANK_TRANSFER: 'blue', CARD: 'gold', OTHER: 'default', MIXED: 'default' }
+const modeColor: Record<string, string> = { CASH: 'green', UPI: 'blue', MIXED: 'default' }
 
 export default function DonationDetailPage() {
   const { donationId } = useParams()
@@ -28,6 +28,7 @@ export default function DonationDetailPage() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['donation', donationId] })
       qc.invalidateQueries({ queryKey: ['donations', active.trustId] })
+      qc.invalidateQueries({ queryKey: ['dashboard', active.trustId] })
       if (res.receipt) toast.success(`Payment verified — Pāvati ${res.receipt.receiptNumber} issued`)
       else toast.success('Payment verified')
     },
@@ -41,6 +42,7 @@ export default function DonationDetailPage() {
       toast.success('Donation voided')
       qc.invalidateQueries({ queryKey: ['donation', donationId] })
       qc.invalidateQueries({ queryKey: ['donations', active.trustId] })
+      qc.invalidateQueries({ queryKey: ['dashboard', active.trustId] })
     } catch (e: any) {
       toast.error(e.message)
     }

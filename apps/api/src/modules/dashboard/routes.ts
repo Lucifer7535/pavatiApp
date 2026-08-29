@@ -33,15 +33,16 @@ router.get(
       return ok(res, { scope: 'own', myTotal, myPendingCount: myPending, myRecentDonations: myDonations, announcements, campaigns })
     }
 
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
+    const now = new Date()
+    const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000)
+    istTime.setUTCHours(0, 0, 0, 0)
+    const todayStart = new Date(istTime.getTime() - 5.5 * 60 * 60 * 1000)
 
-    const [totalAgg, donorCount, cashAgg, upiAgg, bankTransferAgg, todayAgg, pendingCount, memberCount, recentTransactions, recentMembers, campaigns] = await Promise.all([
+    const [totalAgg, donorCount, cashAgg, upiAgg, todayAgg, pendingCount, memberCount, recentTransactions, recentMembers, campaigns] = await Promise.all([
       prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED' }, _sum: { amount: true } }),
       prisma.donation.groupBy({ by: ['donorName', 'phone'], where: { trustId, status: 'SUCCEEDED' } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', paymentMode: 'CASH' }, _sum: { amount: true } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', paymentMode: 'UPI' }, _sum: { amount: true } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', paymentMode: 'BANK_TRANSFER' }, _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED' }, paymentMode: 'CASH' }, _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED' }, paymentMode: 'UPI' }, _sum: { amount: true } }),
       prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: todayStart } }, _sum: { amount: true } }),
       prisma.donation.count({ where: { trustId, status: 'PENDING' } }),
       prisma.trustMember.count({ where: { trustId, status: 'ACTIVE' } }),
@@ -61,7 +62,6 @@ router.get(
       totalDonors: donorCount.length,
       cashCollected: cashAgg._sum.amount ?? 0,
       upiCollected: upiAgg._sum.amount ?? 0,
-      bankTransferCollected: bankTransferAgg._sum.amount ?? 0,
       todayCollected: todayAgg._sum.amount ?? 0,
       pendingCount,
       memberCount,

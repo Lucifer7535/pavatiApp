@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ArrowLeft, Check, Copy, Download, MessageCircle, Plus, Trash2, Upload } from 'lucide-react'
 import { PAYMENT_MODE, PAYMENT_MODE_LABELS, PRIVACY, formatINR } from '@pavati/shared'
@@ -39,6 +39,7 @@ type Form = z.infer<typeof schema>
 export default function CreateDonationPage() {
   const navigate = useNavigate()
   const active = useActiveTrust()!
+  const qc = useQueryClient()
   const festivals = useTrustFestivals(active.trustId)
   const [loading, setLoading] = useState(false)
   const [copiedUpi, setCopiedUpi] = useState(false)
@@ -100,6 +101,8 @@ export default function CreateDonationPage() {
         ...(hasUpi && upiCampaignId ? { campaignId: upiCampaignId } : {}),
       })
       setResult(res)
+      qc.invalidateQueries({ queryKey: ['dashboard', active.trustId] })
+      qc.invalidateQueries({ queryKey: ['donations', active.trustId] })
       toast.success(res.receipt ? 'Pāvati recorded and receipt generated!' : 'Saved — awaiting payment confirmation')
     } catch (e: any) {
       toast.error(e.message)

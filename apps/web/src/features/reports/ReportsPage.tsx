@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BarChart3, Download, TrendingUp, Wallet, Banknote, Smartphone } from 'lucide-react'
+import { toast } from 'sonner'
+import { BarChart3, Download, TrendingUp, Wallet, Banknote } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { api } from '../../lib/api'
+import { api, exportDonationsCsv } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Card, CardHeader, Spinner, Input, StatCard, PageHeader, Button, Badge } from '../../components/ui'
 import { useActiveTrust } from '../../lib/stores/auth'
@@ -18,7 +19,6 @@ interface Summary {
   todayCollected: number
   cashCollected: number
   upiCollected: number
-  bankTransferCollected: number
   memberCount: number
   byMode: { mode: string; amount: number; count: number }[]
   byCategory: { category: string; amount: number; count: number }[]
@@ -45,7 +45,7 @@ export default function ReportsPage() {
   })
 
   const exportCsv = () => {
-    window.open(`/api/v1/trusts/${active.trustId}/reports/export`, '_blank')
+    exportDonationsCsv(active.trustId).catch((e: any) => toast.error(e.message))
   }
 
   return (
@@ -63,7 +63,6 @@ export default function ReportsPage() {
             <StatCard label="Total collected" value={formatINR(summary.totalCollected)} icon={<TrendingUp className="h-5 w-5" />} accent="saffron" sub={`${summary.totalDonations} donations`} />
             <StatCard label="Today" value={formatINR(summary.todayCollected)} icon={<Wallet className="h-5 w-5" />} accent="gold" sub={`${summary.todayDonations} donations`} />
             <StatCard label="Cash / UPI" value={`${formatINR(summary.cashCollected)} / ${formatINR(summary.upiCollected)}`} icon={<Banknote className="h-5 w-5" />} accent="green" />
-            <StatCard label="Bank Transfer" value={formatINR(summary.bankTransferCollected)} icon={<Smartphone className="h-5 w-5" />} accent="blue" sub={`${summary.memberCount} members`} />
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">

@@ -22,15 +22,20 @@ router.get(
     const from = q.from ? new Date(q.from) : undefined
     const to = q.to ? new Date(q.to) : undefined
     const dateFilter: Prisma.DonationWhereInput['donationDate'] = from || to ? { ...(from && { gte: from }), ...(to && { lte: to }) } : undefined
-    const [totalDonations, sumAgg, today, todayAgg, cashAgg, upiAgg, bankTransferAgg, modeCounts, categoryCounts] = await Promise.all([
+
+    const now = new Date()
+    const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000)
+    istTime.setUTCHours(0, 0, 0, 0)
+    const todayStart = new Date(istTime.getTime() - 5.5 * 60 * 60 * 1000)
+
+    const [totalDonations, sumAgg, today, todayAgg, cashAgg, upiAgg, modeCounts, categoryCounts] = await Promise.all([
       prisma.donation.count({ where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) } }),
       prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true } }),
-      prisma.donation.count({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } }, _sum: { amount: true } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', paymentMode: 'CASH', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', paymentMode: 'UPI', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', paymentMode: 'BANK_TRANSFER', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true } }),
-      prisma.donation.groupBy({ by: ['paymentMode'], where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true }, _count: true }),
+      prisma.donation.count({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: todayStart } } }),
+      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: todayStart } }, _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, paymentMode: 'CASH' }, _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, paymentMode: 'UPI' }, _sum: { amount: true } }),
+      prisma.donationSplit.groupBy({ by: ['paymentMode'], where: { donation: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) } }, _sum: { amount: true }, _count: true }),
       prisma.donation.groupBy({ by: ['category'], where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true }, _count: true }),
     ])
     const memberCount = await prisma.trustMember.count({ where: { trustId, status: 'ACTIVE' } })
@@ -41,9 +46,10 @@ router.get(
       todayCollected: todayAgg._sum.amount ?? 0,
       cashCollected: cashAgg._sum.amount ?? 0,
       upiCollected: upiAgg._sum.amount ?? 0,
-      bankTransferCollected: bankTransferAgg._sum.amount ?? 0,
       memberCount,
-      byMode: modeCounts.map((m) => ({ mode: m.paymentMode, amount: m._sum.amount ?? 0, count: m._count })),
+      byMode: modeCounts
+        .filter((m) => m.paymentMode === 'CASH' || m.paymentMode === 'UPI')
+        .map((m) => ({ mode: m.paymentMode, amount: m._sum.amount ?? 0, count: m._count })),
       byCategory: categoryCounts.map((c) => ({ category: c.category, amount: c._sum.amount ?? 0, count: c._count })),
     })
   })
