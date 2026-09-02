@@ -1,0 +1,87 @@
+{
+  "batchFiles": [
+    {
+      "path": "apps/web/index.html",
+      "language": "html",
+      "sizeLines": 16,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "apps/web/package.json",
+      "language": "json",
+      "sizeLines": 39,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "language": "json",
+      "sizeLines": 20,
+      "fileCategory": "config"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "apps/web/index.html",
+      "filePath": "apps/web/index.html",
+      "fileName": "index.html",
+      "language": "html",
+      "sizeLines": 16,
+      "fileCategory": "markup",
+      "title": "Web App Entry HTML",
+      "summary": "Single-page application HTML shell for Pāvati Pustak. Provides the root div mount point, loads the React entry module (src/main.tsx), and declares PWA manifest, favicon, theme-color, and meta description.",
+      "description": "Standard Vite/React SPA index.html. Contains minimal markup: a <div id='root'> container and a module script loading /src/main.tsx. Head includes charset, viewport, theme-color (#f97316 orange), SEO description, manifest link for PWA support, and favicon reference to /logo.png.",
+      "tags": ["entry-point", "html", "spa", "pwa", "react", "vite"],
+      "languageNotes": "HTML5 doctype with lang='en'. Uses Vite-style absolute imports from public/ directory (manifest.webmanifest, logo.png). Module script tag points to TypeScript source directly — Vite handles transpilation at dev time.",
+      "languageLesson": "Vite serves index.html as the app entry and resolves <script type='module'> src paths through its dev server and build pipeline. The public/ directory assets (logo.png, manifest.webmanifest) are served at root without bundling."
+    },
+    {
+      "id": "apps/web/package.json",
+      "filePath": "apps/web/package.json",
+      "fileName": "package.json",
+      "language": "json",
+      "sizeLines": 39,
+      "fileCategory": "config",
+      "title": "Web App Package Manifest",
+      "summary": "npm package definition for the @pavati/web app. Defines Vite-based dev/build/preview/typecheck scripts and declares React 19, react-router-dom, TanStack Query, Zustand, Recharts, react-hook-form + Zod, Tailwind CSS v4, and internal workspace packages as dependencies.",
+      "description": "Private ESM package (@pavati/web v0.1.0) for the web frontend. Scripts: dev (vite), build (tsc -b && vite build), preview (vite preview), typecheck (tsc -b --noEmit). Runtime dependencies include React 19, react-dom, react-router-dom v7, @tanstack/react-query v5, zustand v5, recharts v2, react-hook-form v7 with @hookform/resolvers, zod v3, sonner for toasts, clsx, date-fns, lucide-react icons, @fontsource/mukta font, and workspace packages @pavati/receipt-engine and @pavati/shared. Dev dependencies: Tailwind CSS v4 with Vite plugin, @types/react, @types/react-dom, @vitejs/plugin-react, TypeScript 5.6, Vite 6.",
+      "tags": ["config", "package", "npm", "dependencies", "vite", "react", "tailwind", "workspace"],
+      "languageNotes": "JSON with comments stripped. Uses caret (^) version ranges for all dependencies. Internal packages reference workspace root via '*' version specifier. ESM-only (type: module). Private field prevents accidental publish.",
+      "languageLesson": "The monorepo uses npm/yarn/pnpm workspaces with '*' protocol for inter-package dependencies. Tailwind CSS v4 uses a Vite plugin instead of the legacy PostCSS approach. Zustand v5 replaces Redux for client state management. TanStack Query v5 provides server-state caching."
+    },
+    {
+      "id": "apps/web/tsconfig.json",
+      "filePath": "apps/web/tsconfig.json",
+      "fileName": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 20,
+      "fileCategory": "config",
+      "title": "Web App TypeScript Configuration",
+      "summary": "TypeScript compiler configuration for the web app. Targets ES2022, enables strict mode with additional checks (noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch), uses react-jsx transform, Bundler module resolution, and includes only the src/ directory.",
+      "description": "TypeScript config targeting ES2022 with DOM and DOM.Iterable libs. Key settings: useDefineForClassFields (ES2022 class field semantics), Bundler moduleResolution (for Vite compatibility), isolatedModules (for SWC/esbuild compatibility), noEmit (type-checking only, Vite handles bundling), jsx: react-jsx (automatic JSX transform). Strict mode enabled with additional lint-equivalent checks. Vite client types included via types array. Only src/ directory included in compilation.",
+      "tags": ["config", "typescript", "compiler-options", "strict-mode", "vite"],
+      "languageNotes": "Bundler moduleResolution is the recommended setting for Vite — it resolves bare specifiers via package.json exports but falls back to file-based resolution for non-packaged imports. isolatedModules ensures each file can be transpiled independently by esbuild/SWC without type information.",
+      "languageLesson": "noEmit: true means tsc is used only for type-checking, not code generation — Vite's esbuild handles the actual transpilation. The react-jsx transform eliminates the need to import React in every JSX file. Bundler module resolution (introduced in TS 5.0) is the modern replacement for 'node' resolution in bundler contexts."
+    }
+  ],
+  "edges": [
+    {
+      "source": "apps/web/index.html",
+      "target": "apps/web/package.json",
+      "relationship": "configured-by",
+      "description": "index.html is served and built by the Vite toolchain defined in package.json scripts"
+    },
+    {
+      "source": "apps/web/index.html",
+      "target": "apps/web/tsconfig.json",
+      "relationship": "configured-by",
+      "description": "The TypeScript source loaded by index.html (src/main.tsx) is type-checked under this tsconfig"
+    },
+    {
+      "source": "apps/web/package.json",
+      "target": "apps/web/tsconfig.json",
+      "relationship": "configured-by",
+      "description": "The 'build' and 'typecheck' scripts in package.json invoke tsc using this tsconfig configuration"
+    }
+  ],
+  "crossBatchEdges": []
+}

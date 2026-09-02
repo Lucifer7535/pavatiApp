@@ -1,0 +1,1158 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/components/AppLogo.tsx",
+      "type": "file",
+      "name": "AppLogo.tsx",
+      "filePath": "apps/web/src/components/AppLogo.tsx",
+      "summary": "Renders the Pāvati Pustak logo image inside a fixed-size rounded maroon container, used in the app header and login/signup pages.",
+      "tags": ["component", "branding", "logo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/AppLogo.tsx:AppLogo",
+      "type": "function",
+      "name": "AppLogo",
+      "filePath": "apps/web/src/components/AppLogo.tsx",
+      "lineRange": [1, 7],
+      "summary": "Displays the logo image in a configurable-size rounded container with a maroon background.",
+      "tags": ["component", "branding"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/FestivalPicker.tsx",
+      "type": "file",
+      "name": "FestivalPicker.tsx",
+      "filePath": "apps/web/src/components/FestivalPicker.tsx",
+      "summary": "Interactive festival selection component allowing users to toggle predefined festivals from the shared FESTIVALS list and add up to 20 custom festival names, with validation and toast feedback.",
+      "tags": ["component", "form-input", "selection", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/FestivalPicker.tsx:FestivalPicker",
+      "type": "function",
+      "name": "FestivalPicker",
+      "filePath": "apps/web/src/components/FestivalPicker.tsx",
+      "lineRange": [17, 96],
+      "summary": "Renders festival chips with toggle selection and an inline add-festival flow, enforcing name length and count limits.",
+      "tags": ["component", "form-input", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/LogoutButton.tsx",
+      "type": "file",
+      "name": "LogoutButton.tsx",
+      "filePath": "apps/web/src/components/LogoutButton.tsx",
+      "summary": "Renders a log out button that invokes the shared logout authentication action.",
+      "tags": ["component", "auth", "logout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/LogoutButton.tsx:LogoutButton",
+      "type": "function",
+      "name": "LogoutButton",
+      "filePath": "apps/web/src/components/LogoutButton.tsx",
+      "lineRange": [4, 11],
+      "summary": "Displays a log out button wired to the useLogout auth action.",
+      "tags": ["component", "auth"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "type": "file",
+      "name": "ReceiptPreview.tsx",
+      "filePath": "apps/web/src/components/ReceiptPreview.tsx",
+      "summary": "Provides a canvas-based receipt preview component that renders a receipt template with live data via the shared receipt engine, handling background image loading and render errors.",
+      "tags": ["component", "receipt", "preview", "canvas"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/ReceiptPreview.tsx:loadImage",
+      "type": "function",
+      "name": "loadImage",
+      "filePath": "apps/web/src/components/ReceiptPreview.tsx",
+      "lineRange": [7, 15],
+      "summary": "Loads an image from a URL as an HTMLImageElement with anonymous cross-origin, resolving on load and rejecting on error.",
+      "tags": ["utility", "image-loading"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ReceiptPreview.tsx:ReceiptCanvasPreview",
+      "type": "function",
+      "name": "ReceiptCanvasPreview",
+      "filePath": "apps/web/src/components/ReceiptPreview.tsx",
+      "lineRange": [34, 88],
+      "summary": "Renders a receipt template to a canvas by calling the receipt engine and drawing the result, with fit/scale options and error fallback.",
+      "tags": ["component", "receipt", "canvas"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "type": "file",
+      "name": "TemplateFieldOverlay.tsx",
+      "filePath": "apps/web/src/components/TemplateFieldOverlay.tsx",
+      "summary": "Implements a draggable/resizable overlay editor for receipt template fields over a background image, supporting field selection, move, and resize via pointer events.",
+      "tags": ["component", "editor", "drag-and-drop", "receipt-template"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/TemplateFieldOverlay.tsx:clamp",
+      "type": "function",
+      "name": "clamp",
+      "filePath": "apps/web/src/components/TemplateFieldOverlay.tsx",
+      "lineRange": [30, 32],
+      "summary": "Clamps a numeric value between a minimum and maximum bound.",
+      "tags": ["utility", "math"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/TemplateFieldOverlay.tsx:round",
+      "type": "function",
+      "name": "round",
+      "filePath": "apps/web/src/components/TemplateFieldOverlay.tsx",
+      "lineRange": [34, 36],
+      "summary": "Rounds a value to one decimal place.",
+      "tags": ["utility", "math"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/TemplateFieldOverlay.tsx:TemplateFieldOverlay",
+      "type": "function",
+      "name": "TemplateFieldOverlay",
+      "filePath": "apps/web/src/components/TemplateFieldOverlay.tsx",
+      "lineRange": [38, 147],
+      "summary": "Renders overlay boxes for visible receipt fields and manages pointer-based move/resize dragging with selection handling, updated via callbacks.",
+      "tags": ["component", "editor", "drag-and-drop"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/components/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "apps/web/src/components/layout.tsx",
+      "summary": "Defines the authenticated app layout shell including a permission-filtered sidebar navigation, a trust switcher dropdown, responsive mobile menu, and header, wrapping page content.",
+      "tags": ["component", "layout", "navigation", "responsive"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/components/layout.tsx:navItems",
+      "type": "function",
+      "name": "navItems",
+      "filePath": "apps/web/src/components/layout.tsx",
+      "lineRange": [11, 31],
+      "summary": "Builds the navigation item list, filtering entries based on a permission check callback and always/perm/notPerm rules.",
+      "tags": ["navigation", "permissions", "utility"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/layout.tsx:TrustSwitcher",
+      "type": "function",
+      "name": "TrustSwitcher",
+      "filePath": "apps/web/src/components/layout.tsx",
+      "lineRange": [33, 87],
+      "summary": "Renders a dropdown to switch the active trust among memberships and links to onboarding for creating or joining a trust.",
+      "tags": ["component", "trust", "dropdown"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/layout.tsx:AppLayout",
+      "type": "function",
+      "name": "AppLayout",
+      "filePath": "apps/web/src/components/layout.tsx",
+      "lineRange": [89, 170],
+      "summary": "Renders the sidebar, header, trust switcher, and navigation shell for authenticated pages with mobile support.",
+      "tags": ["component", "layout", "navigation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/components/ui.tsx",
+      "type": "file",
+      "name": "ui.tsx",
+      "filePath": "apps/web/src/components/ui.tsx",
+      "summary": "Shared UI component library providing Button, Card, Badge, Input, Select, Textarea, Modal, Spinner, EmptyState, StatCard, PageHeader, and Pagination with branded styling.",
+      "tags": ["component", "ui-kit", "design-system"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/components/ui.tsx:Button",
+      "type": "function",
+      "name": "Button",
+      "filePath": "apps/web/src/components/ui.tsx",
+      "lineRange": [11, 37],
+      "summary": "Configurable button component supporting multiple variants, sizes, and a loading spinner state.",
+      "tags": ["component", "button"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui.tsx:Card",
+      "type": "function",
+      "name": "Card",
+      "filePath": "apps/web/src/components/ui.tsx",
+      "lineRange": [39, 41],
+      "summary": "Renders a rounded white card container with a border and shadow.",
+      "tags": ["component", "layout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/components/ui.tsx:Modal",
+      "type": "function",
+      "name": "Modal",
+      "filePath": "apps/web/src/components/ui.tsx",
+      "lineRange": [89, 110],
+      "summary": "Renders a centered modal dialog with backdrop, close button, title, and scrollable body, optionally wider.",
+      "tags": ["component", "modal", "overlay"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/features/account/AccountPage.tsx",
+      "type": "file",
+      "name": "AccountPage.tsx",
+      "filePath": "apps/web/src/features/account/AccountPage.tsx",
+      "summary": "Account management page for viewing/editing the user's profile, changing password (excluding Google users), listing trust memberships, and viewing personal donation history with receipt downloads.",
+      "tags": ["component", "profile", "account", "settings"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/account/AccountPage.tsx:AccountPage",
+      "type": "function",
+      "name": "AccountPage",
+      "filePath": "apps/web/src/features/account/AccountPage.tsx",
+      "lineRange": [26, 206],
+      "summary": "Renders profile, password, memberships, and donations sections, handling uploads and auth state updates.",
+      "tags": ["component", "profile", "account"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "type": "file",
+      "name": "AnnouncementsPage.tsx",
+      "filePath": "apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "summary": "Lists trust announcements with pagination, permission-based pin/delete actions, colored type badges, and a link to create new announcements.",
+      "tags": ["component", "announcements", "list", "permissions"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/announcements/AnnouncementsPage.tsx:AnnouncementsPage",
+      "type": "function",
+      "name": "AnnouncementsPage",
+      "filePath": "apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "lineRange": [15, 79],
+      "summary": "Fetches and renders announcements with pin/delete mutations and pagination based on the active trust.",
+      "tags": ["component", "announcements", "list"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "type": "file",
+      "name": "CreateAnnouncementPage.tsx",
+      "filePath": "apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "summary": "Form page for creating a trust announcement with title, content, media upload, type selection, and pin option.",
+      "tags": ["component", "form", "announcements", "create"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/announcements/CreateAnnouncementPage.tsx:CreateAnnouncementPage",
+      "type": "function",
+      "name": "CreateAnnouncementPage",
+      "filePath": "apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "lineRange": [22, 104],
+      "summary": "Validates and submits a new announcement, uploading optional media and navigating back on success.",
+      "tags": ["component", "form", "announcements"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/audit/AuditLogPage.tsx",
+      "type": "file",
+      "name": "AuditLogPage.tsx",
+      "filePath": "apps/web/src/features/audit/AuditLogPage.tsx",
+      "summary": "Displays the trust audit log, showing each recorded action, actor, entity, and metadata with retry handling on load error.",
+      "tags": ["component", "audit", "log", "viewer"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/features/audit/AuditLogPage.tsx:AuditLogPage",
+      "type": "function",
+      "name": "AuditLogPage",
+      "filePath": "apps/web/src/features/audit/AuditLogPage.tsx",
+      "lineRange": [9, 56],
+      "summary": "Fetches and renders audit log entries with action badges and expandable metadata.",
+      "tags": ["component", "audit", "log"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "type": "file",
+      "name": "ForgotPasswordPage.tsx",
+      "filePath": "apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "summary": "Password recovery page that submits an email to request a reset link, displaying a mock-mode reset URL when available in development.",
+      "tags": ["component", "auth", "password-reset", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/auth/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "function",
+      "name": "ForgotPasswordPage",
+      "filePath": "apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "lineRange": [14, 64],
+      "summary": "Handles the forgot-password form submission and renders the mock reset link or success message.",
+      "tags": ["component", "auth", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "type": "file",
+      "name": "GoogleSignInButton.tsx",
+      "filePath": "apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "summary": "Loads the Google Identity Services script and renders a Google sign-in button that delivers a credential token to a callback.",
+      "tags": ["component", "auth", "google", "oauth"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/auth/GoogleSignInButton.tsx:loadGsiScript",
+      "type": "function",
+      "name": "loadGsiScript",
+      "filePath": "apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "lineRange": [18, 35],
+      "summary": "Dynamically loads the Google Identity Services client script, reusing an existing tag and resolving once loaded.",
+      "tags": ["utility", "script-loader", "google"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/features/auth/GoogleSignInButton.tsx:GoogleSignInButton",
+      "type": "function",
+      "name": "GoogleSignInButton",
+      "filePath": "apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "lineRange": [43, 76],
+      "summary": "Initializes and renders a Google sign-in button, forwarding the credential to the provided callback.",
+      "tags": ["component", "auth", "google"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/auth/LoginPage.tsx",
+      "type": "file",
+      "name": "LoginPage.tsx",
+      "filePath": "apps/web/src/features/auth/LoginPage.tsx",
+      "summary": "Login page supporting email/password and Google sign-in, applying the session tokens and redirecting authenticated users into the app.",
+      "tags": ["component", "auth", "login", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/auth/LoginPage.tsx:LoginPage",
+      "type": "function",
+      "name": "LoginPage",
+      "filePath": "apps/web/src/features/auth/LoginPage.tsx",
+      "lineRange": [22, 123],
+      "summary": "Renders login form, handles credential apps, applies session, and redirects based on intended location.",
+      "tags": ["component", "auth", "login"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "type": "file",
+      "name": "ResetPasswordPage.tsx",
+      "filePath": "apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "summary": "Page for setting a new password using a reset token from the URL, with password confirmation validation.",
+      "tags": ["component", "auth", "password-reset", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/auth/ResetPasswordPage.tsx:ResetPasswordPage",
+      "type": "function",
+      "name": "ResetPasswordPage",
+      "filePath": "apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "lineRange": [16, 66],
+      "summary": "Reads the reset token, validates the new password against confirmation, and submits the reset request.",
+      "tags": ["component", "auth", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/auth/SignupPage.tsx",
+      "type": "file",
+      "name": "SignupPage.tsx",
+      "filePath": "apps/web/src/features/auth/SignupPage.tsx",
+      "summary": "Account creation page collecting name, email, and password, applying the new session and redirecting to onboarding.",
+      "tags": ["component", "auth", "signup", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/auth/SignupPage.tsx:SignupPage",
+      "type": "function",
+      "name": "SignupPage",
+      "filePath": "apps/web/src/features/auth/SignupPage.tsx",
+      "lineRange": [20, 80],
+      "summary": "Renders the signup form, submits registration, and establishes the session before navigating away.",
+      "tags": ["component", "auth", "signup"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "type": "file",
+      "name": "CampaignsPage.tsx",
+      "filePath": "apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "summary": "Manages trust payment-link campaigns: lists them, creates new ones, uploads/replaces payment QR codes, toggles active state, copies links, and deletes campaigns.",
+      "tags": ["component", "campaigns", "payment-links", "crud"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/campaigns/CampaignsPage.tsx:CampaignsPage",
+      "type": "function",
+      "name": "CampaignsPage",
+      "filePath": "apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "lineRange": [21, 174],
+      "summary": "Renders a grid of payment-link campaigns with create/qr/toggle/copy/delete operations and modals.",
+      "tags": ["component", "campaigns", "payment-links"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "type": "file",
+      "name": "TrustDashboard.tsx",
+      "filePath": "apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "summary": "Trust dashboard showing either a member's own donation summary or an admin view with total collected, today's collections, recent transactions, campaigns, and recent members.",
+      "tags": ["component", "dashboard", "analytics"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/dashboard/TrustDashboard.tsx:TrustDashboard",
+      "type": "function",
+      "name": "TrustDashboard",
+      "filePath": "apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "lineRange": [37, 210],
+      "summary": "Fetches dashboard data and conditionally renders the own-scope or admin-scope dashboard layouts.",
+      "tags": ["component", "dashboard"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/donate/DonatePage.tsx",
+      "type": "file",
+      "name": "DonatePage.tsx",
+      "filePath": "apps/web/src/features/donate/DonatePage.tsx",
+      "summary": "Public donation landing page for a campaign or trust, showing suggested amounts, payment QR / UPI ID copy, and join-to-donate flow for logged-in non-members.",
+      "tags": ["component", "donate", "public", "upi"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/donate/DonatePage.tsx:DonatePage",
+      "type": "function",
+      "name": "DonatePage",
+      "filePath": "apps/web/src/features/donate/DonatePage.tsx",
+      "lineRange": [26, 167],
+      "summary": "Loads a public campaign/trust, lets users pick an amount, shows payment methods, and offers a join trust flow.",
+      "tags": ["component", "donate", "public"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/donate/MemberDonatePage.tsx",
+      "type": "file",
+      "name": "MemberDonatePage.tsx",
+      "filePath": "apps/web/src/features/donate/MemberDonatePage.tsx",
+      "summary": "Donation page for trust members who lack donation:create permission: pay via UPI/QR, attach proof, and submit for admin verification.",
+      "tags": ["component", "donate", "member", "upi", "verification"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/donate/MemberDonatePage.tsx:MemberDonatePage",
+      "type": "function",
+      "name": "MemberDonatePage",
+      "filePath": "apps/web/src/features/donate/MemberDonatePage.tsx",
+      "lineRange": [13, 191],
+      "summary": "Collects a member's payment amount, campaign selection, transaction reference, and proof, then submits for confirmation.",
+      "tags": ["component", "donate", "member"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "type": "file",
+      "name": "CreateDonationPage.tsx",
+      "filePath": "apps/web/src/features/donations/CreateDonationPage.tsx",
+      "summary": "Admin form to record an offline donation with multiple split payment methods (cash/UPI), proof uploads, UPI collection with QR, awaiting-payment mode, and receipt download/share after success.",
+      "tags": ["component", "donation", "form", "receipt", "upsert"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/donations/CreateDonationPage.tsx:emptySplit",
+      "type": "function",
+      "name": "emptySplit",
+      "filePath": "apps/web/src/features/donations/CreateDonationPage.tsx",
+      "lineRange": [26, 26],
+      "summary": "Returns a blank default split payment row for the cash payment mode.",
+      "tags": ["utility", "factory", "donation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/features/donations/CreateDonationPage.tsx:CreateDonationPage",
+      "type": "function",
+      "name": "CreateDonationPage",
+      "filePath": "apps/web/src/features/donations/CreateDonationPage.tsx",
+      "lineRange": [39, 324],
+      "summary": "Manages the donation recording form with dynamic split rows, validation, UPI collection UI, and a success state with receipt download.",
+      "tags": ["component", "donation", "form"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/donations/DonationDetailPage.tsx",
+      "type": "file",
+      "name": "DonationDetailPage.tsx",
+      "filePath": "apps/web/src/features/donations/DonationDetailPage.tsx",
+      "summary": "Donation detail view showing amount, status, category, payment breakdown splits with per-split verify, receipts list with PDF download, and voiding for authorized roles.",
+      "tags": ["component", "donation", "detail", "verification"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/donations/DonationDetailPage.tsx:DonationDetailPage",
+      "type": "function",
+      "name": "DonationDetailPage",
+      "filePath": "apps/web/src/features/donations/DonationDetailPage.tsx",
+      "lineRange": [14, 153],
+      "summary": "Displays donation details, payment splits with verify mutations, receipts, and void action based on permissions.",
+      "tags": ["component", "donation", "detail"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/components/AppLogo.tsx",
+      "target": "function:apps/web/src/components/AppLogo.tsx:AppLogo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/AppLogo.tsx",
+      "target": "function:apps/web/src/components/AppLogo.tsx:AppLogo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/FestivalPicker.tsx",
+      "target": "file:packages/shared/src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/FestivalPicker.tsx",
+      "target": "function:apps/web/src/components/FestivalPicker.tsx:FestivalPicker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/FestivalPicker.tsx",
+      "target": "function:apps/web/src/components/FestivalPicker.tsx:FestivalPicker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/LogoutButton.tsx",
+      "target": "file:apps/web/src/lib/auth-actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/LogoutButton.tsx",
+      "target": "function:apps/web/src/components/LogoutButton.tsx:LogoutButton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/LogoutButton.tsx",
+      "target": "function:apps/web/src/components/LogoutButton.tsx:LogoutButton",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "target": "file:packages/receipt-engine/src/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "target": "function:apps/web/src/components/ReceiptPreview.tsx:loadImage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "target": "function:apps/web/src/components/ReceiptPreview.tsx:ReceiptCanvasPreview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "target": "function:apps/web/src/components/ReceiptPreview.tsx:ReceiptCanvasPreview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "target": "file:packages/receipt-engine/src/index.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "target": "function:apps/web/src/components/TemplateFieldOverlay.tsx:clamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "target": "function:apps/web/src/components/TemplateFieldOverlay.tsx:round",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "target": "function:apps/web/src/components/TemplateFieldOverlay.tsx:TemplateFieldOverlay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "target": "function:apps/web/src/components/TemplateFieldOverlay.tsx:TemplateFieldOverlay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "file:apps/web/src/lib/stores/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "file:apps/web/src/components/AppLogo.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "file:apps/web/src/components/LogoutButton.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "function:apps/web/src/components/layout.tsx:navItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "function:apps/web/src/components/layout.tsx:TrustSwitcher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "function:apps/web/src/components/layout.tsx:AppLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/layout.tsx",
+      "target": "function:apps/web/src/components/layout.tsx:AppLayout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/components/layout.tsx:AppLayout",
+      "target": "function:apps/web/src/components/layout.tsx:navItems",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui.tsx",
+      "target": "function:apps/web/src/components/ui.tsx:Button",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui.tsx",
+      "target": "function:apps/web/src/components/ui.tsx:Card",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui.tsx",
+      "target": "function:apps/web/src/components/ui.tsx:Modal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/components/ui.tsx",
+      "target": "function:apps/web/src/components/ui.tsx:Button",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui.tsx",
+      "target": "function:apps/web/src/components/ui.tsx:Card",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/components/ui.tsx",
+      "target": "function:apps/web/src/components/ui.tsx:Modal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/account/AccountPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/account/AccountPage.tsx",
+      "target": "file:apps/web/src/lib/stores/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/account/AccountPage.tsx",
+      "target": "function:apps/web/src/features/account/AccountPage.tsx:AccountPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/account/AccountPage.tsx",
+      "target": "function:apps/web/src/features/account/AccountPage.tsx:AccountPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "target": "function:apps/web/src/features/announcements/AnnouncementsPage.tsx:AnnouncementsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "target": "function:apps/web/src/features/announcements/AnnouncementsPage.tsx:AnnouncementsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "target": "function:apps/web/src/features/announcements/CreateAnnouncementPage.tsx:CreateAnnouncementPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "target": "function:apps/web/src/features/announcements/CreateAnnouncementPage.tsx:CreateAnnouncementPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/audit/AuditLogPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/audit/AuditLogPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/audit/AuditLogPage.tsx",
+      "target": "function:apps/web/src/features/audit/AuditLogPage.tsx:AuditLogPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/audit/AuditLogPage.tsx",
+      "target": "function:apps/web/src/features/audit/AuditLogPage.tsx:AuditLogPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "target": "function:apps/web/src/features/auth/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "target": "function:apps/web/src/features/auth/ForgotPasswordPage.tsx:ForgotPasswordPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "target": "function:apps/web/src/features/auth/GoogleSignInButton.tsx:loadGsiScript",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "target": "function:apps/web/src/features/auth/GoogleSignInButton.tsx:GoogleSignInButton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "target": "function:apps/web/src/features/auth/GoogleSignInButton.tsx:GoogleSignInButton",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/auth/LoginPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/LoginPage.tsx",
+      "target": "file:apps/web/src/lib/stores/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/LoginPage.tsx",
+      "target": "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/LoginPage.tsx",
+      "target": "function:apps/web/src/features/auth/LoginPage.tsx:LoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/auth/LoginPage.tsx",
+      "target": "function:apps/web/src/features/auth/LoginPage.tsx:LoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "target": "function:apps/web/src/features/auth/ResetPasswordPage.tsx:ResetPasswordPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "target": "function:apps/web/src/features/auth/ResetPasswordPage.tsx:ResetPasswordPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/auth/SignupPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/SignupPage.tsx",
+      "target": "file:apps/web/src/lib/stores/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/auth/SignupPage.tsx",
+      "target": "function:apps/web/src/features/auth/SignupPage.tsx:SignupPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/auth/SignupPage.tsx",
+      "target": "function:apps/web/src/features/auth/SignupPage.tsx:SignupPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "target": "function:apps/web/src/features/campaigns/CampaignsPage.tsx:CampaignsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "target": "function:apps/web/src/features/campaigns/CampaignsPage.tsx:CampaignsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "target": "function:apps/web/src/features/dashboard/TrustDashboard.tsx:TrustDashboard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "target": "function:apps/web/src/features/dashboard/TrustDashboard.tsx:TrustDashboard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/donate/DonatePage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donate/DonatePage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donate/DonatePage.tsx",
+      "target": "function:apps/web/src/features/donate/DonatePage.tsx:DonatePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/donate/DonatePage.tsx",
+      "target": "function:apps/web/src/features/donate/DonatePage.tsx:DonatePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/donate/MemberDonatePage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donate/MemberDonatePage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donate/MemberDonatePage.tsx",
+      "target": "function:apps/web/src/features/donate/MemberDonatePage.tsx:MemberDonatePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/donate/MemberDonatePage.tsx",
+      "target": "function:apps/web/src/features/donate/MemberDonatePage.tsx:MemberDonatePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "target": "file:packages/shared/src/schemas.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "target": "function:apps/web/src/features/donations/CreateDonationPage.tsx:emptySplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "target": "function:apps/web/src/features/donations/CreateDonationPage.tsx:CreateDonationPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "target": "function:apps/web/src/features/donations/CreateDonationPage.tsx:CreateDonationPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationDetailPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationDetailPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationDetailPage.tsx",
+      "target": "function:apps/web/src/features/donations/DonationDetailPage.tsx:DonationDetailPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationDetailPage.tsx",
+      "target": "function:apps/web/src/features/donations/DonationDetailPage.tsx:DonationDetailPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

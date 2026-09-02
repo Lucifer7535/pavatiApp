@@ -1,0 +1,1586 @@
+{
+  "name": "pavati-pustak",
+  "description": "Pāvati Pustak — Digital Trust, Donation & Receipt Management. A monorepo application for managing charitable trusts, tracking donations, generating PDF receipts with QR codes, and managing trust members and campaigns.",
+  "languages": [
+    {
+      "name": "TypeScript",
+      "confidence": 1,
+      "fileCount": 99,
+      "roles": [
+        "primary",
+        "backend",
+        "frontend",
+        "shared-logic"
+      ]
+    },
+    {
+      "name": "SQL",
+      "confidence": 1,
+      "fileCount": 7,
+      "roles": [
+        "database-migrations"
+      ]
+    },
+    {
+      "name": "Prisma",
+      "confidence": 1,
+      "fileCount": 1,
+      "roles": [
+        "database-schema"
+      ]
+    },
+    {
+      "name": "CSS",
+      "confidence": 1,
+      "fileCount": 1,
+      "roles": [
+        "styling"
+      ]
+    },
+    {
+      "name": "HTML",
+      "confidence": 1,
+      "fileCount": 1,
+      "roles": [
+        "markup"
+      ]
+    },
+    {
+      "name": "JSON",
+      "confidence": 1,
+      "fileCount": 12,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "name": "JavaScript",
+      "confidence": 0.8,
+      "fileCount": 1,
+      "roles": [
+        "build-scripts"
+      ]
+    },
+    {
+      "name": "Markdown",
+      "confidence": 1,
+      "fileCount": 1,
+      "roles": [
+        "documentation"
+      ]
+    }
+  ],
+  "frameworks": [
+    {
+      "name": "Express",
+      "confidence": 1,
+      "role": "api-server",
+      "package": "express"
+    },
+    {
+      "name": "React",
+      "confidence": 1,
+      "role": "frontend-ui",
+      "package": "react"
+    },
+    {
+      "name": "Vite",
+      "confidence": 1,
+      "role": "frontend-bundler",
+      "package": "vite"
+    },
+    {
+      "name": "Tailwind CSS",
+      "confidence": 1,
+      "role": "styling",
+      "package": "tailwindcss"
+    },
+    {
+      "name": "Prisma",
+      "confidence": 1,
+      "role": "database-orm",
+      "package": "@prisma/client"
+    },
+    {
+      "name": "React Router",
+      "confidence": 1,
+      "role": "routing",
+      "package": "react-router-dom"
+    },
+    {
+      "name": "Zustand",
+      "confidence": 1,
+      "role": "state-management",
+      "package": "zustand"
+    },
+    {
+      "name": "React Query (TanStack)",
+      "confidence": 1,
+      "role": "data-fetching",
+      "package": "@tanstack/react-query"
+    },
+    {
+      "name": "Zod",
+      "confidence": 1,
+      "role": "validation",
+      "package": "zod"
+    },
+    {
+      "name": "React Hook Form",
+      "confidence": 1,
+      "role": "form-management",
+      "package": "react-hook-form"
+    },
+    {
+      "name": "pdf-lib",
+      "confidence": 1,
+      "role": "pdf-generation",
+      "package": "pdf-lib"
+    },
+    {
+      "name": "Recharts",
+      "confidence": 0.9,
+      "role": "charting",
+      "package": "recharts"
+    },
+    {
+      "name": "Pino",
+      "confidence": 1,
+      "role": "logging",
+      "package": "pino"
+    },
+    {
+      "name": "AWS SDK (S3)",
+      "confidence": 0.9,
+      "role": "object-storage",
+      "package": "@aws-sdk/client-s3"
+    },
+    {
+      "name": "Google Auth Library",
+      "confidence": 0.9,
+      "role": "oauth",
+      "package": "google-auth-library"
+    },
+    {
+      "name": "Vitest",
+      "confidence": 1,
+      "role": "testing",
+      "package": "vitest"
+    }
+  ],
+  "structure": {
+    "monorepo": true,
+    "workspaces": [
+      {
+        "name": "@pavati/api",
+        "path": "apps/api",
+        "role": "rest-api-server",
+        "fileCount": 45,
+        "modules": [
+          "auth",
+          "campaigns",
+          "donations",
+          "members",
+          "receipts",
+          "reports",
+          "templates",
+          "trusts",
+          "uploads",
+          "users",
+          "notifications",
+          "announcements",
+          "dashboard"
+        ]
+      },
+      {
+        "name": "@pavati/web",
+        "path": "apps/web",
+        "role": "spa-frontend",
+        "fileCount": 42,
+        "features": [
+          "auth",
+          "campaigns",
+          "donations",
+          "members",
+          "receipts",
+          "reports",
+          "templates",
+          "trusts",
+          "settings",
+          "notifications",
+          "announcements",
+          "dashboard",
+          "onboarding",
+          "account",
+          "audit",
+          "landing",
+          "donate"
+        ]
+      },
+      {
+        "name": "@pavati/receipt-engine",
+        "path": "packages/receipt-engine",
+        "role": "pdf-receipt-generation",
+        "fileCount": 9
+      },
+      {
+        "name": "@pavati/shared",
+        "path": "packages/shared",
+        "role": "shared-types-schemas-utils",
+        "fileCount": 7
+      }
+    ]
+  },
+  "statistics": {
+    "totalFiles": 128,
+    "filesByCategory": {
+      "code": 103,
+      "config": 13,
+      "data": 8,
+      "docs": 1,
+      "infra": 1,
+      "markup": 2
+    },
+    "filesByLanguage": {
+      "typescript": 99,
+      "json": 12,
+      "sql": 7,
+      "css": 1,
+      "html": 1,
+      "javascript": 1,
+      "markdown": 1,
+      "prisma": 1,
+      "toml": 1,
+      "procfile": 1,
+      "webmanifest": 1
+    },
+    "totalEdges": 316,
+    "filesWithImports": 78,
+    "estimatedComplexity": "moderate"
+  },
+  "files": [
+    {
+      "path": ".opencode/plans/heroku-r2-deployment.md",
+      "language": "markdown",
+      "sizeLines": 160,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".ua/.understandignore",
+      "language": "unknown",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "sizeLines": 1,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/intermediate/scan-result.json",
+      "language": "json",
+      "sizeLines": 242,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/ua-import-map-input.json",
+      "language": "json",
+      "sizeLines": 772,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/ua-import-map-output.json",
+      "language": "json",
+      "sizeLines": 531,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/ua-scan-files.json",
+      "language": "json",
+      "sizeLines": 802,
+      "fileCategory": "config"
+    },
+    {
+      "path": "Procfile",
+      "language": "procfile",
+      "sizeLines": 2,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "apps/api/package.json",
+      "language": "json",
+      "sizeLines": 57,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260820085059_init/migration.sql",
+      "language": "sql",
+      "sizeLines": 493,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260820183012_receipt_number_unique_per_trust/migration.sql",
+      "language": "sql",
+      "sizeLines": 5,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260823183535_drop_otp_codes/migration.sql",
+      "language": "sql",
+      "sizeLines": 2,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260823200000_add_trust_qr_code_url/migration.sql",
+      "language": "sql",
+      "sizeLines": 1,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260824000000_move_qr_to_campaign/migration.sql",
+      "language": "sql",
+      "sizeLines": 5,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260824010000_add_donation_splits/migration.sql",
+      "language": "sql",
+      "sizeLines": 31,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/20260824020000_add_donation_submitted_by/migration.sql",
+      "language": "sql",
+      "sizeLines": 5,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/migrations/migration_lock.toml",
+      "language": "toml",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/api/prisma/schema.prisma",
+      "language": "prisma",
+      "sizeLines": 437,
+      "fileCategory": "data"
+    },
+    {
+      "path": "apps/api/prisma/seed.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/__tests__/app.test.ts",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/__tests__/google.test.ts",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/__tests__/permissions.test.ts",
+      "language": "typescript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/__tests__/schemas.test.ts",
+      "language": "typescript",
+      "sizeLines": 241,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/__tests__/whatsapp.test.ts",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/config/index.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "language": "typescript",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/email.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/http.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/jwt.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/logger.ts",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/prisma.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/session.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/auth.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/error.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/rateLimit.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/rbac.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/validate.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/announcements/routes.ts",
+      "language": "typescript",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/auth/routes.ts",
+      "language": "typescript",
+      "sizeLines": 221,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/campaigns/routes.ts",
+      "language": "typescript",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/routes.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/donations/routes.ts",
+      "language": "typescript",
+      "sizeLines": 300,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/members/routes.ts",
+      "language": "typescript",
+      "sizeLines": 195,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/notifications/routes.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/receipts/routes.ts",
+      "language": "typescript",
+      "sizeLines": 165,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/reports/routes.ts",
+      "language": "typescript",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/templates/routes.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/trusts/routes.ts",
+      "language": "typescript",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/uploads/routes.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/users/routes.ts",
+      "language": "typescript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/providers/messaging.ts",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/providers/storage.ts",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/services/audit.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/services/notifications.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/services/receipts.ts",
+      "language": "typescript",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/tsconfig.json",
+      "language": "json",
+      "sizeLines": 11,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/web/index.html",
+      "language": "html",
+      "sizeLines": 15,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "apps/web/package.json",
+      "language": "json",
+      "sizeLines": 39,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/web/public/manifest.webmanifest",
+      "language": "webmanifest",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/app/router.tsx",
+      "language": "typescript",
+      "sizeLines": 166,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/AppLogo.tsx",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/FestivalPicker.tsx",
+      "language": "typescript",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/LogoutButton.tsx",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/ReceiptPreview.tsx",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/TemplateFieldOverlay.tsx",
+      "language": "typescript",
+      "sizeLines": 146,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/layout.tsx",
+      "language": "typescript",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/components/ui.tsx",
+      "language": "typescript",
+      "sizeLines": 186,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/account/AccountPage.tsx",
+      "language": "typescript",
+      "sizeLines": 205,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "language": "typescript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/audit/AuditLogPage.tsx",
+      "language": "typescript",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "language": "typescript",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "language": "typescript",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/auth/LoginPage.tsx",
+      "language": "typescript",
+      "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "language": "typescript",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/auth/SignupPage.tsx",
+      "language": "typescript",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "language": "typescript",
+      "sizeLines": 210,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/donate/DonatePage.tsx",
+      "language": "typescript",
+      "sizeLines": 167,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/donate/MemberDonatePage.tsx",
+      "language": "typescript",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/donations/CreateDonationPage.tsx",
+      "language": "typescript",
+      "sizeLines": 324,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/donations/DonationDetailPage.tsx",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/donations/DonationsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 101,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/landing/LandingPage.tsx",
+      "language": "typescript",
+      "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/members/CommitteePage.tsx",
+      "language": "typescript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/members/MembersPage.tsx",
+      "language": "typescript",
+      "sizeLines": 149,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/notifications/NotificationsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "language": "typescript",
+      "sizeLines": 223,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "language": "typescript",
+      "sizeLines": 118,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "language": "typescript",
+      "sizeLines": 119,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "language": "typescript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "language": "typescript",
+      "sizeLines": 106,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 203,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/reports/ReportsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 183,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "language": "typescript",
+      "sizeLines": 279,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/templates/TemplatesPage.tsx",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "language": "typescript",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/auth-actions.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/festivals.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n.ts",
+      "language": "typescript",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/stores/auth.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/utils.ts",
+      "language": "typescript",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/styles/index.css",
+      "language": "css",
+      "sizeLines": 99,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "language": "json",
+      "sizeLines": 19,
+      "fileCategory": "config"
+    },
+    {
+      "path": "apps/web/tsconfig.tsbuildinfo",
+      "language": "tsbuildinfo",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "opencode-session.json",
+      "language": "json",
+      "sizeLines": 72414,
+      "fileCategory": "config"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 36,
+      "fileCategory": "config"
+    },
+    {
+      "path": "packages/receipt-engine/package.json",
+      "language": "json",
+      "sizeLines": 33,
+      "fileCategory": "config"
+    },
+    {
+      "path": "packages/receipt-engine/scripts/copy-fonts.mjs",
+      "language": "javascript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/canvas.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/fonts.ts",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/index.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/layout.test.ts",
+      "language": "typescript",
+      "sizeLines": 141,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/layout.ts",
+      "language": "typescript",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/pdf.ts",
+      "language": "typescript",
+      "sizeLines": 176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/server.ts",
+      "language": "typescript",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/types.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/tsconfig.json",
+      "language": "json",
+      "sizeLines": 10,
+      "fileCategory": "config"
+    },
+    {
+      "path": "packages/shared/package.json",
+      "language": "json",
+      "sizeLines": 24,
+      "fileCategory": "config"
+    },
+    {
+      "path": "packages/shared/src/constants.ts",
+      "language": "typescript",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/index.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/permissions.ts",
+      "language": "typescript",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/schemas.ts",
+      "language": "typescript",
+      "sizeLines": 247,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/types.ts",
+      "language": "typescript",
+      "sizeLines": 207,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/src/utils.ts",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/shared/tsconfig.json",
+      "language": "json",
+      "sizeLines": 9,
+      "fileCategory": "config"
+    },
+    {
+      "path": "tsconfig.base.json",
+      "language": "json",
+      "sizeLines": 17,
+      "fileCategory": "config"
+    }
+  ],
+  "totalFiles": 132,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "importMap": {
+    ".opencode/plans/heroku-r2-deployment.md": [],
+    ".ua/.understandignore": [],
+    ".ua/config.json": [],
+    ".ua/intermediate/scan-result.json": [],
+    ".ua/tmp/ua-import-map-input.json": [],
+    ".ua/tmp/ua-import-map-output.json": [],
+    ".ua/tmp/ua-scan-files.json": [],
+    "Procfile": [],
+    "apps/api/package.json": [],
+    "apps/api/prisma/migrations/20260820085059_init/migration.sql": [],
+    "apps/api/prisma/migrations/20260820183012_receipt_number_unique_per_trust/migration.sql": [],
+    "apps/api/prisma/migrations/20260823183535_drop_otp_codes/migration.sql": [],
+    "apps/api/prisma/migrations/20260823200000_add_trust_qr_code_url/migration.sql": [],
+    "apps/api/prisma/migrations/20260824000000_move_qr_to_campaign/migration.sql": [],
+    "apps/api/prisma/migrations/20260824010000_add_donation_splits/migration.sql": [],
+    "apps/api/prisma/migrations/20260824020000_add_donation_submitted_by/migration.sql": [],
+    "apps/api/prisma/migrations/migration_lock.toml": [],
+    "apps/api/prisma/schema.prisma": [],
+    "apps/api/prisma/seed.ts": [],
+    "apps/api/src/__tests__/app.test.ts": [
+      "apps/api/src/index.ts"
+    ],
+    "apps/api/src/__tests__/google.test.ts": [],
+    "apps/api/src/__tests__/permissions.test.ts": [],
+    "apps/api/src/__tests__/schemas.test.ts": [],
+    "apps/api/src/__tests__/whatsapp.test.ts": [
+      "apps/api/src/services/notifications.ts"
+    ],
+    "apps/api/src/config/index.ts": [],
+    "apps/api/src/index.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/logger.ts",
+      "apps/api/src/middleware/error.ts",
+      "apps/api/src/middleware/rateLimit.ts",
+      "apps/api/src/modules/announcements/routes.ts",
+      "apps/api/src/modules/auth/routes.ts",
+      "apps/api/src/modules/campaigns/routes.ts",
+      "apps/api/src/modules/dashboard/routes.ts",
+      "apps/api/src/modules/donations/routes.ts",
+      "apps/api/src/modules/members/routes.ts",
+      "apps/api/src/modules/notifications/routes.ts",
+      "apps/api/src/modules/receipts/routes.ts",
+      "apps/api/src/modules/reports/routes.ts",
+      "apps/api/src/modules/templates/routes.ts",
+      "apps/api/src/modules/trusts/routes.ts",
+      "apps/api/src/modules/uploads/routes.ts",
+      "apps/api/src/modules/users/routes.ts",
+      "apps/api/src/providers/storage.ts"
+    ],
+    "apps/api/src/lib/email.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/logger.ts"
+    ],
+    "apps/api/src/lib/http.ts": [],
+    "apps/api/src/lib/jwt.ts": [
+      "apps/api/src/config/index.ts"
+    ],
+    "apps/api/src/lib/logger.ts": [],
+    "apps/api/src/lib/prisma.ts": [],
+    "apps/api/src/lib/session.ts": [
+      "apps/api/src/lib/jwt.ts",
+      "apps/api/src/lib/prisma.ts"
+    ],
+    "apps/api/src/middleware/auth.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/jwt.ts",
+      "apps/api/src/lib/prisma.ts"
+    ],
+    "apps/api/src/middleware/error.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/logger.ts"
+    ],
+    "apps/api/src/middleware/rateLimit.ts": [
+      "apps/api/src/lib/http.ts"
+    ],
+    "apps/api/src/middleware/rbac.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts"
+    ],
+    "apps/api/src/middleware/validate.ts": [
+      "apps/api/src/lib/http.ts"
+    ],
+    "apps/api/src/modules/announcements/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/auth/routes.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/email.ts",
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/jwt.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/lib/session.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rateLimit.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/campaigns/routes.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/dashboard/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts"
+    ],
+    "apps/api/src/modules/donations/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts",
+      "apps/api/src/services/notifications.ts",
+      "apps/api/src/services/receipts.ts"
+    ],
+    "apps/api/src/modules/members/routes.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/notifications/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/receipts/routes.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/providers/messaging.ts",
+      "apps/api/src/providers/storage.ts",
+      "apps/api/src/services/audit.ts",
+      "apps/api/src/services/notifications.ts",
+      "apps/api/src/services/receipts.ts"
+    ],
+    "apps/api/src/modules/reports/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts"
+    ],
+    "apps/api/src/modules/templates/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/trusts/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/jwt.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/rbac.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/services/audit.ts"
+    ],
+    "apps/api/src/modules/uploads/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/validate.ts",
+      "apps/api/src/providers/storage.ts"
+    ],
+    "apps/api/src/modules/users/routes.ts": [
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/jwt.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/middleware/auth.ts",
+      "apps/api/src/middleware/validate.ts"
+    ],
+    "apps/api/src/providers/messaging.ts": [
+      "apps/api/src/lib/email.ts",
+      "apps/api/src/lib/logger.ts"
+    ],
+    "apps/api/src/providers/storage.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/http.ts"
+    ],
+    "apps/api/src/services/audit.ts": [
+      "apps/api/src/lib/prisma.ts"
+    ],
+    "apps/api/src/services/notifications.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/logger.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/providers/messaging.ts"
+    ],
+    "apps/api/src/services/receipts.ts": [
+      "apps/api/src/config/index.ts",
+      "apps/api/src/lib/http.ts",
+      "apps/api/src/lib/logger.ts",
+      "apps/api/src/lib/prisma.ts",
+      "apps/api/src/providers/storage.ts"
+    ],
+    "apps/api/tsconfig.json": [],
+    "apps/web/index.html": [],
+    "apps/web/package.json": [],
+    "apps/web/public/manifest.webmanifest": [],
+    "apps/web/src/app/router.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/components/AppLogo.tsx": [],
+    "apps/web/src/components/FestivalPicker.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/components/LogoutButton.tsx": [
+      "apps/web/src/lib/auth-actions.ts"
+    ],
+    "apps/web/src/components/ReceiptPreview.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/components/TemplateFieldOverlay.tsx": [
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/components/layout.tsx": [
+      "apps/web/src/components/AppLogo.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/auth-actions.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/components/ui.tsx": [
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/account/AccountPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/auth-actions.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/announcements/AnnouncementsPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/announcements/CreateAnnouncementPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/audit/AuditLogPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/auth/ForgotPasswordPage.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts"
+    ],
+    "apps/web/src/features/auth/GoogleSignInButton.tsx": [],
+    "apps/web/src/features/auth/LoginPage.tsx": [
+      "apps/web/src/components/AppLogo.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/auth/ResetPasswordPage.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts"
+    ],
+    "apps/web/src/features/auth/SignupPage.tsx": [
+      "apps/web/src/components/AppLogo.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/campaigns/CampaignsPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/festivals.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/dashboard/TrustDashboard.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/donate/DonatePage.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/donate/MemberDonatePage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/donations/CreateDonationPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/festivals.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/donations/DonationDetailPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/donations/DonationsPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/festivals.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/landing/LandingPage.tsx": [
+      "apps/web/src/components/AppLogo.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/members/CommitteePage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/members/MembersPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/notifications/NotificationsPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/onboarding/CreateTrustWizard.tsx": [
+      "apps/web/src/components/FestivalPicker.tsx",
+      "apps/web/src/components/LogoutButton.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/onboarding/JoinTrustPage.tsx": [
+      "apps/web/src/components/LogoutButton.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/onboarding/OnboardingPage.tsx": [
+      "apps/web/src/components/AppLogo.tsx",
+      "apps/web/src/components/LogoutButton.tsx",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/onboarding/TrustSearchPage.tsx": [
+      "apps/web/src/components/LogoutButton.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/receipts/ReceiptPreviewPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/receipts/ReceiptVerifyPage.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/receipts/ReceiptsPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/reports/ReportsPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/settings/TrustSettingsPage.tsx": [
+      "apps/web/src/components/FestivalPicker.tsx",
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/templates/TemplateEditorPage.tsx": [
+      "apps/web/src/components/ReceiptPreview.tsx",
+      "apps/web/src/components/TemplateFieldOverlay.tsx",
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/features/templates/TemplatesPage.tsx": [
+      "apps/web/src/components/layout.tsx",
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/features/trust/TrustPublicProfile.tsx": [
+      "apps/web/src/components/ui.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/lib/utils.ts"
+    ],
+    "apps/web/src/lib/api.ts": [],
+    "apps/web/src/lib/auth-actions.ts": [
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/stores/auth.ts"
+    ],
+    "apps/web/src/lib/festivals.ts": [
+      "apps/web/src/lib/api.ts"
+    ],
+    "apps/web/src/lib/i18n.ts": [],
+    "apps/web/src/lib/stores/auth.ts": [],
+    "apps/web/src/lib/utils.ts": [],
+    "apps/web/src/main.tsx": [
+      "apps/web/src/app/router.tsx",
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/i18n.ts",
+      "apps/web/src/lib/stores/auth.ts",
+      "apps/web/src/styles/index.css"
+    ],
+    "apps/web/src/styles/index.css": [],
+    "apps/web/tsconfig.json": [],
+    "apps/web/tsconfig.tsbuildinfo": [],
+    "apps/web/vite.config.ts": [],
+    "opencode-session.json": [],
+    "package.json": [],
+    "packages/receipt-engine/package.json": [],
+    "packages/receipt-engine/scripts/copy-fonts.mjs": [],
+    "packages/receipt-engine/src/canvas.ts": [
+      "packages/receipt-engine/src/layout.ts",
+      "packages/receipt-engine/src/types.ts"
+    ],
+    "packages/receipt-engine/src/fonts.ts": [
+      "packages/receipt-engine/src/types.ts"
+    ],
+    "packages/receipt-engine/src/index.ts": [],
+    "packages/receipt-engine/src/layout.test.ts": [
+      "packages/receipt-engine/src/layout.ts",
+      "packages/receipt-engine/src/types.ts"
+    ],
+    "packages/receipt-engine/src/layout.ts": [
+      "packages/receipt-engine/src/fonts.ts",
+      "packages/receipt-engine/src/types.ts"
+    ],
+    "packages/receipt-engine/src/pdf.ts": [
+      "packages/receipt-engine/src/fonts.ts",
+      "packages/receipt-engine/src/layout.ts",
+      "packages/receipt-engine/src/types.ts"
+    ],
+    "packages/receipt-engine/src/server.ts": [],
+    "packages/receipt-engine/src/types.ts": [],
+    "packages/receipt-engine/tsconfig.json": [],
+    "packages/shared/package.json": [],
+    "packages/shared/src/constants.ts": [],
+    "packages/shared/src/index.ts": [],
+    "packages/shared/src/permissions.ts": [
+      "packages/shared/src/constants.ts"
+    ],
+    "packages/shared/src/schemas.ts": [
+      "packages/shared/src/constants.ts",
+      "packages/shared/src/permissions.ts"
+    ],
+    "packages/shared/src/types.ts": [
+      "packages/shared/src/constants.ts",
+      "packages/shared/src/permissions.ts"
+    ],
+    "packages/shared/src/utils.ts": [],
+    "packages/shared/tsconfig.json": [],
+    "tsconfig.base.json": []
+  }
+}

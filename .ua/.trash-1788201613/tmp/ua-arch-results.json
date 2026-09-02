@@ -1,0 +1,254 @@
+{
+  "totalNodes": 129,
+  "totalImportEdges": 189,
+  "totalAllEdges": 496,
+  "groups": {
+    "test": [
+      "file:apps/api/src/__tests__/app.test.ts",
+      "file:apps/api/src/__tests__/whatsapp.test.ts",
+      "file:packages/receipt-engine/src/layout.test.ts",
+      "file:apps/api/src/__tests__/google.test.ts",
+      "file:apps/api/src/__tests__/permissions.test.ts",
+      "file:apps/api/src/__tests__/schemas.test.ts"
+    ],
+    "api-config": [
+      "file:apps/api/src/config/index.ts",
+      "file:apps/api/package.json",
+      "file:apps/api/tsconfig.json"
+    ],
+    "api": [
+      "file:apps/api/src/index.ts",
+      "file:apps/api/src/lib/email.ts",
+      "file:apps/api/src/lib/http.ts",
+      "file:apps/api/src/lib/jwt.ts",
+      "file:apps/api/src/lib/logger.ts",
+      "file:apps/api/src/lib/prisma.ts",
+      "file:apps/api/src/lib/session.ts",
+      "file:apps/api/src/middleware/auth.ts",
+      "file:apps/api/src/middleware/error.ts",
+      "file:apps/api/src/middleware/rateLimit.ts",
+      "file:apps/api/src/middleware/rbac.ts",
+      "file:apps/api/src/middleware/validate.ts",
+      "file:apps/api/src/modules/announcements/routes.ts",
+      "file:apps/api/src/modules/auth/routes.ts",
+      "file:apps/api/src/modules/campaigns/routes.ts",
+      "file:apps/api/src/modules/dashboard/routes.ts",
+      "file:apps/api/src/modules/donations/routes.ts",
+      "file:apps/api/src/modules/members/routes.ts",
+      "file:apps/api/src/modules/notifications/routes.ts",
+      "file:apps/api/src/modules/receipts/routes.ts",
+      "file:apps/api/src/modules/reports/routes.ts",
+      "file:apps/api/src/modules/templates/routes.ts",
+      "file:apps/api/src/modules/trusts/routes.ts",
+      "file:apps/api/src/modules/uploads/routes.ts",
+      "file:apps/api/src/modules/users/routes.ts",
+      "file:apps/api/src/providers/messaging.ts",
+      "file:apps/api/src/providers/storage.ts",
+      "file:apps/api/src/services/audit.ts",
+      "file:apps/api/src/services/notifications.ts",
+      "file:apps/api/src/services/receipts.ts"
+    ],
+    "web-ui": [
+      "file:apps/web/src/components/AppLogo.tsx",
+      "file:apps/web/src/components/FestivalPicker.tsx",
+      "file:apps/web/src/components/LogoutButton.tsx",
+      "file:apps/web/src/components/ReceiptPreview.tsx",
+      "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "file:apps/web/src/components/layout.tsx",
+      "file:apps/web/src/components/ui.tsx",
+      "file:apps/web/src/features/account/AccountPage.tsx",
+      "file:apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "file:apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "file:apps/web/src/features/audit/AuditLogPage.tsx",
+      "file:apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "file:apps/web/src/features/auth/GoogleSignInButton.tsx",
+      "file:apps/web/src/features/auth/LoginPage.tsx",
+      "file:apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "file:apps/web/src/features/auth/SignupPage.tsx",
+      "file:apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "file:apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "file:apps/web/src/features/donate/DonatePage.tsx",
+      "file:apps/web/src/features/donate/MemberDonatePage.tsx",
+      "file:apps/web/src/features/donations/CreateDonationPage.tsx",
+      "file:apps/web/src/features/donations/DonationDetailPage.tsx",
+      "file:apps/web/src/features/donations/DonationsPage.tsx",
+      "file:apps/web/src/features/landing/LandingPage.tsx",
+      "file:apps/web/src/features/members/CommitteePage.tsx",
+      "file:apps/web/src/features/members/MembersPage.tsx",
+      "file:apps/web/src/features/notifications/NotificationsPage.tsx",
+      "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "file:apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "file:apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "file:apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "file:apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "file:apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "file:apps/web/src/features/reports/ReportsPage.tsx",
+      "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "file:apps/web/src/features/templates/TemplatesPage.tsx",
+      "file:apps/web/src/features/trust/TrustPublicProfile.tsx"
+    ],
+    "web-core": [
+      "file:apps/web/src/lib/api.ts",
+      "file:apps/web/src/lib/auth-actions.ts",
+      "file:apps/web/src/lib/festivals.ts",
+      "file:apps/web/src/lib/stores/auth.ts",
+      "file:apps/web/src/lib/utils.ts",
+      "file::apps/web/src/app/router.tsx",
+      "file::apps/web/src/lib/i18n.ts",
+      "file::apps/web/src/main.tsx",
+      "file:apps/web/index.html",
+      "file:apps/web/package.json",
+      "file:apps/web/tsconfig.json",
+      "file:apps/web/public/manifest.webmanifest",
+      "file:apps/web/src/styles/index.css",
+      "file:apps/web/tsconfig.tsbuildinfo",
+      "file:apps/web/vite.config.ts"
+    ],
+    "receipt-engine": [
+      "file:packages/receipt-engine/src/canvas.ts",
+      "file:packages/receipt-engine/src/fonts.ts",
+      "file:packages/receipt-engine/src/layout.ts",
+      "file:packages/receipt-engine/src/pdf.ts",
+      "file:packages/receipt-engine/src/types.ts",
+      "file:packages/receipt-engine/package.json",
+      "file:packages/receipt-engine/scripts/copy-fonts.mjs",
+      "file:packages/receipt-engine/src/index.ts",
+      "file:packages/receipt-engine/src/server.ts",
+      "file:packages/receipt-engine/tsconfig.json"
+    ],
+    "shared": [
+      "file:packages/shared/src/constants.ts",
+      "file:packages/shared/src/permissions.ts",
+      "file:packages/shared/src/schemas.ts",
+      "file:packages/shared/src/types.ts",
+      "file:packages/shared/package.json",
+      "file:packages/shared/src/index.ts",
+      "file:packages/shared/src/utils.ts",
+      "file:packages/shared/tsconfig.json"
+    ],
+    "config-root": [
+      "file::Procfile",
+      "file::opencode-session.json",
+      "file::package.json",
+      "file::tsconfig.base.json",
+      "file:.opencode/plans/heroku-r2-deployment.md",
+      "file:.ua/.understandignore",
+      "file:.ua/config.json",
+      "file:.ua/intermediate/scan-result.json"
+    ],
+    "api-data": [
+      "file:apps/api/prisma/migrations/20260820085059_init/migration.sql",
+      "file:apps/api/prisma/migrations/20260820183012_receipt_number_unique_per_trust/migration.sql",
+      "file:apps/api/prisma/migrations/20260823183535_drop_otp_codes/migration.sql",
+      "file:apps/api/prisma/migrations/20260823200000_add_trust_qr_code_url/migration.sql",
+      "file:apps/api/prisma/migrations/20260824000000_move_qr_to_campaign/migration.sql",
+      "file:apps/api/prisma/migrations/20260824010000_add_donation_splits/migration.sql",
+      "file:apps/api/prisma/migrations/20260824020000_add_donation_submitted_by/migration.sql",
+      "file:apps/api/prisma/migrations/migration_lock.toml",
+      "file:apps/api/prisma/schema.prisma",
+      "file:apps/api/prisma/seed.ts"
+    ]
+  },
+  "intraGroupEdgeCounts": {
+    "web-ui": 74,
+    "web-core": 4,
+    "receipt-engine": 4,
+    "shared": 10
+  },
+  "intraGroupDensity": 92,
+  "interGroupEdgeCount": 97,
+  "interGroupFlows": {
+    "web-ui->shared": 6,
+    "web-ui->web-core": 90,
+    "web-ui->receipt-engine": 1
+  },
+  "depDirections": {
+    "web-ui->shared": 6,
+    "web-ui->web-core": 90,
+    "web-ui->receipt-engine": 1
+  },
+  "typeGroups": {
+    "test": {
+      "file": 6
+    },
+    "api-config": {
+      "file": 3
+    },
+    "api": {
+      "file": 30
+    },
+    "web-ui": {
+      "file": 39
+    },
+    "web-core": {
+      "file": 13,
+      "config": 2
+    },
+    "receipt-engine": {
+      "file": 10
+    },
+    "shared": {
+      "file": 8
+    },
+    "config-root": {
+      "file": 8
+    },
+    "api-data": {
+      "file": 10
+    }
+  },
+  "summary": {
+    "groupsCount": 9,
+    "groupSizes": {
+      "test": 6,
+      "api-config": 3,
+      "api": 30,
+      "web-ui": 39,
+      "web-core": 15,
+      "receipt-engine": 10,
+      "shared": 8,
+      "config-root": 8,
+      "api-data": 10
+    },
+    "sortedBySize": [
+      {
+        "group": "web-ui",
+        "count": 39
+      },
+      {
+        "group": "api",
+        "count": 30
+      },
+      {
+        "group": "web-core",
+        "count": 15
+      },
+      {
+        "group": "receipt-engine",
+        "count": 10
+      },
+      {
+        "group": "api-data",
+        "count": 10
+      },
+      {
+        "group": "shared",
+        "count": 8
+      },
+      {
+        "group": "config-root",
+        "count": 8
+      },
+      {
+        "group": "test",
+        "count": 6
+      },
+      {
+        "group": "api-config",
+        "count": 3
+      }
+    ]
+  }
+}

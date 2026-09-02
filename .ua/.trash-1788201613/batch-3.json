@@ -1,0 +1,1301 @@
+{
+  "nodes": [
+    {
+      "id": "file:apps/web/src/features/donations/DonationsPage.tsx",
+      "type": "file",
+      "name": "DonationsPage.tsx",
+      "filePath": "apps/web/src/features/donations/DonationsPage.tsx",
+      "summary": "Admin dashboard page listing all Pāvati donations for the active trust with search, payment-mode, status, and category filters plus PDF receipt downloads.",
+      "tags": ["component", "donations", "dashboard", "list", "api-handler"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/donations/DonationsPage.tsx:DonationsPage",
+      "type": "function",
+      "name": "DonationsPage",
+      "filePath": "apps/web/src/features/donations/DonationsPage.tsx",
+      "lineRange": [17, 102],
+      "summary": "Renders a filterable, paginated donations table with permission-aware actions and per-row receipt PDF download.",
+      "tags": ["component", "donations", "table", "permissions"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/landing/LandingPage.tsx",
+      "type": "file",
+      "name": "LandingPage.tsx",
+      "filePath": "apps/web/src/features/landing/LandingPage.tsx",
+      "summary": "Public landing/marketing page for Pāvati Pustak with hero, feature grid, how-it-works steps, and a decorative receipt mockup; redirects logged-in users to the dashboard.",
+      "tags": ["component", "landing", "marketing", "entry-point", "public"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/landing/LandingPage.tsx:LandingPage",
+      "type": "function",
+      "name": "LandingPage",
+      "filePath": "apps/web/src/features/landing/LandingPage.tsx",
+      "lineRange": [24, 123],
+      "summary": "Renders the marketing hero, features, and onboarding steps, redirecting authenticated users to /app.",
+      "tags": ["component", "landing", "marketing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/members/CommitteePage.tsx",
+      "type": "file",
+      "name": "CommitteePage.tsx",
+      "filePath": "apps/web/src/features/members/CommitteePage.tsx",
+      "summary": "Displays the trust committee grouped by role, showing members who hold administrative positions with their profile images and positions.",
+      "tags": ["component", "committee", "members", "roles", "list"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/features/members/CommitteePage.tsx:CommitteePage",
+      "type": "function",
+      "name": "CommitteePage",
+      "filePath": "apps/web/src/features/members/CommitteePage.tsx",
+      "lineRange": [9, 52],
+      "summary": "Fetches and renders the trust committee partitioned by committee role.",
+      "tags": ["component", "committee", "members"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/features/members/MembersPage.tsx",
+      "type": "file",
+      "name": "MembersPage.tsx",
+      "filePath": "apps/web/src/features/members/MembersPage.tsx",
+      "summary": "Member management page allowing search, add/invite, role and position updates, permission toggles, and member removal across the active trust.",
+      "tags": ["component", "members", "management", "invite", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/members/MembersPage.tsx:MembersPage",
+      "type": "function",
+      "name": "MembersPage",
+      "filePath": "apps/web/src/features/members/MembersPage.tsx",
+      "lineRange": [14, 148],
+      "summary": "Renders the members list with add/invite and edit modals and mutations for adding, updating roles, inviting, and removing members.",
+      "tags": ["component", "members", "modals", "mutations"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/notifications/NotificationsPage.tsx",
+      "type": "file",
+      "name": "NotificationsPage.tsx",
+      "filePath": "apps/web/src/features/notifications/NotificationsPage.tsx",
+      "summary": "Shows the notification outbox with per-channel status along with WhatsApp/email channel preference toggles for auto-sending receipt notifications.",
+      "tags": ["component", "notifications", "settings", "outbox", "channels"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/notifications/NotificationsPage.tsx:NotificationsPage",
+      "type": "function",
+      "name": "NotificationsPage",
+      "filePath": "apps/web/src/features/notifications/NotificationsPage.tsx",
+      "lineRange": [15, 102],
+      "summary": "Renders the paged notification outbox and editable channel settings with a save mutation.",
+      "tags": ["component", "notifications", "settings"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "type": "file",
+      "name": "CreateTrustWizard.tsx",
+      "filePath": "apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "summary": "Multi-step onboarding wizard for creating a new trust, collecting trust details, festivals, join mode, and contact info with logo upload, then displaying generated join and unique codes.",
+      "tags": ["component", "onboarding", "wizard", "trust-creation", "form"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/onboarding/CreateTrustWizard.tsx:CreateTrustWizard",
+      "type": "function",
+      "name": "CreateTrustWizard",
+      "filePath": "apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "lineRange": [34, 222],
+      "summary": "Three-step wizard (trust details, festivals & join, done) that submits trust creation, uploads logo, and sets the new trust as active.",
+      "tags": ["component", "onboarding", "wizard", "form", "zod"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "type": "file",
+      "name": "JoinTrustPage.tsx",
+      "filePath": "apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "summary": "Lets a user join a trust by entering a join code, looking up the trust details and posting a join request, then refreshing the session.",
+      "tags": ["component", "onboarding", "join", "trust", "code"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/onboarding/JoinTrustPage.tsx:JoinTrustPage",
+      "type": "function",
+      "name": "JoinTrustPage",
+      "filePath": "apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "lineRange": [23, 119],
+      "summary": "Looks up a trust by join code and submits a join request, handling approval-pending and success states.",
+      "tags": ["component", "join", "trust", "api"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "type": "file",
+      "name": "OnboardingPage.tsx",
+      "filePath": "apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "summary": "Onboarding hub listing the user's existing trusts (to switch active trust) with links to create a new trust or find and join one.",
+      "tags": ["component", "onboarding", "hub", "trust", "navigation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/onboarding/OnboardingPage.tsx:OnboardingPage",
+      "type": "function",
+      "name": "OnboardingPage",
+      "filePath": "apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "lineRange": [7, 75],
+      "summary": "Renders the onboarding entry screen listing memberships and entry cards to create or join a trust.",
+      "tags": ["component", "onboarding", "navigation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "type": "file",
+      "name": "TrustSearchPage.tsx",
+      "filePath": "apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "summary": "Public trust search page allowing users to search trusts by name or city, view them, and join open or approval-mode trusts.",
+      "tags": ["component", "search", "trust", "onboarding", "join"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/onboarding/TrustSearchPage.tsx:TrustSearchPage",
+      "type": "function",
+      "name": "TrustSearchPage",
+      "filePath": "apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "lineRange": [23, 120],
+      "summary": "Searches trusts and handles joining them, refreshing memberships on success.",
+      "tags": ["component", "search", "trust", "join"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "type": "file",
+      "name": "ReceiptPreviewPage.tsx",
+      "filePath": "apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "summary": "Page that loads a single receipt and displays its generated PDF inline with a download button.",
+      "tags": ["component", "receipt", "preview", "pdf", "viewer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/receipts/ReceiptPreviewPage.tsx:ReceiptPreviewPage",
+      "type": "function",
+      "name": "ReceiptPreviewPage",
+      "filePath": "apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "lineRange": [12, 60],
+      "summary": "Fetches a receipt by ID and renders its PDF in an iframe with download support.",
+      "tags": ["component", "receipt", "pdf", "viewer"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "type": "file",
+      "name": "ReceiptVerifyPage.tsx",
+      "filePath": "apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "summary": "Public receipt verification page that validates a receipt by a security token, showing its authenticity and an embedded PDF, or an error if invalid.",
+      "tags": ["component", "receipt", "verification", "public", "security"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/receipts/ReceiptVerifyPage.tsx:ReceiptVerifyPage",
+      "type": "function",
+      "name": "ReceiptVerifyPage",
+      "filePath": "apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "lineRange": [25, 107],
+      "summary": "Verifies a receipt token via the API and renders verified details or a not-found error state.",
+      "tags": ["component", "receipt", "verification", "public"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "type": "file",
+      "name": "ReceiptsPage.tsx",
+      "filePath": "apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "summary": "Receipt management page listing generated Pāvati receipts with search, status filter, PDF download, and WhatsApp/email sending to donors.",
+      "tags": ["component", "receipt", "list", "share", "whatsapp"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:ReceiptsPage",
+      "type": "function",
+      "name": "ReceiptsPage",
+      "filePath": "apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "lineRange": [96, 203],
+      "summary": "Renders the receipts table with filtering, per-receipt PDF download, and channel-aware send controls.",
+      "tags": ["component", "receipt", "list", "mutations"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:SendPopover",
+      "type": "function",
+      "name": "SendPopover",
+      "filePath": "apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "lineRange": [28, 94],
+      "summary": "Popover that lets a user send a receipt via WhatsApp or email, opening WhatsApp links or invoking an onSend callback for selected channels.",
+      "tags": ["component", "popover", "share", "whatsapp"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/reports/ReportsPage.tsx",
+      "type": "file",
+      "name": "ReportsPage.tsx",
+      "filePath": "apps/web/src/features/reports/ReportsPage.tsx",
+      "summary": "Donation reporting dashboard with summary stat cards, daily collection and payment-mode charts (recharts), category allocation, and collector performance bars, plus CSV export.",
+      "tags": ["component", "reports", "dashboard", "charts", "statistics"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/reports/ReportsPage.tsx:ReportsPage",
+      "type": "function",
+      "name": "ReportsPage",
+      "filePath": "apps/web/src/features/reports/ReportsPage.tsx",
+      "lineRange": [27, 135],
+      "summary": "Loads summary, daily, and collector report data, renders charts and stat cards, and triggers CSV export.",
+      "tags": ["component", "reports", "charts", "export"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "type": "file",
+      "name": "TrustSettingsPage.tsx",
+      "filePath": "apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "summary": "Trust settings editor for basic details, join code display, membership join mode, contact/location info, festivals, and a guarded danger zone to permanently delete the trust.",
+      "tags": ["component", "settings", "trust", "configuration", "danger-zone"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/settings/TrustSettingsPage.tsx:TrustSettingsPage",
+      "type": "function",
+      "name": "TrustSettingsPage",
+      "filePath": "apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "lineRange": [14, 182],
+      "summary": "Loads and saves trust settings, uploads logos, copies the join code, and handles confirmed permanent trust deletion for primary admins.",
+      "tags": ["component", "settings", "trust", "mutations"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "type": "file",
+      "name": "TemplateEditorPage.tsx",
+      "filePath": "apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "summary": "Visual receipt template editor with page-size controls, background image upload, field list management, a draggable field overlay, and a live receipt preview.",
+      "tags": ["component", "template", "editor", "receipt", "designer"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:apps/web/src/features/templates/TemplateEditorPage.tsx:TemplateEditorPage",
+      "type": "function",
+      "name": "TemplateEditorPage",
+      "filePath": "apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "lineRange": [41, 280],
+      "summary": "Manages template editing including page size, field configs, background upload, save/create via API, and live preview rendering.",
+      "tags": ["component", "template", "editor", "receipt", "designer"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:apps/web/src/features/templates/TemplatesPage.tsx",
+      "type": "file",
+      "name": "TemplatesPage.tsx",
+      "filePath": "apps/web/src/features/templates/TemplatesPage.tsx",
+      "summary": "Lists Pāvati receipt templates with visual previews, showing active/inactive status and actions to edit, activate, delete, or create new templates.",
+      "tags": ["component", "template", "list", "management"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/templates/TemplatesPage.tsx:TemplatesPage",
+      "type": "function",
+      "name": "TemplatesPage",
+      "filePath": "apps/web/src/features/templates/TemplatesPage.tsx",
+      "lineRange": [10, 72],
+      "summary": "Renders template cards with activate/delete mutations and a link to create new templates.",
+      "tags": ["component", "template", "list", "mutations"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "type": "file",
+      "name": "TrustPublicProfile.tsx",
+      "filePath": "apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "summary": "Public trust profile page showing trust details, member/stat cards, committee, recent donors, and join/donate actions based on auth state.",
+      "tags": ["component", "trust", "public", "profile", "social"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/features/trust/TrustPublicProfile.tsx:TrustPublicProfile",
+      "type": "function",
+      "name": "TrustPublicProfile",
+      "filePath": "apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "lineRange": [30, 164],
+      "summary": "Loads public trust data and renders its profile with committee, recent donations, and conditional join/donate actions.",
+      "tags": ["component", "trust", "public", "profile"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:apps/web/src/lib/api.ts",
+      "type": "file",
+      "name": "api.ts",
+      "filePath": "apps/web/src/lib/api.ts",
+      "summary": "Central HTTP client for the web app: token management, fetch wrapper with automatic refresh on 401, REST helpers (get/post/patch/del), file upload, receipt PDF download, and CSV export.",
+      "tags": ["api-handler", "http", "client", "authentication", "utility"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:apps/web/src/lib/api.ts:ApiError",
+      "type": "class",
+      "name": "ApiError",
+      "filePath": "apps/web/src/lib/api.ts",
+      "lineRange": [3, 11],
+      "summary": "Error class carrying an HTTP status code and optional details, thrown on failed API requests.",
+      "tags": ["error-handling", "class", "api"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/api.ts:request",
+      "type": "function",
+      "name": "request",
+      "filePath": "apps/web/src/lib/api.ts",
+      "lineRange": [38, 73],
+      "summary": "Performs an authenticated fetch, transparently refreshing the access token once on a 401 response and retrying the original request.",
+      "tags": ["http", "client", "authentication", "retry"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/api.ts:downloadReceiptPdf",
+      "type": "function",
+      "name": "downloadReceiptPdf",
+      "filePath": "apps/web/src/lib/api.ts",
+      "lineRange": [118, 128],
+      "summary": "Fetches a receipt PDF as a blob and triggers a browser download.",
+      "tags": ["pdf", "download", "api"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/api.ts:exportDonationsCsv",
+      "type": "function",
+      "name": "exportDonationsCsv",
+      "filePath": "apps/web/src/lib/api.ts",
+      "lineRange": [139, 154],
+      "summary": "Fetches a trust's donations export CSV and triggers a browser download.",
+      "tags": ["csv", "export", "api", "download"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/api.ts:uploadFile",
+      "type": "function",
+      "name": "uploadFile",
+      "filePath": "apps/web/src/lib/api.ts",
+      "lineRange": [105, 107],
+      "summary": "Uploads a data URL (image or pdf) to the server and returns the resulting URL.",
+      "tags": ["upload", "api", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/api.ts:getReceiptPdfUrl",
+      "type": "function",
+      "name": "getReceiptPdfUrl",
+      "filePath": "apps/web/src/lib/api.ts",
+      "lineRange": [130, 133],
+      "summary": "Fetches a receipt PDF blob and returns an object URL for inline display.",
+      "tags": ["pdf", "api", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/auth-actions.ts",
+      "type": "file",
+      "name": "auth-actions.ts",
+      "filePath": "apps/web/src/lib/auth-actions.ts",
+      "summary": "Logout helpers that revoke the refresh token via the API, clear local tokens, reset the auth store, and optionally navigate to the login page.",
+      "tags": ["authentication", "logout", "utility", "hook"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth-actions.ts:performLogout",
+      "type": "function",
+      "name": "performLogout",
+      "filePath": "apps/web/src/lib/auth-actions.ts",
+      "lineRange": [5, 12],
+      "summary": "Posts a logout with the refresh token, clears tokens, and resets the auth store.",
+      "tags": ["authentication", "logout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/auth-actions.ts:useLogout",
+      "type": "function",
+      "name": "useLogout",
+      "filePath": "apps/web/src/lib/auth-actions.ts",
+      "lineRange": [14, 20],
+      "summary": "React hook returning a logout function that also navigates to the login page.",
+      "tags": ["hook", "logout", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/festivals.ts",
+      "type": "file",
+      "name": "festivals.ts",
+      "filePath": "apps/web/src/lib/festivals.ts",
+      "summary": "Festival and donation category helpers combining default categories with a trust's custom festivals, plus a hook to fetch a trust's festival types.",
+      "tags": ["utility", "festival", "categories", "hook"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/festivals.ts:categoryOptions",
+      "type": "function",
+      "name": "categoryOptions",
+      "filePath": "apps/web/src/lib/festivals.ts",
+      "lineRange": [5, 17],
+      "summary": "Builds a de-duplicated list of category options from default donation categories merged with trust festivals.",
+      "tags": ["utility", "categories", "dedupe"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/festivals.ts:useTrustFestivals",
+      "type": "function",
+      "name": "useTrustFestivals",
+      "filePath": "apps/web/src/lib/festivals.ts",
+      "lineRange": [19, 25],
+      "summary": "Hook that queries and returns a trust's festival types via react-query.",
+      "tags": ["hook", "festival", "query"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/stores/auth.ts",
+      "type": "file",
+      "name": "auth.ts",
+      "filePath": "apps/web/src/lib/stores/auth.ts",
+      "summary": "Zustand auth store holding the user, memberships, and active trust ID, with session/trust setters, logout, and a useActiveTrust selector.",
+      "tags": ["state-management", "auth", "store", "hook", "persistence"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:apps/web/src/lib/stores/auth.ts:useActiveTrust",
+      "type": "function",
+      "name": "useActiveTrust",
+      "filePath": "apps/web/src/lib/stores/auth.ts",
+      "lineRange": [59, 63],
+      "summary": "Selector hook returning the currently active membership or the first membership, or null.",
+      "tags": ["hook", "auth", "selector"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:apps/web/src/lib/utils.ts",
+      "type": "file",
+      "name": "utils.ts",
+      "filePath": "apps/web/src/lib/utils.ts",
+      "summary": "General frontend utilities: class-name merging, INR/date formatting re-exports, relative time strings, file-to-data-URL reading, and blob downloads.",
+      "tags": ["utility", "formatting", "helpers", "download"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/utils.ts:timeAgo",
+      "type": "function",
+      "name": "timeAgo",
+      "filePath": "apps/web/src/lib/utils.ts",
+      "lineRange": [10, 21],
+      "summary": "Formats a date as a human-readable relative time such as '5m ago' or '3d ago'.",
+      "tags": ["utility", "formatting", "time"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/utils.ts:fileToDataUrl",
+      "type": "function",
+      "name": "fileToDataUrl",
+      "filePath": "apps/web/src/lib/utils.ts",
+      "lineRange": [23, 30],
+      "summary": "Reads a File into a data URL string using FileReader.",
+      "tags": ["utility", "file", "data-url"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:apps/web/src/lib/utils.ts:downloadBlob",
+      "type": "function",
+      "name": "downloadBlob",
+      "filePath": "apps/web/src/lib/utils.ts",
+      "lineRange": [32, 43],
+      "summary": "Triggers a browser download of a blob with a given filename.",
+      "tags": ["utility", "download", "blob"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:apps/web/src/features/donations/DonationsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/landing/LandingPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/members/CommitteePage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/members/CommitteePage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/members/MembersPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/members/MembersPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/notifications/NotificationsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/notifications/NotificationsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "target": "file:apps/web/src/lib/stores/auth.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "target": "file:packages/shared/src/schemas.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "target": "file:packages/shared/src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "target": "file:apps/web/src/components/ReceiptPreview.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/reports/ReportsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/reports/ReportsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "target": "file:packages/shared/src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "target": "file:apps/web/src/components/TemplateFieldOverlay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "target": "file:packages/shared/src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplatesPage.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplatesPage.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "target": "file:apps/web/src/components/layout.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/lib/stores/auth.ts",
+      "target": "file:apps/web/src/lib/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationsPage.tsx",
+      "target": "function:apps/web/src/features/donations/DonationsPage.tsx:DonationsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/donations/DonationsPage.tsx",
+      "target": "function:apps/web/src/features/donations/DonationsPage.tsx:DonationsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/landing/LandingPage.tsx",
+      "target": "function:apps/web/src/features/landing/LandingPage.tsx:LandingPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/landing/LandingPage.tsx",
+      "target": "function:apps/web/src/features/landing/LandingPage.tsx:LandingPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/members/CommitteePage.tsx",
+      "target": "function:apps/web/src/features/members/CommitteePage.tsx:CommitteePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/members/CommitteePage.tsx",
+      "target": "function:apps/web/src/features/members/CommitteePage.tsx:CommitteePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/members/MembersPage.tsx",
+      "target": "function:apps/web/src/features/members/MembersPage.tsx:MembersPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/members/MembersPage.tsx",
+      "target": "function:apps/web/src/features/members/MembersPage.tsx:MembersPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/notifications/NotificationsPage.tsx",
+      "target": "function:apps/web/src/features/notifications/NotificationsPage.tsx:NotificationsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/notifications/NotificationsPage.tsx",
+      "target": "function:apps/web/src/features/notifications/NotificationsPage.tsx:NotificationsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "target": "function:apps/web/src/features/onboarding/CreateTrustWizard.tsx:CreateTrustWizard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "target": "function:apps/web/src/features/onboarding/CreateTrustWizard.tsx:CreateTrustWizard",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "target": "function:apps/web/src/features/onboarding/JoinTrustPage.tsx:JoinTrustPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "target": "function:apps/web/src/features/onboarding/JoinTrustPage.tsx:JoinTrustPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "target": "function:apps/web/src/features/onboarding/OnboardingPage.tsx:OnboardingPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "target": "function:apps/web/src/features/onboarding/OnboardingPage.tsx:OnboardingPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "target": "function:apps/web/src/features/onboarding/TrustSearchPage.tsx:TrustSearchPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "target": "function:apps/web/src/features/onboarding/TrustSearchPage.tsx:TrustSearchPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptPreviewPage.tsx:ReceiptPreviewPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptPreviewPage.tsx:ReceiptPreviewPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptVerifyPage.tsx:ReceiptVerifyPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptVerifyPage.tsx:ReceiptVerifyPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:ReceiptsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:ReceiptsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "target": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:SendPopover",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/reports/ReportsPage.tsx",
+      "target": "function:apps/web/src/features/reports/ReportsPage.tsx:ReportsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/reports/ReportsPage.tsx",
+      "target": "function:apps/web/src/features/reports/ReportsPage.tsx:ReportsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "target": "function:apps/web/src/features/settings/TrustSettingsPage.tsx:TrustSettingsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "target": "function:apps/web/src/features/settings/TrustSettingsPage.tsx:TrustSettingsPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "target": "function:apps/web/src/features/templates/TemplateEditorPage.tsx:TemplateEditorPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "target": "function:apps/web/src/features/templates/TemplateEditorPage.tsx:TemplateEditorPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplatesPage.tsx",
+      "target": "function:apps/web/src/features/templates/TemplatesPage.tsx:TemplatesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/templates/TemplatesPage.tsx",
+      "target": "function:apps/web/src/features/templates/TemplatesPage.tsx:TemplatesPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "target": "function:apps/web/src/features/trust/TrustPublicProfile.tsx:TrustPublicProfile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "target": "function:apps/web/src/features/trust/TrustPublicProfile.tsx:TrustPublicProfile",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "class:apps/web/src/lib/api.ts:ApiError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "class:apps/web/src/lib/api.ts:ApiError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:downloadReceiptPdf",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:downloadReceiptPdf",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:exportDonationsCsv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:exportDonationsCsv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:uploadFile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:uploadFile",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:getReceiptPdfUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/api.ts",
+      "target": "function:apps/web/src/lib/api.ts:getReceiptPdfUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth-actions.ts",
+      "target": "function:apps/web/src/lib/auth-actions.ts:performLogout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/auth-actions.ts",
+      "target": "function:apps/web/src/lib/auth-actions.ts:performLogout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/auth-actions.ts",
+      "target": "function:apps/web/src/lib/auth-actions.ts:useLogout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/auth-actions.ts",
+      "target": "function:apps/web/src/lib/auth-actions.ts:useLogout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/festivals.ts",
+      "target": "function:apps/web/src/lib/festivals.ts:categoryOptions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/festivals.ts",
+      "target": "function:apps/web/src/lib/festivals.ts:categoryOptions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/festivals.ts",
+      "target": "function:apps/web/src/lib/festivals.ts:useTrustFestivals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/festivals.ts",
+      "target": "function:apps/web/src/lib/festivals.ts:useTrustFestivals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/stores/auth.ts",
+      "target": "function:apps/web/src/lib/stores/auth.ts:useActiveTrust",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/stores/auth.ts",
+      "target": "function:apps/web/src/lib/stores/auth.ts:useActiveTrust",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/utils.ts",
+      "target": "function:apps/web/src/lib/utils.ts:timeAgo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/utils.ts",
+      "target": "function:apps/web/src/lib/utils.ts:timeAgo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/utils.ts",
+      "target": "function:apps/web/src/lib/utils.ts:fileToDataUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/utils.ts",
+      "target": "function:apps/web/src/lib/utils.ts:fileToDataUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:apps/web/src/lib/utils.ts",
+      "target": "function:apps/web/src/lib/utils.ts:downloadBlob",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:apps/web/src/lib/utils.ts",
+      "target": "function:apps/web/src/lib/utils.ts:downloadBlob",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:ReceiptsPage",
+      "target": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:SendPopover",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:apps/web/src/features/donations/DonationsPage.tsx:DonationsPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/donations/DonationsPage.tsx:DonationsPage",
+      "target": "file:apps/web/src/lib/festivals.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/receipts/ReceiptPreviewPage.tsx:ReceiptPreviewPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/receipts/ReceiptsPage.tsx:ReceiptsPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/receipts/ReceiptVerifyPage.tsx:ReceiptVerifyPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/reports/ReportsPage.tsx:ReportsPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/trust/TrustPublicProfile.tsx:TrustPublicProfile",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/members/MembersPage.tsx:MembersPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/onboarding/CreateTrustWizard.tsx:CreateTrustWizard",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/settings/TrustSettingsPage.tsx:TrustSettingsPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:apps/web/src/features/templates/TemplateEditorPage.tsx:TemplateEditorPage",
+      "target": "file:apps/web/src/lib/utils.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

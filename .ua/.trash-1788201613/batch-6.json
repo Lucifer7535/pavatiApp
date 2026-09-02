@@ -1,0 +1,338 @@
+{
+  "batchIndex": 6,
+  "batchFiles": [
+    {
+      "path": "apps/web/src/app/router.tsx",
+      "language": "typescript",
+      "sizeLines": 166,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/lib/i18n.ts",
+      "language": "typescript",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "language": "typescript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file::apps/web/src/app/router.tsx",
+      "kind": "file",
+      "label": "router.tsx",
+      "path": "apps/web/src/app/router.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 166,
+      "title": "Application Router Configuration",
+      "summary": "Central SPA router using react-router-dom createBrowserRouter. Defines all application routes with three layered auth guards: RequireAuth (login check), RequireMembership (trust membership check), and RequirePermission (role-based RBAC via permissionsForRole). All page components are code-split via React.lazy. Includes AppShell root layout with Suspense fallback and Sonner toast notifications.",
+      "tags": ["routing", "auth-guards", "rbac", "lazy-loading", "react-router", "permission-based-access"],
+      "description": "Defines the complete client-side route tree for the Pāvati Pustak SPA. Three guard components enforce progressive access: RequireAuth redirects unauthenticated users to /login, RequireMembership sends users without trust membership to /onboarding, and RequirePermission checks role-based permissions from @pavati/shared. The route tree covers public pages (landing, donate, trust profile, receipt verification), authenticated onboarding flows, and a full /app/* section for trust management (donations, receipts, templates, members, committees, announcements, campaigns, reports, notifications, settings, audit). All 30+ page components are lazy-loaded for code splitting. Exported RequirePermission is used across feature pages for inline permission checks.",
+      "languageNotes": "React TSX file using react-router-dom v6 data router API (createBrowserRouter). Lazy imports via React.lazy for code splitting. Zustand hooks (useAuth, useActiveTrust) used inside route components for auth state. permissionsForRole utility from shared package provides role-to-permission mapping.",
+      "languageLesson": "This file demonstrates the guard-component pattern in React Router v6 — wrapping child routes in progressively restrictive auth check components using Outlet. The lazy() + Suspense pattern enables route-level code splitting without manual chunk naming. The RequirePermission component exports for reuse outside the router tree."
+    },
+    {
+      "id": "file::apps/web/src/lib/i18n.ts",
+      "kind": "file",
+      "label": "i18n.ts",
+      "path": "apps/web/src/lib/i18n.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 126,
+      "title": "Internationalization Module",
+      "summary": "Lightweight i18n system supporting three locales: English, Marathi (mr), and Hindi (hi). Provides dictionary-based translation with localStorage persistence, English fallback, and a setLocale/getLocale/t() API. Includes localeOptions array for UI dropdowns. Covers navigation labels, common actions, and currency (₹) formatting.",
+      "tags": ["i18n", "localization", "marathi", "hindi", "english", "translation", "localStorage"],
+      "description": "A self-contained internationalization module with no external i18n library dependency. Stores a static dictionary of three locales (en, mr, hi) with nested key paths like 'nav.dashboard', 'action.save', 'common.loading'. The setLocale function persists the choice to localStorage under 'pp_locale' and sets the HTML lang attribute. The t() function looks up a key in the current locale with automatic English fallback, enabling progressive localization where Marathi/Hindi translations can be added incrementally. The localeOptions export provides a standard dropdown data structure for language selectors.",
+      "languageNotes": "TypeScript with const assertion on the dictionary object for type-safe keys. The Dict type is derived from typeof dict.en, ensuring all locale objects match the English key structure. Module-level mutable state (current variable) holds the active locale. No React integration — pure utility module consumed by React components.",
+      "languageLesson": "This is a minimal custom i18n approach: rather than using i18next or react-intl, it uses a flat TypeScript dictionary with type inference from the English locale. The 'as const' on the dict object preserves literal types for all translation values. This pattern works well for apps with a small, finite set of translations and no pluralization or interpolation needs."
+    },
+    {
+      "id": "file::apps/web/src/main.tsx",
+      "kind": "file",
+      "label": "main.tsx",
+      "path": "apps/web/src/main.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 36,
+      "title": "Application Entry Point",
+      "summary": "React application bootstrap that initializes QueryClient, restores locale from localStorage, fetches the current user session via /auth/me API endpoint, and renders the app tree (StrictMode > QueryClientProvider > RouterProvider) into the DOM root. Uses a one-shot render guard to prevent double rendering during async session restore.",
+      "tags": ["entry-point", "bootstrap", "react-query", "session-restore", "root-render"],
+      "description": "The application's entry point that orchestrates startup sequence: (1) creates a React Query client with retry=1, no refetchOnWindowFocus, and 15s staleTime; (2) restores the user's locale choice from localStorage; (3) attempts to restore the authenticated session by calling GET /auth/me; (4) renders the React tree once session restore completes or fails. The render function uses a boolean guard to ensure single execution. The session restore pattern avoids a flash of unauthenticated content by fetching user data before first render. React Query is configured globally for all API data fetching across the app.",
+      "languageNotes": "TypeScript TSX entry point using createRoot from React 18 (concurrent mode). Imports Mukta font in multiple weights (400-700) via @fontsource for Devanagari script support. Global CSS imported from styles/index.css. The api module is a custom HTTP client (not axios/fetch directly). Zustand store accessed via getState() outside React component tree for session hydration.",
+      "languageLesson": "This file shows the pre-render session hydration pattern: fetching auth state before createRoot().render() to prevent auth flicker. The one-shot render guard (let rendered = false) prevents the async .then() and .catch() both calling render() if the API call completes after the catch. React Query's QueryClient is created at module scope for singleton usage across the app."
+    }
+  ],
+  "edges": [
+    {
+      "source": "file::apps/web/src/main.tsx",
+      "target": "file::apps/web/src/app/router.tsx",
+      "kind": "imports",
+      "label": "imports router",
+      "detail": "Imports router from ./app/router for RouterProvider"
+    },
+    {
+      "source": "file::apps/web/src/main.tsx",
+      "target": "file::apps/web/src/lib/i18n.ts",
+      "kind": "imports",
+      "label": "imports i18n functions",
+      "detail": "Imports setLocale and getLocale to initialize locale on startup"
+    },
+    {
+      "source": "file::apps/web/src/main.tsx",
+      "target": "file::apps/web/src/lib/stores/auth.ts",
+      "kind": "imports",
+      "label": "imports useAuth store",
+      "detail": "Uses useAuth.getState().setSession() for pre-render session hydration"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/lib/stores/auth.ts",
+      "kind": "imports",
+      "label": "imports auth store hooks",
+      "detail": "Imports useAuth and useActiveTrust for auth guard components"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/landing/LandingPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads LandingPage",
+      "detail": "Code-split route component for '/' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/auth/LoginPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads LoginPage",
+      "detail": "Code-split route component for '/login' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/auth/SignupPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads SignupPage",
+      "detail": "Code-split route component for '/signup' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/auth/ForgotPasswordPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads ForgotPasswordPage",
+      "detail": "Code-split route component for '/forgot-password' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/auth/ResetPasswordPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads ResetPasswordPage",
+      "detail": "Code-split route component for '/reset-password' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/onboarding/OnboardingPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads OnboardingPage",
+      "detail": "Code-split route component for '/onboarding' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/onboarding/CreateTrustWizard.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads CreateTrustWizard",
+      "detail": "Code-split route component for '/create-trust' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/onboarding/JoinTrustPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads JoinTrustPage",
+      "detail": "Code-split route component for '/join' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/onboarding/TrustSearchPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads TrustSearchPage",
+      "detail": "Code-split route component for '/search' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/dashboard/TrustDashboard.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads TrustDashboard",
+      "detail": "Code-split route component for '/app' and '/app/dashboard' paths via DashboardLoader"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/donations/DonationsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads DonationsPage",
+      "detail": "Code-split route component for '/app/donations' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/donations/CreateDonationPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads CreateDonationPage",
+      "detail": "Code-split route component for '/app/donations/new' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/donations/DonationDetailPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads DonationDetailPage",
+      "detail": "Code-split route component for '/app/donations/:donationId' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/receipts/ReceiptsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads ReceiptsPage",
+      "detail": "Code-split route component for '/app/receipts' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/receipts/ReceiptPreviewPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads ReceiptPreviewPage",
+      "detail": "Code-split route component for '/app/receipts/:receiptId' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/receipts/ReceiptVerifyPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads ReceiptVerifyPage",
+      "detail": "Code-split route component for '/receipt/verify/:token' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/templates/TemplatesPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads TemplatesPage",
+      "detail": "Code-split route component for '/app/templates' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/templates/TemplateEditorPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads TemplateEditorPage",
+      "detail": "Code-split route component for '/app/templates/new' and '/app/templates/:templateId/edit'"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/members/MembersPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads MembersPage",
+      "detail": "Code-split route component for '/app/members' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/members/CommitteePage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads CommitteePage",
+      "detail": "Code-split route component for '/app/committee' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/announcements/AnnouncementsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads AnnouncementsPage",
+      "detail": "Code-split route component for '/app/announcements' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/announcements/CreateAnnouncementPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads CreateAnnouncementPage",
+      "detail": "Code-split route component for '/app/announcements/new' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/campaigns/CampaignsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads CampaignsPage",
+      "detail": "Code-split route component for '/app/campaigns' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/reports/ReportsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads ReportsPage",
+      "detail": "Code-split route component for '/app/reports' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/notifications/NotificationsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads NotificationsPage",
+      "detail": "Code-split route component for '/app/notifications' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/settings/TrustSettingsPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads TrustSettingsPage",
+      "detail": "Code-split route component for '/app/settings' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/audit/AuditLogPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads AuditLogPage",
+      "detail": "Code-split route component for '/app/audit' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/trust/TrustPublicProfile.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads TrustPublicProfile",
+      "detail": "Code-split route component for '/trust/:trustId' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/donate/DonatePage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads DonatePage",
+      "detail": "Code-split route component for '/donate' and '/donate/:slug' paths"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/donate/MemberDonatePage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads MemberDonatePage",
+      "detail": "Code-split route component for '/app/donate' path (member internal donate)"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/features/account/AccountPage.tsx",
+      "kind": "lazy-imports",
+      "label": "lazy-loads AccountPage",
+      "detail": "Code-split route component for '/account' path"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "target": "file::apps/web/src/components/layout.tsx",
+      "kind": "uses",
+      "label": "uses AppLayout indirectly",
+      "detail": "Router defines AppShell wrapper; AppLayout from layout.tsx is used by individual page components"
+    },
+    {
+      "source": "file::apps/web/src/app/router.tsx",
+      "kind": "depends-on",
+      "label": "depends on @pavati/shared",
+      "target": "file::packages/shared/src/index.ts",
+      "detail": "Imports permissionsForRole, Permission type, and TrustRole type for RBAC guard logic"
+    },
+    {
+      "source": "file::apps/web/src/main.tsx",
+      "kind": "depends-on",
+      "label": "depends on lib/api",
+      "target": "file::apps/web/src/lib/api.ts",
+      "detail": "Imports api HTTP client for /auth/me session restore call"
+    }
+  ]
+}

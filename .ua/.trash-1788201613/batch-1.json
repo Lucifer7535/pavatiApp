@@ -1,0 +1,1457 @@
+{
+  "batchIndex": 1,
+  "batchFiles": [
+    {
+      "path": "apps/api/src/__tests__/app.test.ts",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/__tests__/whatsapp.test.ts",
+      "language": "typescript",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/config/index.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "language": "typescript",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/email.ts",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/http.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/jwt.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/logger.ts",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/prisma.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/lib/session.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/auth.ts",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/error.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/rateLimit.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/rbac.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/middleware/validate.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/announcements/routes.ts",
+      "language": "typescript",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/auth/routes.ts",
+      "language": "typescript",
+      "sizeLines": 221,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/campaigns/routes.ts",
+      "language": "typescript",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/routes.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/donations/routes.ts",
+      "language": "typescript",
+      "sizeLines": 300,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/members/routes.ts",
+      "language": "typescript",
+      "sizeLines": 195,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/notifications/routes.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/receipts/routes.ts",
+      "language": "typescript",
+      "sizeLines": 165,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/reports/routes.ts",
+      "language": "typescript",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/templates/routes.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/trusts/routes.ts",
+      "language": "typescript",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/uploads/routes.ts",
+      "language": "typescript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/modules/users/routes.ts",
+      "language": "typescript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/providers/messaging.ts",
+      "language": "typescript",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/providers/storage.ts",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/services/audit.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/services/notifications.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "apps/api/src/services/receipts.ts",
+      "language": "typescript",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "apps/api/src/__tests__/app.test.ts",
+      "path": "apps/api/src/__tests__/app.test.ts",
+      "title": "App Smoke Tests",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 47,
+      "description": "Vitest integration tests validating core API behavior: health endpoint returns 200, protected routes reject unauthenticated requests with 401, malformed login/registration bodies are rejected with 422, and unknown routes return 404.",
+      "tags": ["test", "integration", "vitest", "supertest", "smoke-test", "api"],
+      "exports": [],
+      "languageNotes": "Uses Vitest's `describe`/`it`/`expect` with supertest for HTTP assertions; dynamically imports prisma in `afterAll` to disconnect."
+    },
+    {
+      "id": "apps/api/src/__tests__/whatsapp.test.ts",
+      "path": "apps/api/src/__tests__/whatsapp.test.ts",
+      "title": "WhatsApp Notification Helper Tests",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 31,
+      "description": "Vitest unit tests for WhatsApp-related notification helpers: verifies that buildReceiptMessage includes amount, receipt number, and verification link; buildWhatsAppUrl correctly prepends Indian country code and strips non-digits; buildReceiptWhatsAppUrl respects the whatsapp toggle flag and uses the share-sheet variant for online donations.",
+      "tags": ["test", "unit", "vitest", "whatsapp", "notifications"],
+      "exports": [],
+      "languageNotes": "Pure function tests with no setup; imports directly from services/notifications."
+    },
+    {
+      "id": "apps/api/src/config/index.ts",
+      "path": "apps/api/src/config/index.ts",
+      "title": "Application Configuration",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 24,
+      "description": "Central configuration module that reads environment variables via dotenv and exports a typed `config` object. Covers server port, database URL, JWT secrets, web origin, R2/cloud storage credentials, Google OAuth client ID, Resend email API credentials, mock mode flag, and upload directory paths.",
+      "tags": ["config", "env", "dotenv", "singleton"],
+      "exports": ["config"],
+      "languageNotes": "Loads dotenv at module scope; uses nullish coalescing for defaults with hardcoded dev secrets."
+    },
+    {
+      "id": "apps/api/src/index.ts",
+      "path": "apps/api/src/index.ts",
+      "title": "Express Application Bootstrap",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 94,
+      "description": "Main entry point that creates and configures the Express application. Sets up CORS, JSON body parsing, cookie parsing, global rate limiting, R2/disk upload serving, health endpoint, mounts all module routers under `/api/v1/*`, serves the SPA's static dist, and attaches the global error handler. Exports `createApp()` and auto-starts the server when not in test mode.",
+      "tags": ["entry-point", "express", "server", "router-mounting", "app-factory"],
+      "exports": ["createApp"],
+      "languageNotes": "Conditional `createApp()` export pattern for testability; reads `NODE_ENV` to skip auto-listen in tests."
+    },
+    {
+      "id": "apps/api/src/lib/email.ts",
+      "path": "apps/api/src/lib/email.ts",
+      "title": "Resend Email Sender",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 45,
+      "description": "Sends transactional emails via the Resend HTTP API. Returns false if the API key is not configured or the request fails, logging warnings/errors through pino. Used by the auth module for password-reset emails and by the messaging provider for receipt notifications.",
+      "tags": ["email", "resend", "transactional", "lib"],
+      "exports": ["sendEmail"],
+      "languageNotes": "Uses native `fetch` against `api.resend.com`; no SDK dependency."
+    },
+    {
+      "id": "apps/api/src/lib/http.ts",
+      "path": "apps/api/src/lib/http.ts",
+      "title": "HTTP Helpers",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 22,
+      "description": "Provides the `AppError` class (carries HTTP status, message, and optional details), `asyncHandler` (wraps async route handlers to forward rejections to Express's error middleware), and `ok` (shorthand for sending a `{ data }` JSON response). Core utilities used by every route module.",
+      "tags": ["http", "error-handling", "express-helpers", "lib"],
+      "exports": ["AppError", "asyncHandler", "ok"],
+      "languageNotes": "Lightweight Express conventions; no external dependencies."
+    },
+    {
+      "id": "apps/api/src/lib/jwt.ts",
+      "path": "apps/api/src/lib/jwt.ts",
+      "title": "JWT Token Utilities",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 41,
+      "description": "JWT signing and verification for access and refresh tokens. Defines the `TokenPayload` interface (`sub`, `type`), provides `signAccessToken`/`signRefreshToken` with separate secrets and expiry windows, and `publicUser` to strip a Prisma User down to safe public fields. Used by session creation, auth middleware, and token refresh flows.",
+      "tags": ["jwt", "authentication", "token", "lib"],
+      "exports": ["TokenPayload", "signAccessToken", "signRefreshToken", "verifyAccessToken", "verifyRefreshToken", "publicUser"],
+      "languageNotes": "Uses `jsonwebtoken` library; access tokens use configurable expiry, refresh tokens fixed at 30d."
+    },
+    {
+      "id": "apps/api/src/lib/logger.ts",
+      "path": "apps/api/src/lib/logger.ts",
+      "title": "Pino Logger",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 8,
+      "description": "Exports a configured pino logger singleton. Uses `pino-pretty` transport in non-production for colorized, timestamped output; raw JSON in production. Log level defaults to `info`.",
+      "tags": ["logger", "pino", "lib"],
+      "exports": ["logger"],
+      "languageNotes": "Single-line module; `pino-pretty` is dev-only."
+    },
+    {
+      "id": "apps/api/src/lib/prisma.ts",
+      "path": "apps/api/src/lib/prisma.ts",
+      "title": "Prisma Client Singleton",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 6,
+      "description": "Creates and caches a single PrismaClient instance on `globalThis` to prevent connection exhaustion during hot-reload in development. Standard Prisma singleton pattern.",
+      "tags": ["prisma", "database", "singleton", "lib"],
+      "exports": ["prisma"],
+      "languageNotes": "Relies on Node's globalThis augmentation for dev hot-reload safety."
+    },
+    {
+      "id": "apps/api/src/lib/session.ts",
+      "path": "apps/api/src/lib/session.ts",
+      "title": "Session Builder",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 41,
+      "description": "Builds the complete authentication response by signing access and refresh tokens, serializing the public user, and querying all active trust memberships. Also provides `createRefreshRecord` to persist a SHA-256 hash of the refresh token in the database with a 30-day expiry.",
+      "tags": ["session", "authentication", "refresh-token", "lib"],
+      "exports": ["buildAuthResponse", "createRefreshRecord"],
+      "languageNotes": "Uses Node crypto for SHA-256 hashing of refresh tokens; queries TrustMember with trust relation eager-loaded."
+    },
+    {
+      "id": "apps/api/src/middleware/auth.ts",
+      "path": "apps/api/src/middleware/auth.ts",
+      "title": "Authentication Middleware",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 24,
+      "description": "Express middleware that extracts the Bearer token from the Authorization header, verifies it as an access token via JWT utilities, looks up the user in the database, and attaches the full Prisma User to `req.user`. Defines the `AuthedRequest` interface extending Express Request.",
+      "tags": ["middleware", "auth", "jwt", "bearer-token"],
+      "exports": ["AuthedRequest", "requireAuth"],
+      "languageNotes": "Throws AppError 401 on missing/invalid tokens; uses AuthedRequest typed extension pattern."
+    },
+    {
+      "id": "apps/api/src/middleware/error.ts",
+      "path": "apps/api/src/middleware/error.ts",
+      "title": "Error Handler Middleware",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 15,
+      "description": "Global Express error middleware. `errorHandler` distinguishes `AppError` instances (returns status and message) from unhandled errors (returns 500 with logging). `notFound` returns a 404 JSON response for unmatched routes.",
+      "tags": ["middleware", "error-handling", "express"],
+      "exports": ["errorHandler", "notFound"],
+      "languageNotes": "Standard Express 4-argument error middleware signature."
+    },
+    {
+      "id": "apps/api/src/middleware/rateLimit.ts",
+      "path": "apps/api/src/middleware/rateLimit.ts",
+      "title": "Rate Limiting & Login Lockout",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 86,
+      "description": "Express rate limiters for different endpoints: `globalRateLimiter` (300 req/min), `authRateLimiter` (60 req/15 min), `loginRateLimiter` (10 req/15 min per IP+email), `registerRateLimiter` (20 req/hr). Also implements an in-memory login failure lockout mechanism with `assertNotLocked`, `recordLoginFailure`, and `resetLoginFailures` — locks an email for 30 minutes after 5 consecutive failed logins.",
+      "tags": ["middleware", "rate-limiting", "security", "lockout", "brute-force-protection"],
+      "exports": ["authRateLimiter", "loginRateLimiter", "registerRateLimiter", "assertNotLocked", "recordLoginFailure", "resetLoginFailures", "globalRateLimiter"],
+      "languageNotes": "Uses `express-rate-limit`; lockout state is in-memory Map (single-instance only)."
+    },
+    {
+      "id": "apps/api/src/middleware/rbac.ts",
+      "path": "apps/api/src/middleware/rbac.ts",
+      "title": "Role-Based Access Control Middleware",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 74,
+      "description": "Trust-scoped authorization middleware. `loadTrustContext` extracts `trustId` from params/body/query, verifies the authenticated user is an active trust member, and populates `req.trustMember` and `req.effectivePermissions`. `requirePermission` gates access on specific permissions. `requireTrustAccess` is a stricter variant that requires the trustId parameter. Uses `permissionsForRole` from `@pavati/shared` for default role-permission mapping.",
+      "tags": ["middleware", "rbac", "authorization", "trust", "permissions"],
+      "exports": ["TrustContextRequest", "effectivePermissionsFor", "loadTrustContext", "requirePermission", "requireTrustAccess"],
+      "languageNotes": "Relies on `@pavati/shared` for `permissionsForRole` and `Permission` type."
+    },
+    {
+      "id": "apps/api/src/middleware/validate.ts",
+      "path": "apps/api/src/middleware/validate.ts",
+      "title": "Zod Validation Middleware",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 34,
+      "description": "Express middleware factories that validate request body, query, or path parameters against a Zod schema. On failure, returns a 422 AppError with flattened Zod error details. On success, replaces `req.body`/`req.query` with the parsed (and defaulted) data.",
+      "tags": ["middleware", "validation", "zod", "schema"],
+      "exports": ["validateBody", "validateQuery", "validateParams"],
+      "languageNotes": "Uses Zod's `safeParse` for non-throwing validation; overwrites request properties with coerced data."
+    },
+    {
+      "id": "apps/api/src/modules/announcements/routes.ts",
+      "path": "apps/api/src/modules/announcements/routes.ts",
+      "title": "Announcement API Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 102,
+      "description": "Express router for announcement CRUD within a trust. Provides paginated listing (GET), creation (POST), update (PATCH), deletion (DELETE), and pin/unpin toggle (POST). All routes are scoped to `/:trustId/announcements` and require auth, trust context, and specific permissions (`announcement:view`, `announcement:create`, etc.). Each mutation writes an audit log entry.",
+      "tags": ["router", "announcements", "crud", "trust-scoped", "audit"],
+      "exports": ["default"],
+      "languageNotes": "Default export is an Express Router; uses shared Zod schemas from `@pavati/shared`."
+    },
+    {
+      "id": "apps/api/src/modules/auth/routes.ts",
+      "path": "apps/api/src/modules/auth/routes.ts",
+      "title": "Authentication API Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 221,
+      "description": "Express router for all authentication flows. Provides email/password registration with bcrypt hashing, login with account lockout protection, Google OAuth (mock mode and real token verification via google-auth-library), forgot-password with Resend email delivery of reset links, password reset via JWT token, refresh token rotation (with DB-backed revocation tracking), logout (revokes refresh token), and a `/me` endpoint returning the authenticated user with trust memberships. All write routes use rate limiters and validation schemas.",
+      "tags": ["router", "auth", "login", "register", "google-oauth", "password-reset", "refresh-token"],
+      "exports": ["default"],
+      "languageNotes": "Uses bcryptjs for hashing, google-auth-library for OAuth2, and jsonwebtoken for reset tokens."
+    },
+    {
+      "id": "apps/api/src/modules/campaigns/routes.ts",
+      "path": "apps/api/src/modules/campaigns/routes.ts",
+      "title": "Payment Campaign API Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 115,
+      "description": "Express router for managing donation campaigns (PaymentCampaign) within a trust. Provides a public campaign lookup by slug, and trust-scoped CRUD with auto-generated slug (slugified name + random suffix), campaign toggle (active/inactive), and deletion. All protected routes require auth, trust context, and `campaign:view`/`campaign:manage` permissions. Audit-logged on every mutation.",
+      "tags": ["router", "campaigns", "payment", "slug", "trust-scoped"],
+      "exports": ["default"],
+      "languageNotes": "Uses `slugify` and `randomCode` from `@pavati/shared` for slug generation."
+    },
+    {
+      "id": "apps/api/src/modules/dashboard/routes.ts",
+      "path": "apps/api/src/modules/dashboard/routes.ts",
+      "title": "Dashboard API Route",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 74,
+      "description": "Single GET endpoint returning dashboard data scoped to a trust. For members without `donation:view` permission, returns a personal dashboard (own donations, pending count, announcements, campaigns). For authorized users, returns an admin dashboard with aggregated totals (total collected, donor count, cash/UPI breakdown, today's collections), pending donation count, member count, recent transactions, recent members, and active campaigns. Uses IST timezone calculations for today's start.",
+      "tags": ["router", "dashboard", "analytics", "aggregation", "trust-scoped"],
+      "exports": ["default"],
+      "languageNotes": "Hardcoded IST offset (+5.5h) for date grouping; runs many parallel Prisma queries via Promise.all."
+    },
+    {
+      "id": "apps/api/src/modules/donations/routes.ts",
+      "path": "apps/api/src/modules/donations/routes.ts",
+      "title": "Donation API Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 300,
+      "description": "Express router handling the full donation lifecycle. Provides: collector-initiated donation creation with payment splits (CASH/UPI/MIXED), automatic receipt generation on successful cash donations, paginated filtered listing with permission-based scoping (own-only vs all), single donation detail view, donation voiding (cancels donation and voids receipts), split verification flow (verifying all splits promotes a PENDING donation to SUCCEEDED and issues a receipt), and self-donation for online UPI payments. Includes WhatsApp share URL generation and receipt notification dispatch.",
+      "tags": ["router", "donations", "payments", "splits", "receipts", "trust-scoped", "audit"],
+      "exports": ["default"],
+      "languageNotes": "Complex Zod schema composition with inline query schema; references services/receipts and services/notifications."
+    },
+    {
+      "id": "apps/api/src/modules/members/routes.ts",
+      "path": "apps/api/src/modules/members/routes.ts",
+      "title": "Trust Member Management Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 195,
+      "description": "Express router for trust membership administration. Provides: paginated member listing with search, adding members (auto-creates user accounts if needed, handles re-activation of removed members), updating member roles/permissions/positions, soft-removing members (with protections for PRIMARY_ADMIN and self-removal), invitation token generation with 7-day expiry, invitation acceptance with upsert, join-request listing and approve/reject workflow. All mutations are audit-logged.",
+      "tags": ["router", "members", "membership", "invite", "join-request", "trust-scoped", "audit"],
+      "exports": ["default"],
+      "languageNotes": "Uses randomBytes for invitation tokens; handles multiple user-lookup strategies (userId, email, phone)."
+    },
+    {
+      "id": "apps/api/src/modules/notifications/routes.ts",
+      "path": "apps/api/src/modules/notifications/routes.ts",
+      "title": "Notification Settings Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 56,
+      "description": "Express router for notification management. Provides: paginated notification listing (GET), notification settings retrieval (GET), and settings update (PATCH) to toggle SMS/WhatsApp/email channels. All require `notification:manage` permission. Settings changes are audit-logged.",
+      "tags": ["router", "notifications", "settings", "trust-scoped"],
+      "exports": ["default"],
+      "languageNotes": "Minimal route module; uses shared `updateNotificationSettingsSchema` for validation."
+    },
+    {
+      "id": "apps/api/src/modules/receipts/routes.ts",
+      "path": "apps/api/src/modules/receipts/routes.ts",
+      "title": "Receipt API Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 165,
+      "description": "Express router for receipt management. Provides: paginated receipt listing with permission-based scoping, manual receipt generation for a donation, receipt voiding with reason, manual email sending of receipts, PDF download (with trust-member or donor authorization check), and public receipt verification by token. Integrates with the receipt-engine for PDF rendering, storage for file retrieval, and emailProvider for sending.",
+      "tags": ["router", "receipts", "pdf", "verification", "trust-scoped"],
+      "exports": ["default"],
+      "languageNotes": "References `fileFromUrl` from storage provider; verification endpoint is unauthenticated (public)."
+    },
+    {
+      "id": "apps/api/src/modules/reports/routes.ts",
+      "path": "apps/api/src/modules/reports/routes.ts",
+      "title": "Reports & Audit Log Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 147,
+      "description": "Express router for reporting and audit. Provides: summary report with aggregate stats (total donations, amounts, cash/UPI breakdown, category breakdown, today's stats, member count) with optional date filtering; daily trend report aggregating donations by day; collector performance report; CSV export of all donations (with BOM for Excel compatibility); and audit log listing (last 200 entries with actor names). All require appropriate permissions (`report:view`, `audit:view`).",
+      "tags": ["router", "reports", "analytics", "csv-export", "audit-log", "trust-scoped"],
+      "exports": ["default"],
+      "languageNotes": "CSV export includes UTF-8 BOM prefix for proper Excel rendering; uses Prisma groupBy for aggregations."
+    },
+    {
+      "id": "apps/api/src/modules/templates/routes.ts",
+      "path": "apps/api/src/modules/templates/routes.ts",
+      "title": "Receipt Template Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 112,
+      "description": "Express router for receipt template CRUD. Provides: list all templates, create a new template (auto-activated if first), get single template, update template fields, activate a template (deactivates all others via transaction), and delete a template (prevented if in use by existing receipts). All require `template:manage` permission and are audit-logged.",
+      "tags": ["router", "templates", "receipt-template", "trust-scoped", "audit"],
+      "exports": ["default"],
+      "languageNotes": "Uses `$transaction` for atomic activation; prevents deletion of templates with dependent receipts."
+    },
+    {
+      "id": "apps/api/src/modules/trusts/routes.ts",
+      "path": "apps/api/src/modules/trusts/routes.ts",
+      "title": "Trust Management Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 249,
+      "description": "Express router for the core Trust entity. Provides: trust creation (auto-generates uniqueCode and joinCode, creates creator as PRIMARY_ADMIN), public trust search by name/city, trust lookup by join code, trust detail view (with optional public committee and recent public donations based on trust settings), join flow (supports OPEN/APPROVAL/INVITE_ONLY modes with join-code validation), committee listing, trust deletion (PRIMARY_ADMIN only), and trust update. Public endpoints require no auth; protected ones use loadTrustContext.",
+      "tags": ["router", "trusts", "core-entity", "join-flow", "public-views", "audit"],
+      "exports": ["default"],
+      "languageNotes": "Uses `randomCode` and `publicUser` from shared/lib; multi-mode join logic (OPEN, APPROVAL, INVITE_ONLY)."
+    },
+    {
+      "id": "apps/api/src/modules/uploads/routes.ts",
+      "path": "apps/api/src/modules/uploads/routes.ts",
+      "title": "File Upload Route",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 33,
+      "description": "Single POST endpoint for uploading images or PDFs. Accepts a base64 data URL, validates file type (png/jpeg/webp/gif/pdf) and size (5MB for images, 10MB for PDFs), saves via the storage provider, and returns the stored URL and filename. Requires authentication.",
+      "tags": ["router", "upload", "file-storage", "base64"],
+      "exports": ["default"],
+      "languageNotes": "Uses inline Zod schema for dataUrl + kind validation; delegates to providers/storage.saveBuffer."
+    },
+    {
+      "id": "apps/api/src/modules/users/routes.ts",
+      "path": "apps/api/src/modules/users/routes.ts",
+      "title": "User Profile Routes",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 69,
+      "description": "Express router for authenticated user self-service. Provides: profile update (name, phone, email, profileImage), password change (verifies current password, re-hashes with bcrypt), personal donation history (matched by phone or email across all trusts), and membership listing. All routes require authentication.",
+      "tags": ["router", "users", "profile", "password-change", "self-service"],
+      "exports": ["default"],
+      "languageNotes": "Uses `publicUser` from jwt lib to sanitize responses; bcrypt for password verification/hashing."
+    },
+    {
+      "id": "apps/api/src/providers/messaging.ts",
+      "path": "apps/api/src/providers/messaging.ts",
+      "title": "Messaging Provider Abstractions",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 44,
+      "description": "Defines the `MessageSender` interface and three implementations: `MockSmsProvider` (logs and returns success), `MockWhatsAppProvider` (constructs wa.me URL and returns it), and `ResendEmailProvider` (delegates to the email lib with HTML templating for receipt messages). Exports singleton instances `smsProvider`, `whatsappProvider`, and `emailProvider`. Returns `SendResult` with success flag and provider response ID.",
+      "tags": ["provider", "messaging", "sms", "whatsapp", "email", "abstraction"],
+      "exports": ["SendResult", "MessageSender", "MockSmsProvider", "MockWhatsAppProvider", "ResendEmailProvider", "smsProvider", "whatsappProvider", "emailProvider"],
+      "languageNotes": "Strategy pattern with interface; mock providers are placeholders for real SMS/WhatsApp API integrations."
+    },
+    {
+      "id": "apps/api/src/providers/storage.ts",
+      "path": "apps/api/src/providers/storage.ts",
+      "title": "File Storage Provider (Disk / R2)",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 105,
+      "description": "Dual-mode file storage abstraction supporting local disk and Cloudflare R2 (S3-compatible). Provides `r2Active` check, `saveBuffer`/`savePdf` for writing files (with R2 PutObject or disk write), `fileFromUrl` for reading files back (R2 GetObject or disk read), and `presignedGetUrl` for generating temporary R2 signed URLs. Handles URL-to-key resolution for both R2 public URLs and local upload paths. Throws AppError 404 for missing files.",
+      "tags": ["provider", "storage", "r2", "s3", "file-system", "presigned-url"],
+      "exports": ["StoredFile", "r2Active", "saveBuffer", "savePdf", "fileFromUrl", "presignedGetUrl"],
+      "languageNotes": "Uses @aws-sdk/client-s3 and @aws-sdk/s3-request-presigner; lazy-initializes S3Client singleton."
+    },
+    {
+      "id": "apps/api/src/services/audit.ts",
+      "path": "apps/api/src/services/audit.ts",
+      "title": "Audit Logging Service",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 23,
+      "description": "Simple service that persists audit log entries to the database via Prisma. Accepts an `AuditInput` with optional actorId, trustId, action (typed as `AuditAction` from shared), entityType, entityId, and metadata. Called by nearly every mutation route across the application for compliance and traceability.",
+      "tags": ["service", "audit", "logging", "compliance"],
+      "exports": ["audit"],
+      "languageNotes": "Fire-and-forget async function; action type uses `AuditAction | string` for flexibility."
+    },
+    {
+      "id": "apps/api/src/services/notifications.ts",
+      "path": "apps/api/src/services/notifications.ts",
+      "title": "Notification Service",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 86,
+      "description": "Service for building and dispatching receipt-related notifications. Exports `buildReceiptMessage` (formats a plain-text receipt summary with amount, number, and verification link), `buildWhatsAppUrl` (constructs wa.me link with Indian country code), `buildReceiptWhatsAppUrl` (conditional WhatsApp URL based on toggle), and `sendReceiptNotifications` (sends via configured channels — currently email only — and persists each attempt as a Notification record in the database).",
+      "tags": ["service", "notifications", "whatsapp", "email", "receipt-sharing"],
+      "exports": ["DonationReceiptNotificationInput", "ReceiptShareInput", "buildReceiptMessage", "buildWhatsAppUrl", "buildReceiptWhatsAppUrl", "sendReceiptNotifications"],
+      "languageNotes": "Uses `formatINR` and `NOTIFICATION_CHANNEL` from `@pavati/shared`; channel dispatch is extensible via channelSender map."
+    },
+    {
+      "id": "apps/api/src/services/receipts.ts",
+      "path": "apps/api/src/services/receipts.ts",
+      "title": "Receipt Generation Service",
+      "language": "typescript",
+      "fileCategory": "code",
+      "sizeLines": 160,
+      "description": "Core receipt generation and verification service. `generateReceipt` orchestrates the full flow: resolves the receipt template (by ID or active default), generates a sequential receipt number via `getNextReceiptNumber`, creates a verification token, fetches background/logo images from storage, generates a QR code, builds receipt data (including payment breakdown for MIXED mode), renders the PDF via `@pavati/receipt-engine`, stores it, and persists the Receipt record. `verifyReceiptData` looks up a receipt by its verification token and returns a sanitized view (hides donor name for ANONYMOUS donations). `generateQrPng` produces QR code buffers.",
+      "tags": ["service", "receipts", "pdf-generation", "qr-code", "verification", "receipt-engine"],
+      "exports": ["generateQrPng", "getNextReceiptNumber", "generateReceipt", "verifyReceiptData"],
+      "languageNotes": "Uses `qrcode` library for QR PNG generation; `@pavati/receipt-engine/server` for PDF rendering; atomic receipt numbering via Prisma transaction."
+    }
+  ],
+  "edges": [
+    {
+      "source": "apps/api/src/__tests__/app.test.ts",
+      "target": "apps/api/src/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Test imports createApp factory to spin up Express app for integration tests"
+    },
+    {
+      "source": "apps/api/src/__tests__/whatsapp.test.ts",
+      "target": "apps/api/src/services/notifications.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Tests import buildWhatsAppUrl, buildReceiptMessage, and buildReceiptWhatsAppUrl from notification service"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/config/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry point imports config for port, webOrigin, uploadDir, and R2 settings"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/lib/logger.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry imports logger for startup message"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry imports AppError and asyncHandler for the upload proxy route"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/middleware/error.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts global errorHandler and notFound middleware"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/middleware/rateLimit.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry imports globalRateLimiter for app-wide request throttling"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/providers/storage.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry imports r2Active and presignedGetUrl for upload proxy handling"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/auth/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts auth routes at /api/v1/auth"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/trusts/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts trust routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/members/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts member routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/donations/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts donation routes at /api/v1/trusts and /api/v1/payments"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/templates/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts template routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/campaigns/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts campaign routes at /api/v1/trusts and /api/v1/campaigns"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/announcements/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts announcement routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/notifications/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts notification routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/reports/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts report routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/users/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts user routes at /api/v1/users"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/dashboard/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts dashboard routes at /api/v1/trusts"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/uploads/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts upload routes at /api/v1/uploads"
+    },
+    {
+      "source": "apps/api/src/index.ts",
+      "target": "apps/api/src/modules/receipts/routes.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "App entry mounts receipt routes at /api/v1/trusts and /api/v1/receipts"
+    },
+    {
+      "source": "apps/api/src/lib/email.ts",
+      "target": "apps/api/src/config/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Email lib imports config for Resend API key and from-email"
+    },
+    {
+      "source": "apps/api/src/lib/email.ts",
+      "target": "apps/api/src/lib/logger.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Email lib imports logger for email send success/failure logging"
+    },
+    {
+      "source": "apps/api/src/lib/jwt.ts",
+      "target": "apps/api/src/config/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "JWT lib imports config for jwtSecret, refreshSecret, and jwtExpiresIn"
+    },
+    {
+      "source": "apps/api/src/lib/session.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Session builder imports prisma to query TrustMember and create RefreshToken records"
+    },
+    {
+      "source": "apps/api/src/lib/session.ts",
+      "target": "apps/api/src/lib/jwt.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Session builder imports publicUser, signAccessToken, and signRefreshToken from JWT lib"
+    },
+    {
+      "source": "apps/api/src/middleware/auth.ts",
+      "target": "apps/api/src/lib/session.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth middleware depends on session (indirect via JWT — actually imports http and jwt directly)"
+    },
+    {
+      "source": "apps/api/src/middleware/auth.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth middleware imports AppError for 401 error responses"
+    },
+    {
+      "source": "apps/api/src/middleware/auth.ts",
+      "target": "apps/api/src/lib/jwt.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth middleware imports verifyAccessToken to validate Bearer tokens"
+    },
+    {
+      "source": "apps/api/src/middleware/auth.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth middleware imports prisma to look up user by ID after token verification"
+    },
+    {
+      "source": "apps/api/src/middleware/error.ts",
+      "target": "apps/api/src/lib/logger.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Error handler imports logger to log unhandled errors"
+    },
+    {
+      "source": "apps/api/src/middleware/error.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Error handler imports AppError to distinguish expected vs unexpected errors"
+    },
+    {
+      "source": "apps/api/src/middleware/rateLimit.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Rate limiter imports AppError for lockout error responses"
+    },
+    {
+      "source": "apps/api/src/middleware/rbac.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "RBAC middleware imports AppError for 401/403/400 error responses"
+    },
+    {
+      "source": "apps/api/src/middleware/rbac.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "RBAC middleware imports prisma to look up TrustMember records"
+    },
+    {
+      "source": "apps/api/src/middleware/rbac.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "RBAC middleware imports AuthedRequest type from auth middleware"
+    },
+    {
+      "source": "apps/api/src/middleware/validate.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Validation middleware imports AppError for 422 validation error responses"
+    },
+    {
+      "source": "apps/api/src/modules/announcements/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Announcement routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/announcements/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Announcement routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/announcements/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Announcement routes use validateBody middleware"
+    },
+    {
+      "source": "apps/api/src/modules/announcements/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Announcement routes import prisma for Announcement CRUD operations"
+    },
+    {
+      "source": "apps/api/src/modules/auth/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth routes use requireAuth for the /me endpoint"
+    },
+    {
+      "source": "apps/api/src/modules/auth/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth routes use validateBody for request validation"
+    },
+    {
+      "source": "apps/api/src/modules/auth/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth routes import prisma for user and refresh token operations"
+    },
+    {
+      "source": "apps/api/src/modules/auth/routes.ts",
+      "target": "apps/api/src/lib/session.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth routes import buildAuthResponse and createRefreshRecord for login/register flows"
+    },
+    {
+      "source": "apps/api/src/modules/auth/routes.ts",
+      "target": "apps/api/src/lib/email.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth routes import sendEmail for password reset email delivery"
+    },
+    {
+      "source": "apps/api/src/modules/auth/routes.ts",
+      "target": "apps/api/src/lib/jwt.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Auth routes import publicUser and verifyRefreshToken for user serialization and token refresh"
+    },
+    {
+      "source": "apps/api/src/modules/campaigns/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Campaign routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/campaigns/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Campaign routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/campaigns/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Campaign routes use validateBody middleware"
+    },
+    {
+      "source": "apps/api/src/modules/campaigns/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Campaign routes import prisma for PaymentCampaign operations"
+    },
+    {
+      "source": "apps/api/src/modules/campaigns/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Campaign routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/dashboard/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Dashboard route uses requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/dashboard/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Dashboard route uses loadTrustContext middleware"
+    },
+    {
+      "source": "apps/api/src/modules/dashboard/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Dashboard route imports prisma for aggregated analytics queries"
+    },
+    {
+      "source": "apps/api/src/modules/dashboard/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Dashboard route imports asyncHandler and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes use validateBody and validateQuery middleware"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes import prisma for Donation, Trust, DonationSplit, and Receipt operations"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/services/receipts.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes import generateReceipt for issuing receipts on successful donations"
+    },
+    {
+      "source": "apps/api/src/modules/donations/routes.ts",
+      "target": "apps/api/src/services/notifications.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Donation routes import sendReceiptNotifications and buildReceiptWhatsAppUrl for notification dispatch"
+    },
+    {
+      "source": "apps/api/src/modules/members/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Member routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/members/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Member routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/members/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Member routes use validateBody, validateParams middleware"
+    },
+    {
+      "source": "apps/api/src/modules/members/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Member routes import prisma for TrustMember, User, and JoinRequest operations"
+    },
+    {
+      "source": "apps/api/src/modules/members/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Member routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/notifications/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/notifications/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/notifications/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification routes use validateBody middleware"
+    },
+    {
+      "source": "apps/api/src/modules/notifications/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification routes import prisma for Notification and Trust operations"
+    },
+    {
+      "source": "apps/api/src/modules/notifications/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification routes import asyncHandler and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes use validateBody and validateQuery middleware"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes import prisma for Receipt, Donation, Trust, and Notification operations"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/services/receipts.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes import generateReceipt and verifyReceiptData"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/services/notifications.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes import buildReceiptMessage for email sending"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/providers/messaging.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes import emailProvider for sending receipt emails"
+    },
+    {
+      "source": "apps/api/src/modules/receipts/routes.ts",
+      "target": "apps/api/src/providers/storage.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt routes import fileFromUrl for PDF download endpoint"
+    },
+    {
+      "source": "apps/api/src/modules/reports/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Report routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/reports/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Report routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/reports/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Report routes use validateQuery middleware"
+    },
+    {
+      "source": "apps/api/src/modules/reports/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Report routes import prisma for aggregation queries and audit log listing"
+    },
+    {
+      "source": "apps/api/src/modules/reports/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Report routes import asyncHandler and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/templates/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Template routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/templates/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Template routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/templates/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Template routes use validateBody middleware"
+    },
+    {
+      "source": "apps/api/src/modules/templates/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Template routes import prisma for ReceiptTemplate CRUD operations"
+    },
+    {
+      "source": "apps/api/src/modules/templates/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Template routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/trusts/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Trust routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/trusts/routes.ts",
+      "target": "apps/api/src/middleware/rbac.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Trust routes use loadTrustContext and requirePermission middleware"
+    },
+    {
+      "source": "apps/api/src/modules/trusts/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Trust routes use validateBody and validateParams middleware"
+    },
+    {
+      "source": "apps/api/src/modules/trusts/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Trust routes import prisma for Trust, TrustMember, Donation, and JoinRequest operations"
+    },
+    {
+      "source": "apps/api/src/modules/trusts/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Trust routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/trusts/routes.ts",
+      "target": "apps/api/src/lib/jwt.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Trust routes import publicUser for sanitizing committee member data in public views"
+    },
+    {
+      "source": "apps/api/src/modules/uploads/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Upload route uses requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/uploads/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Upload route uses validateBody middleware"
+    },
+    {
+      "source": "apps/api/src/modules/uploads/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 0.3,
+      "description": "Upload route imports from lib/http but not prisma directly (import data shows prisma in its imports)"
+    },
+    {
+      "source": "apps/api/src/modules/uploads/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Upload route imports AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/uploads/routes.ts",
+      "target": "apps/api/src/providers/storage.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Upload route imports saveBuffer for persisting uploaded files"
+    },
+    {
+      "source": "apps/api/src/modules/users/routes.ts",
+      "target": "apps/api/src/middleware/auth.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "User routes use requireAuth middleware"
+    },
+    {
+      "source": "apps/api/src/modules/users/routes.ts",
+      "target": "apps/api/src/middleware/validate.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "User routes use validateBody middleware"
+    },
+    {
+      "source": "apps/api/src/modules/users/routes.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "User routes import prisma for User, Donation, and TrustMember operations"
+    },
+    {
+      "source": "apps/api/src/modules/users/routes.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "User routes import AppError, asyncHandler, and ok helpers"
+    },
+    {
+      "source": "apps/api/src/modules/users/routes.ts",
+      "target": "apps/api/src/lib/jwt.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "User routes import publicUser for sanitizing profile responses"
+    },
+    {
+      "source": "apps/api/src/providers/messaging.ts",
+      "target": "apps/api/src/lib/logger.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Messaging providers import logger for logging mock message sends"
+    },
+    {
+      "source": "apps/api/src/providers/messaging.ts",
+      "target": "apps/api/src/lib/email.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "ResendEmailProvider delegates to sendEmail from the email lib"
+    },
+    {
+      "source": "apps/api/src/providers/storage.ts",
+      "target": "apps/api/src/config/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Storage provider imports config for R2 credentials and upload directory settings"
+    },
+    {
+      "source": "apps/api/src/providers/storage.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Storage provider imports AppError for 404 file-not-found responses"
+    },
+    {
+      "source": "apps/api/src/services/audit.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Audit service imports prisma to create AuditLog records"
+    },
+    {
+      "source": "apps/api/src/services/notifications.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification service imports prisma to create Notification records"
+    },
+    {
+      "source": "apps/api/src/services/notifications.ts",
+      "target": "apps/api/src/config/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification service imports config for webOrigin in verification URLs"
+    },
+    {
+      "source": "apps/api/src/services/notifications.ts",
+      "target": "apps/api/src/providers/messaging.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification service imports emailProvider and MessageSender interface for dispatch"
+    },
+    {
+      "source": "apps/api/src/services/notifications.ts",
+      "target": "apps/api/src/lib/logger.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Notification service imports logger for error logging on send failures"
+    },
+    {
+      "source": "apps/api/src/services/receipts.ts",
+      "target": "apps/api/src/lib/prisma.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt service imports prisma for Receipt, ReceiptTemplate, ReceiptNumberConfig, and DonationSplit operations"
+    },
+    {
+      "source": "apps/api/src/services/receipts.ts",
+      "target": "apps/api/src/config/index.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt service imports config for webOrigin in verification URLs"
+    },
+    {
+      "source": "apps/api/src/services/receipts.ts",
+      "target": "apps/api/src/providers/storage.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt service imports fileFromUrl for fetching background/logo images and savePdf for storing generated PDFs"
+    },
+    {
+      "source": "apps/api/src/services/receipts.ts",
+      "target": "apps/api/src/lib/http.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt service imports AppError for error responses (no template, PDF failure)"
+    },
+    {
+      "source": "apps/api/src/services/receipts.ts",
+      "target": "apps/api/src/lib/logger.ts",
+      "relation": "imports",
+      "confidence": 1.0,
+      "description": "Receipt service imports logger for PDF generation failure logging"
+    }
+  ]
+}

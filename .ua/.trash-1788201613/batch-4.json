@@ -1,0 +1,256 @@
+{
+  "batchFiles": [
+    {
+      "path": "packages/receipt-engine/src/canvas.ts",
+      "language": "typescript",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/fonts.ts",
+      "language": "typescript",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/layout.test.ts",
+      "language": "typescript",
+      "sizeLines": 141,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/layout.ts",
+      "language": "typescript",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/pdf.ts",
+      "language": "typescript",
+      "sizeLines": 176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "packages/receipt-engine/src/types.ts",
+      "language": "typescript",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "packages/receipt-engine/src/canvas.ts",
+      "kind": "file",
+      "label": "canvas.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "summary": "Browser-side receipt renderer using the HTML Canvas 2D API. Renders draw operations (text, images, lines) onto a scaled canvas with cover-fit background support and exports canvas-to-blob conversion.",
+      "tags": [
+        "canvas",
+        "rendering",
+        "browser",
+        "2d-graphics",
+        "image-export"
+      ],
+      "title": "Canvas Receipt Renderer",
+      "languageNotes": "Uses DOM APIs (document.createElement, CanvasRenderingContext2D) making it browser-only; cannot run in Node.",
+      "languageLesson": "Browser-only code is gated behind Canvas 2D API usage; ensure this module is never imported in server/Node contexts."
+    },
+    {
+      "id": "packages/receipt-engine/src/fonts.ts",
+      "kind": "file",
+      "label": "fonts.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "summary": "Font management layer for the receipt engine. Provides a global FONT_CACHE for PDF font measurement, CSS font-string generation from family names, and register/unregister lifecycle for pdf-lib PDFFont instances.",
+      "tags": [
+        "fonts",
+        "pdf",
+        "font-cache",
+        "mukta",
+        "typography"
+      ],
+      "title": "Font Cache & Registration",
+      "languageNotes": "Imports PDFFont type from pdf-lib at type level; the cache uses a generic widthOfTextAtSize interface so both PDF and canvas measurement can share it.",
+      "languageLesson": "The FONT_CACHE is a module-level singleton (Partial<Record>) — clearing it via unregisterPdfFonts is essential to avoid stale font references across renders."
+    },
+    {
+      "id": "packages/receipt-engine/src/layout.test.ts",
+      "kind": "file",
+      "label": "layout.test.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "summary": "Vitest unit tests for the layout engine. Covers pagePx size calculations, normalizeFont weight mapping, buildFieldValues formatting (Indian numbering, payment mode labels, Hindi footer), wrapText line-breaking, and buildDrawOps output for various field configurations.",
+      "tags": [
+        "vitest",
+        "unit-tests",
+        "layout",
+        "text-wrapping",
+        "receipt-fields"
+      ],
+      "title": "Layout Engine Tests",
+      "languageNotes": "Uses vitest's describe/it/expect. Test fixtures use a mock MeasureFn (text.length * size * 0.5) to avoid font dependencies.",
+      "languageLesson": "The test stubs MeasureFn to decouple layout tests from actual font metrics — a common pattern when testing layout engines."
+    },
+    {
+      "id": "packages/receipt-engine/src/layout.ts",
+      "kind": "file",
+      "label": "layout.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "summary": "Core layout engine that transforms receipt template field configurations and data into an ordered array of DrawOp objects. Handles field value formatting (Indian number system, date, payment mode), text wrapping with measurement, signature line rendering, and percentage-to-pixel coordinate mapping with font scaling.",
+      "tags": [
+        "layout",
+        "draw-ops",
+        "text-wrapping",
+        "field-rendering",
+        "coordinate-mapping"
+      ],
+      "title": "Receipt Layout Engine",
+      "languageNotes": "Imports amountInWords, formatDate, PAYMENT_MODE_LABELS from @pavati/shared. Uses FONT_CACHE for PDF-based text measurement with a fallback heuristic.",
+      "languageLesson": "The layout engine is renderer-agnostic — it produces DrawOp[] that both canvas.ts (browser) and pdf.ts (Node) consume, following a separation of concerns pattern."
+    },
+    {
+      "id": "packages/receipt-engine/src/pdf.ts",
+      "kind": "file",
+      "label": "pdf.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "summary": "Node-side PDF receipt renderer using pdf-lib. Embeds Mukta font variants, converts draw operations to PDF drawing commands with px-to-pt coordinate conversion, supports embedded background/logo/QR images (JPG/PNG), and provides a heuristic Devanagari-aware text measurement function.",
+      "tags": [
+        "pdf",
+        "pdf-lib",
+        "fontkit",
+        "server-rendering",
+        "node",
+        "devanagari"
+      ],
+      "title": "PDF Receipt Renderer",
+      "languageNotes": "Uses Node fs/path APIs (import.meta.url, existsSync, readFileSync) — strictly server/Node. Depends on regenerator-runtime for async polyfill. Registers fonts via pdf-lib's fontkit plugin.",
+      "languageLesson": "The measure function in pdf.ts uses Unicode code-point ranges (0x0900–0x0980 for Devanagari) to apply wider character spacing — a practical approach for Indic script PDF rendering."
+    },
+    {
+      "id": "packages/receipt-engine/src/types.ts",
+      "kind": "file",
+      "label": "types.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "summary": "Type definitions, constants, and utility functions for the receipt engine. Defines the complete receipt data model (ReceiptData, ReceiptTemplateView, DrawOp), font key system with CSS weight mappings, field key/label enumerations, default A5 field layout configuration, page size pixel maps, and mm-to-px conversion.",
+      "tags": [
+        "types",
+        "constants",
+        "receipt-model",
+        "field-config",
+        "page-sizes",
+        "font-css"
+      ],
+      "title": "Receipt Engine Types & Constants",
+      "languageNotes": "Imports PageSize and ReceiptFieldConfig from @pavati/shared. Exports both types and runtime values (FONT_CSS, DEFAULT_FIELDS, PAGE_SIZE_PX) making it a dual-purpose type/constants module.",
+      "languageLesson": "The normalizeFont function maps arbitrary weight strings (via regex) to known FontKey values — a defensive normalization pattern that prevents crashes from user-provided font names."
+    }
+  ],
+  "edges": [
+    {
+      "source": "packages/receipt-engine/src/canvas.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "import",
+      "label": "imports ReceiptData, ReceiptTemplateView, FONT_CSS, pagePx"
+    },
+    {
+      "source": "packages/receipt-engine/src/canvas.ts",
+      "target": "packages/receipt-engine/src/fonts.ts",
+      "kind": "import",
+      "label": "imports (via types re-export) FONT_CSS for canvas font rendering"
+    },
+    {
+      "source": "packages/receipt-engine/src/canvas.ts",
+      "target": "packages/receipt-engine/src/layout.ts",
+      "kind": "import",
+      "label": "imports buildDrawOps and MeasureFn"
+    },
+    {
+      "source": "packages/receipt-engine/src/fonts.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "import",
+      "label": "imports FontKey and FONT_CSS"
+    },
+    {
+      "source": "packages/receipt-engine/src/layout.test.ts",
+      "target": "packages/receipt-engine/src/layout.ts",
+      "kind": "import",
+      "label": "imports buildDrawOps, buildFieldValues, wrapText, BuildDrawOpts for testing"
+    },
+    {
+      "source": "packages/receipt-engine/src/layout.test.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "import",
+      "label": "imports normalizeFont, pagePx, DEFAULT_FIELDS"
+    },
+    {
+      "source": "packages/receipt-engine/src/layout.ts",
+      "target": "packages/receipt-engine/src/fonts.ts",
+      "kind": "import",
+      "label": "imports FONT_CACHE for PDF-based text measurement"
+    },
+    {
+      "source": "packages/receipt-engine/src/layout.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "import",
+      "label": "imports DrawOp, ReceiptData, ReceiptTemplateView, normalizeFont, pagePx"
+    },
+    {
+      "source": "packages/receipt-engine/src/pdf.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "import",
+      "label": "imports FontKey, ReceiptData, ReceiptTemplateView"
+    },
+    {
+      "source": "packages/receipt-engine/src/pdf.ts",
+      "target": "packages/receipt-engine/src/layout.ts",
+      "kind": "import",
+      "label": "imports buildDrawOps and MeasureFn"
+    },
+    {
+      "source": "packages/receipt-engine/src/pdf.ts",
+      "target": "packages/receipt-engine/src/fonts.ts",
+      "kind": "import",
+      "label": "imports registerPdfFonts and FONT_CACHE"
+    },
+    {
+      "source": "packages/receipt-engine/src/canvas.ts",
+      "target": "packages/receipt-engine/src/layout.ts",
+      "kind": "depends",
+      "label": "delegates layout computation to buildDrawOps"
+    },
+    {
+      "source": "packages/receipt-engine/src/pdf.ts",
+      "target": "packages/receipt-engine/src/layout.ts",
+      "kind": "depends",
+      "label": "delegates layout computation to buildDrawOps"
+    },
+    {
+      "source": "packages/receipt-engine/src/layout.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "depends",
+      "label": "relies on pagePx for coordinate calculations and normalizeFont for font normalization"
+    },
+    {
+      "source": "packages/receipt-engine/src/canvas.ts",
+      "target": "packages/receipt-engine/src/fonts.ts",
+      "kind": "depends",
+      "label": "uses FONT_CSS for canvas 2D font strings"
+    },
+    {
+      "source": "packages/receipt-engine/src/pdf.ts",
+      "target": "packages/receipt-engine/src/fonts.ts",
+      "kind": "depends",
+      "label": "registers embedded pdf-lib fonts into FONT_CACHE for measurement"
+    },
+    {
+      "source": "packages/receipt-engine/src/fonts.ts",
+      "target": "packages/receipt-engine/src/types.ts",
+      "kind": "depends",
+      "label": "re-exports FONT_CSS and FontKey from types"
+    }
+  ]
+}
