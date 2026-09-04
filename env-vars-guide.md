@@ -62,7 +62,7 @@ This guide explains every environment variable used by Pāvati Pustak and how to
 **AWS RDS:**
 1. Go to RDS Console → your instance → "Connectivity & security"
 2. Use the "Endpoint & port" value
-3. Format: `postgresql://[master用户名]:[密码]@[endpoint]:[port]/[database]?schema=public`
+3. Format: `postgresql://[master_username]:[password]@[endpoint]:[port]/[database]?schema=public`
 
 **Neon / Supabase / other cloud providers:**
 1. Find the connection string in your dashboard's "Connection" or "Settings" panel
@@ -163,7 +163,7 @@ openssl rand -base64 48
 |---|---|
 | **Required** | No |
 | **Default** | `http://localhost:4000` |
-| **Example** | `https://api.yourdomain.com` |
+| **Example** | `https://api.your-domain.com` |
 
 **What it does:** The externally-accessible base URL of the API. Used to construct file upload URLs, receipt verification links, and email links.
 
@@ -253,7 +253,7 @@ openssl rand -base64 48
 | | |
 |---|---|
 | **Required** | Only if using R2 storage |
-| **Example** | `pavati-prod` |
+| **Example** | `your-bucket-name` |
 
 **What it does:** The name of the Cloudflare R2 bucket where files are stored.
 
@@ -283,7 +283,7 @@ openssl rand -base64 48
 | | |
 |---|---|
 | **Required** | No (Google sign-in disabled without it) |
-| **Example** | `your-google-client-id.apps.googleusercontent.com.apps.googleusercontent.com` |
+| **Example** | `593007022712-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com` |
 
 **What it does:** Validates Google OAuth ID tokens on the backend during Google sign-in.
 
@@ -355,7 +355,7 @@ openssl rand -base64 48
 | | |
 |---|---|
 | **Required** | No (Google sign-in button hidden without it) |
-| **Example** | `your-google-client-id.apps.googleusercontent.com.apps.googleusercontent.com` |
+| **Example** | `593007022712-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com` |
 
 **What it does:** The Google OAuth Client ID used by the frontend to initiate the Google sign-in flow. Must match `GOOGLE_CLIENT_ID` in `apps/api/.env`.
 
