@@ -45,13 +45,24 @@ router.post(
 router.get(
   '/me/donations',
   asyncHandler(async (req: AuthedRequest, res) => {
-    const donations = await prisma.donation.findMany({
-      where: { OR: [{ phone: req.user!.phone ?? undefined }, { email: req.user!.email ?? undefined }] },
-      include: { trust: { select: { id: true, name: true, logoUrl: true } }, receipts: true },
-      orderBy: { donationDate: 'desc' },
-      take: 200,
-    })
-    ok(res, donations)
+    const { phone, email } = req.user!
+    const or: Array<{ phone?: string; email?: string }> = []
+    if (phone) or.push({ phone })
+    if (email) or.push({ email })
+    if (or.length === 0) return ok(res, [])
+    const page = Math.max(1, Number(req.query.page) || 1)
+    const pageSize = Math.min(200, Math.max(1, Number(req.query.pageSize) || 50))
+    const [total, donations] = await Promise.all([
+      prisma.donation.count({ where: { OR: or } }),
+      prisma.donation.findMany({
+        where: { OR: or },
+        include: { trust: { select: { id: true, name: true, logoUrl: true } }, receipts: true },
+        orderBy: { donationDate: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ])
+    ok(res, { total, page, pageSize, items: donations })
   })
 )
 

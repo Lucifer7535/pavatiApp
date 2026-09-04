@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js'
+import { logger } from '../lib/logger.js'
 import type { AuditAction } from '@pavati/shared'
 
 interface AuditInput {
@@ -11,14 +12,18 @@ interface AuditInput {
 }
 
 export async function audit(entry: AuditInput): Promise<void> {
-  await prisma.auditLog.create({
-    data: {
-      actorId: entry.actorId ?? null,
-      trustId: entry.trustId ?? null,
-      action: entry.action,
-      entityType: entry.entityType ?? null,
-      entityId: entry.entityId ?? null,
-      metadata: (entry.metadata as object | null) ?? undefined,
-    },
-  })
+  try {
+    await prisma.auditLog.create({
+      data: {
+        actorId: entry.actorId ?? null,
+        trustId: entry.trustId ?? null,
+        action: entry.action,
+        entityType: entry.entityType ?? null,
+        entityId: entry.entityId ?? null,
+        metadata: (entry.metadata as object | null) ?? undefined,
+      },
+    })
+  } catch (err) {
+    logger.error({ err, action: entry.action }, 'audit log insert failed')
+  }
 }

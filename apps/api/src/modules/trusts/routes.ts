@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
-import { requireAuth, type AuthedRequest } from '../../middleware/auth.js'
+import { requireAuth, optionalAuth, type AuthedRequest } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { validateBody, validateParams } from '../../middleware/validate.js'
 import { createTrustSchema, joinByCodeSchema, updateTrustSchema, z, randomCode } from '@pavati/shared'
@@ -91,12 +91,21 @@ router.get(
 
 router.get(
   '/:trustId',
-  asyncHandler(async (req: TrustContextRequest, res) => {
+  optionalAuth,
+  asyncHandler(async (req: AuthedRequest, res) => {
     const trust = await prisma.trust.findUnique({
       where: { id: req.params.trustId },
       include: { _count: { select: { members: true } } },
     })
     if (!trust) throw new AppError(404, 'Trust not found')
+    let isMember = false
+    if (req.user) {
+      const member = await prisma.trustMember.findFirst({
+        where: { trustId: trust.id, userId: req.user.id, status: 'ACTIVE' },
+        select: { id: true },
+      })
+      isMember = !!member
+    }
     const committee = trust.showCommitteePublicly
       ? await prisma.trustMember.findMany({
           where: { trustId: trust.id, status: 'ACTIVE', role: { in: ['PRIMARY_ADMIN', 'ADMIN', 'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'JOINT_SECRETARY', 'TREASURER'] } },
@@ -114,7 +123,7 @@ router.get(
       id: trust.id,
       name: trust.name,
       uniqueCode: trust.uniqueCode,
-      joinCode: trust.joinCode,
+      joinCode: isMember ? trust.joinCode : undefined,
       logoUrl: trust.logoUrl,
       festivalTypes: trust.festivalTypes,
       description: trust.description,

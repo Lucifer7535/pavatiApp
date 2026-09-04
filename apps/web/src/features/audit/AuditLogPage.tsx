@@ -10,7 +10,7 @@ export default function AuditLogPage() {
   const active = useActiveTrust()!
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['audit', active.trustId],
-    queryFn: () => api.get<any[]>(`/trusts/${active.trustId}/audit-log`),
+    queryFn: () => api.get<{ total: number; page: number; pageSize: number; items: any[] }>(`/trusts/${active.trustId}/audit-log`),
   })
 
   if (isError) {
@@ -29,11 +29,11 @@ export default function AuditLogPage() {
     <AppLayout>
       <PageHeader title="Audit Log" subtitle="Every important action, recorded" />
       <Card>
-        {isLoading || !data ? <Spinner /> : data.length === 0 ? (
+        {isLoading || !data ? <Spinner /> : data.items.length === 0 ? (
           <EmptyState icon={<FileClock className="h-6 w-6" />} title="No audit entries yet" />
         ) : (
           <div className="divide-y divide-stone-100">
-            {data.map((log) => (
+            {data.items.map((log) => (
               <div key={log.id} className="flex items-start gap-3 p-4">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-500"><FileClock className="h-4 w-4" /></div>
                 <div className="min-w-0 flex-1">

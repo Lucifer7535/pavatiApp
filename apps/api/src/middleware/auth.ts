@@ -23,3 +23,20 @@ export async function requireAuth(req: AuthedRequest, _res: Response, next: Next
     next(new AppError(401, 'Invalid or expired token'))
   }
 }
+
+// Sets req.user only when a valid access token is presented; never rejects.
+export async function optionalAuth(req: AuthedRequest, _res: Response, next: NextFunction) {
+  try {
+    const header = req.headers.authorization
+    if (header?.startsWith('Bearer ')) {
+      const payload = verifyAccessToken(header.slice(7))
+      if (payload.type === 'access') {
+        const user = await prisma.user.findUnique({ where: { id: payload.sub } })
+        if (user) req.user = user
+      }
+    }
+  } catch {
+    // ignore invalid token on optional-auth routes
+  }
+  next()
+}

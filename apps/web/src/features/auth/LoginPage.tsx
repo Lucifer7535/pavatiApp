@@ -61,6 +61,10 @@ export default function LoginPage() {
   }
 
   const mockGoogle = async () => {
+    if (import.meta.env.PROD) {
+      toast.error('Google sign-in is not configured')
+      return
+    }
     setLoading(true)
     try {
       const res = await api.post('/auth/google', {

@@ -31,6 +31,11 @@ describe('registerSchema', () => {
     expect(registerSchema.safeParse({ ...base, email: 'x@Mailinator.COM' }).success).toBe(false)
     expect(registerSchema.safeParse({ ...base, email: 'x@yopmail.fr' }).success).toBe(false)
   })
+
+  it('rejects disposable email subdomain aliases', () => {
+    expect(registerSchema.safeParse({ ...base, email: 'x@sub.mailinator.com' }).success).toBe(false)
+    expect(registerSchema.safeParse({ ...base, email: 'x@a.b.c.guerrillamail.com' }).success).toBe(false)
+  })
 })
 
 describe('joinByCodeSchema', () => {

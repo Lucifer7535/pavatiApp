@@ -15,21 +15,24 @@ export default function ReceiptPreviewPage() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['receipt', receiptId],
-    queryFn: () =>
-      api.get<{ total: number; items: any[] }>(`/trusts/${active.trustId}/receipts`, { pageSize: 100 }).then((res) =>
-        res.items.find((r) => r.id === receiptId) ?? null
-      ),
+    queryKey: ['receipt', active.trustId, receiptId],
+    queryFn: () => api.get<any>(`/trusts/${active.trustId}/receipts/${receiptId}`),
+    enabled: !!receiptId,
   })
 
   useEffect(() => {
     if (!data) return
+    let cancelled = false
     let url: string | null = null
     getReceiptPdfUrl(data.id).then((u) => {
+      if (cancelled) { URL.revokeObjectURL(u); return }
       url = u
       setPdfUrl(u)
     }).catch(() => toast.error('Could not load PDF'))
-    return () => { if (url) URL.revokeObjectURL(url) }
+    return () => {
+      cancelled = true
+      if (url) URL.revokeObjectURL(url)
+    }
   }, [data])
 
   if (isLoading || !data) return <AppLayout><Spinner /></AppLayout>

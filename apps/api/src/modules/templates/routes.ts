@@ -19,7 +19,7 @@ router.get(
       where: { trustId: req.trustId },
       orderBy: { createdAt: 'asc' },
     })
-    ok(res, templates.map((t) => ({ ...t, fieldConfigs: t.fieldConfigs as unknown as unknown })))
+    ok(res, templates)
   })
 )
 

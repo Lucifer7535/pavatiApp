@@ -1,4 +1,4 @@
-import { type ReceiptData, type ReceiptTemplateView, FONT_CSS, pagePx } from './types.js'
+import { type ReceiptData, type ReceiptTemplateView, type FontKey, FONT_CSS, pagePx } from './types.js'
 import { buildDrawOps, type MeasureFn } from './layout.js'
 
 export interface CanvasRenderInput {
@@ -34,9 +34,9 @@ export async function renderReceiptToCanvas(input: CanvasRenderInput): Promise<H
     ctx.strokeRect(7, 7, page.width - 14, page.height - 14)
   }
 
-  const measure: MeasureFn = (text, size, bold) => {
-    const key = bold ? 'Mukta-Bold' : 'Mukta'
-    const css = FONT_CSS[key]
+  const measure: MeasureFn = (text, size, bold, family) => {
+    const key = (family ?? (bold ? 'Mukta-Bold' : 'Mukta')) as FontKey
+    const css = FONT_CSS[key] ?? FONT_CSS[bold ? 'Mukta-Bold' : 'Mukta']
     ctx.font = `${css.weight} ${size}px "${css.family}", sans-serif`
     return ctx.measureText(text).width
   }

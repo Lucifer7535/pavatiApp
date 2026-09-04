@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { z } from '@pavati/shared'
+import { z, OFFICIAL_ROLES, type TrustRole } from '@pavati/shared'
 import { Prisma } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
@@ -19,6 +19,7 @@ const listQuery = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   status: z.enum(['ACTIVE', 'VOID']).optional(),
+  search: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 })
@@ -31,10 +32,21 @@ router.get(
   validateQuery(listQuery),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof listQuery>
-    const ownOnly = !req.effectivePermissions?.includes('receipt:view') || !req.effectivePermissions?.includes('donation:view')
-    const where: Prisma.ReceiptWhereInput = { trustId: req.trustId }
-    if (ownOnly) where.donation = { submittedById: req.trustMember!.id }
+    const member = req.trustMember!
+    const ownOnly = !req.effectivePermissions?.includes('receipt:view') && !req.effectivePermissions?.includes('donation:view')
+    const isOfficial = OFFICIAL_ROLES.includes(member.role as TrustRole)
+    const donationFilter: Prisma.DonationWhereInput = {
+      ...(ownOnly ? { submittedById: member.id } : {}),
+      ...(isOfficial ? {} : { OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] }),
+    }
+    const where: Prisma.ReceiptWhereInput = { trustId: req.trustId, donation: donationFilter }
     if (q.status) where.status = q.status
+    if (q.search) {
+      where.OR = [
+        { receiptNumber: { contains: q.search, mode: 'insensitive' } },
+        { donation: { is: { donorName: { contains: q.search, mode: 'insensitive' } } } },
+      ]
+    }
     if (q.from || q.to) {
       where.generatedAt = {}
       if (q.from) where.generatedAt.gte = new Date(q.from)
@@ -42,16 +54,22 @@ router.get(
     }
     const page = q.page ?? 1
     const pageSize = q.pageSize ?? 20
-    const [total, items] = await Promise.all([
+    const [total, rawItems] = await Promise.all([
       prisma.receipt.count({ where }),
       prisma.receipt.findMany({
         where,
-        include: { donation: true, template: { select: { name: true } } },
+        include: { donation: { include: { submitter: { include: { user: true } } } }, template: { select: { name: true } } },
         orderBy: { generatedAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
     ])
+    const items = rawItems.map((r) => {
+      if (r.donation && !r.donation.email && r.donation.submitter?.user?.email) {
+        return { ...r, donation: { ...r.donation, email: r.donation.submitter.user.email } }
+      }
+      return r
+    })
     ok(res, { total, page, pageSize, items })
   })
 )
@@ -69,6 +87,45 @@ router.post(
     const receipt = await generateReceipt({ donationId: donation.id, trust, donation, collector, actorId: req.user!.id, templateId: req.body.templateId })
     await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'RECEIPT_CREATED', entityType: 'Receipt', entityId: receipt.id, metadata: { reason: req.body.reason ?? 'reprint' } })
     ok(res, receipt, 201)
+  })
+)
+
+router.get(
+  '/:trustId/receipts/:receiptId',
+  requirePermission(['receipt:view', 'donation:view_own']),
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    const member = req.trustMember!
+    const isOfficial = OFFICIAL_ROLES.includes(member.role as TrustRole)
+    const receipt = await prisma.receipt.findFirst({
+      where: {
+        id: req.params.receiptId,
+        trustId: req.trustId,
+        ...(isOfficial ? {} : { donation: { OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] } }),
+      },
+      include: { donation: true, template: { select: { name: true } } },
+    })
+    if (!receipt) throw new AppError(404, 'Receipt not found')
+    ok(res, receipt)
+  })
+)
+
+router.patch(
+  '/:trustId/receipts/:receiptId/phone',
+  requirePermission('receipt:view'),
+  validateBody(z.object({ phone: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Indian mobile number') })),
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    const receipt = await prisma.receipt.findFirst({
+      where: { id: req.params.receiptId, trustId: req.trustId },
+      include: { donation: true },
+    })
+    if (!receipt) throw new AppError(404, 'Receipt not found')
+    if (!receipt.donation) throw new AppError(400, 'Donation not found for this receipt')
+    const donation = await prisma.donation.update({
+      where: { id: receipt.donationId },
+      data: { phone: req.body.phone },
+    })
+    await audit({ actorId: req.user!.id, trustId: req.trustId!, action: 'SETTINGS_UPDATED', entityType: 'Receipt', entityId: receipt.id, metadata: { action: 'add_phone', phone: req.body.phone } })
+    ok(res, { donation })
   })
 )
 
@@ -103,9 +160,18 @@ router.post(
 
     const sent: string[] = []
 
+    let donorEmail = receipt.donation.email ?? null
+    if (!donorEmail && receipt.donation.submittedById) {
+      const submitter = await prisma.trustMember.findUnique({
+        where: { id: receipt.donation.submittedById },
+        include: { user: true },
+      })
+      donorEmail = submitter?.user.email ?? null
+    }
+
     for (const channel of req.body.channels) {
       if (channel === 'email') {
-        const email = receipt.donation.email
+        const email = donorEmail
         if (!email) continue
         const message = buildReceiptMessage({
           amount: receipt.donation.amount,
@@ -143,7 +209,10 @@ router.get(
       where: { trustId_userId: { trustId: receipt.trustId, userId: req.user!.id } },
     })
     const isTrustMember = member && member.status === 'ACTIVE'
-    const isDonor = await prisma.donation.findFirst({ where: { id: receipt.donationId, phone: req.user!.phone ?? undefined } })
+    let isDonor = false
+    if (req.user!.phone) {
+      isDonor = !!(await prisma.donation.findFirst({ where: { id: receipt.donationId, phone: req.user!.phone } }))
+    }
     if (!isTrustMember && !isDonor) throw new AppError(403, 'Not authorized to view this receipt')
     if (!receipt.pdfUrl) throw new AppError(404, 'PDF not generated')
     const file = await fileFromUrl(receipt.pdfUrl)

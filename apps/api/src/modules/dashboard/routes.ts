@@ -3,6 +3,7 @@ import { prisma } from '../../lib/prisma.js'
 import { asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, type TrustContextRequest } from '../../middleware/rbac.js'
+import { todayStartIn } from '../../config/index.js'
 
 const router = Router()
 
@@ -33,10 +34,7 @@ router.get(
       return ok(res, { scope: 'own', myTotal, myPendingCount: myPending, myRecentDonations: myDonations, announcements, campaigns })
     }
 
-    const now = new Date()
-    const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000)
-    istTime.setUTCHours(0, 0, 0, 0)
-    const todayStart = new Date(istTime.getTime() - 5.5 * 60 * 60 * 1000)
+    const todayStart = todayStartIn()
 
     const [totalAgg, donorCount, cashAgg, upiAgg, todayAgg, pendingCount, memberCount, recentTransactions, recentMembers, campaigns] = await Promise.all([
       prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED' }, _sum: { amount: true } }),

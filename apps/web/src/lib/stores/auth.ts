@@ -38,7 +38,7 @@ interface AuthState {
 export const useAuth = create<AuthState>((set) => ({
   user: null,
   memberships: [],
-  activeTrustId: localStorage.getItem('pp_active_trust') ?? null,
+  activeTrustId: typeof localStorage === 'undefined' ? null : localStorage.getItem('pp_active_trust'),
   setSession: (data) =>
     set({
       user: data.user,

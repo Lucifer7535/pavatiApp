@@ -29,6 +29,12 @@ export function createApp() {
   app.set('trust proxy', 1)
 
   app.use(cors({ origin: config.webOrigin, credentials: true }))
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('X-Frame-Options', 'DENY')
+    res.setHeader('Referrer-Policy', 'no-referrer')
+    next()
+  })
   app.use(express.json({ limit: '8mb' }))
   app.use(cookieParser())
   app.use(globalRateLimiter())

@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { api, clearTokens } from './api'
+import { api, clearTokens, getRefreshToken } from './api'
 import { useAuth } from './stores/auth'
 
 export function performLogout() {
-  const refreshToken = localStorage.getItem('pp_refresh')
+  const refreshToken = getRefreshToken()
   if (refreshToken) {
     api.post('/auth/logout', { refreshToken }).catch(() => {})
   }

@@ -32,10 +32,10 @@ export function buildFieldValues(data: ReceiptData): Record<string, string> {
 }
 
 export interface MeasureFn {
-  (text: string, size: number, bold: boolean): number
+  (text: string, size: number, bold: boolean, family?: string): number
 }
 
-export function wrapText(text: string, measure: MeasureFn, size: number, bold: boolean, maxWidth: number): string[] {
+export function wrapText(text: string, measure: MeasureFn, size: number, bold: boolean, maxWidth: number, family?: string): string[] {
   const clean = text.replace(/\s+/g, ' ').trim()
   if (!clean) return []
   const words = clean.split(' ')
@@ -43,11 +43,20 @@ export function wrapText(text: string, measure: MeasureFn, size: number, bold: b
   let current = ''
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word
-    if (current && measure(candidate, size, bold) > maxWidth) {
+    if (current && measure(candidate, size, bold, family) > maxWidth) {
       lines.push(current)
       current = word
     } else {
       current = candidate
+    }
+    if (current && measure(current, size, bold, family) > maxWidth) {
+      while (current && measure(current, size, bold, family) > maxWidth) {
+        let splitAt = Math.max(1, Math.floor((maxWidth / Math.max(measure(current, size, bold, family), 1)) * current.length))
+        while (splitAt > 1 && measure(current.slice(0, splitAt), size, bold, family) > maxWidth) splitAt--
+        const chunk = current.slice(0, splitAt) || current[0]
+        lines.push(chunk)
+        current = current.slice(chunk.length)
+      }
     }
   }
   if (current) lines.push(current)
@@ -72,7 +81,7 @@ export function buildDrawOps(
 
   const measure: MeasureFn =
     opts.measure ??
-    ((text: string, size: number, bold: boolean) => {
+    ((text: string, size: number, bold: boolean, _family?: string) => {
       const fam = bold ? 'Mukta-Bold' : 'Mukta'
       const font = FONT_CACHE[fam]
       if (font) return font.widthOfTextAtSize(text, size)
@@ -102,7 +111,6 @@ export function buildDrawOps(
     if (!raw) continue
     let prefix = f.prefix ?? ''
     let text = `${prefix}${raw}`
-    if (f.key === 'amount') text = `₹ ${raw}`
 
     if (f.key === 'signature') {
       const lineY = y + height * 0.6
@@ -116,7 +124,7 @@ export function buildDrawOps(
       continue
     }
 
-    const lines = wrapText(text, measure, fontSize, f.bold, width)
+    const lines = wrapText(text, measure, fontSize, f.bold, width, fontKey)
     let ly = y
     for (const line of lines) {
       ops.push({ kind: 'text', value: line, x, y: ly, width, height: fontSize, fontSize, fontFamily: fontKey, color: f.color, align: f.align, bold: f.bold })

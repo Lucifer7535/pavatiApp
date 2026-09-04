@@ -7,7 +7,8 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return res.status(err.status).json({ error: err.message, details: err.details })
   }
   logger.error({ err }, 'Unhandled error')
-  const message = err instanceof Error ? err.message : 'Internal server error'
+  const isProd = process.env.NODE_ENV === 'production'
+  const message = isProd ? 'Internal server error' : err instanceof Error ? err.message : 'Internal server error'
   return res.status(500).json({ error: message })
 }
 

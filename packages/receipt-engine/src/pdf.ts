@@ -6,7 +6,7 @@ import { PDFDocument, rgb, type PDFFont, type PDFImage } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import { type FontKey, type ReceiptData, type ReceiptTemplateView } from './types.js'
 import { buildDrawOps, type MeasureFn } from './layout.js'
-import { registerPdfFonts, FONT_CACHE } from './fonts.js'
+import { registerPdfFonts, unregisterPdfFonts, FONT_CACHE } from './fonts.js'
 
 export interface PdfFontFile {
   key: FontKey
@@ -55,25 +55,26 @@ export interface PdfRenderInput {
 
 export async function renderReceiptPdf(input: PdfRenderInput): Promise<Uint8Array> {
   const { template, data, background, logo, qr } = input
-  const measure: MeasureFn = (text, size, _bold) => {
-    let w = 0
-    for (const ch of text) {
-      const code = ch.codePointAt(0) ?? 0
-      w += code > 0x0900 && code < 0x0980 ? size * 0.85 : code === 0x20b9 ? size * 0.6 : size * 0.52
-    }
-    return w
-  }
-  const { ops, page } = buildDrawOps(template, data, { measure })
-
-  const doc = await PDFDocument.create()
-  doc.registerFontkit(fontkit)
 
   const fontFiles = readMuktaFontFiles()
   const fonts: Partial<Record<FontKey, PDFFont>> = {}
+  const doc = await PDFDocument.create()
+  doc.registerFontkit(fontkit)
   for (const [key, bytes] of Object.entries(fontFiles) as [FontKey, Uint8Array][]) {
     fonts[key] = await doc.embedFont(bytes)
   }
   registerPdfFonts(fonts)
+
+  const measure: MeasureFn = (text, size, bold) => {
+    let w = 0
+    for (const ch of text) {
+      const code = ch.codePointAt(0) ?? 0
+      const base = code > 0x0900 && code < 0x0980 ? size * 0.85 : code === 0x20b9 ? size * 0.6 : size * 0.52
+      w += bold ? base * 1.08 : base
+    }
+    return w
+  }
+  const { ops, page } = buildDrawOps(template, data, { measure })
 
   const pxToPt = 0.75
   const pageWidth = Math.round(page.width * pxToPt)
@@ -148,6 +149,7 @@ export async function renderReceiptPdf(input: PdfRenderInput): Promise<Uint8Arra
   }
 
   const bytes = await doc.save()
+  unregisterPdfFonts()
   return bytes
 }
 
@@ -165,8 +167,9 @@ function drawBackgroundCover(img: PDFImage, w: number, h: number): { x: number; 
 }
 
 function hexToRgb(hex: string): ReturnType<typeof rgb> {
-  const m = hex.replace('#', '')
+  const m = (hex ?? '').replace('#', '')
   const full = m.length === 3 ? m.split('').map((c) => c + c).join('') : m
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return rgb(0, 0, 0)
   const n = parseInt(full, 16)
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255)
 }

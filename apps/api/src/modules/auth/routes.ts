@@ -23,7 +23,11 @@ import { audit } from '../../services/audit.js'
 
 const router = Router()
 
-const googleOAuthClient = new OAuth2Client(config.googleClientId)
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string)
+}
+
+const googleOAuthClient = () => new OAuth2Client(config.googleClientId)
 
 async function findOrCreateUser(data: { email: string; name: string; profileImage?: string | null }) {
   let user = await prisma.user.findUnique({ where: { email: data.email } })
@@ -90,15 +94,18 @@ router.post(
     let name: string
     let picture: string | undefined
 
-    if (config.mockMode) {
+    if (config.mockMode && config.env !== 'production') {
       const profile = req.body.profile
       email = profile?.email ?? `${idToken.slice(0, 12)}@mock.google`
       name = profile?.name ?? 'Google User'
       picture = profile?.picture
     } else {
+      if (config.mockMode && config.env === 'production') {
+        throw new AppError(403, 'Mock mode is disabled in production')
+      }
       if (!config.googleClientId) throw new AppError(503, 'Google login is not configured')
       try {
-        const ticket = await googleOAuthClient.verifyIdToken({ idToken, audience: config.googleClientId })
+        const ticket = await googleOAuthClient().verifyIdToken({ idToken, audience: config.googleClientId })
         const payload = ticket.getPayload()
         if (!payload?.email) throw new AppError(401, 'Google account has no email')
         if (!payload.email_verified) throw new AppError(401, 'Google email is not verified')
@@ -140,7 +147,7 @@ router.post(
       await sendEmail({
         to: email,
         subject: 'Reset your Pāvati Pustak password',
-        html: `<p>Hi ${user.name ?? ''},</p><p>Click the link below to reset your password. This link expires in 30 minutes.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#831843;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password</a></p><p>Or copy this URL: ${resetUrl}</p><p>If you didn't request this, ignore this email.</p>`,
+        html: `<p>Hi ${escapeHtml(user.name ?? '')},</p><p>Click the link below to reset your password. This link expires in 30 minutes.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#831843;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password</a></p><p>Or copy this URL: ${resetUrl}</p><p>If you didn't request this, ignore this email.</p>`,
         text: `Reset your password: ${resetUrl}`,
       })
     }

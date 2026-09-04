@@ -11,6 +11,7 @@ import { router } from './app/router'
 import { setLocale, getLocale } from './lib/i18n'
 import { useAuth } from './lib/stores/auth'
 import { api } from './lib/api'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 15_000 } },
@@ -29,9 +30,11 @@ function render() {
   rendered = true
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </ErrorBoundary>
     </StrictMode>
   )
 }

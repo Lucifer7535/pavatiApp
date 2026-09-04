@@ -38,6 +38,17 @@ export type Permission = (typeof PERMISSION)[keyof typeof PERMISSION]
 
 export const ALL_PERMISSIONS = Object.values(PERMISSION) as Permission[]
 
+export const OFFICIAL_ROLES: TrustRole[] = [
+  ROLE.PRIMARY_ADMIN,
+  ROLE.ADMIN,
+  ROLE.PRESIDENT,
+  ROLE.VICE_PRESIDENT,
+  ROLE.SECRETARY,
+  ROLE.JOINT_SECRETARY,
+  ROLE.TREASURER,
+  ROLE.COMMITTEE_MEMBER,
+]
+
 const everyone: Permission[] = [
     PERMISSION.TRUST_VIEW,
     PERMISSION.ANNOUNCEMENT_VIEW,

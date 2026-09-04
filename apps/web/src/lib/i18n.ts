@@ -107,11 +107,12 @@ let current: Locale = 'en'
 
 export function setLocale(locale: Locale) {
   current = locale
-  localStorage.setItem('pp_locale', locale)
-  document.documentElement.lang = locale
+  if (typeof localStorage !== 'undefined') localStorage.setItem('pp_locale', locale)
+  if (typeof document !== 'undefined') document.documentElement.lang = locale
 }
 
 export function getLocale(): Locale {
+  if (typeof localStorage === 'undefined') return 'en'
   return (localStorage.getItem('pp_locale') as Locale) || 'en'
 }
 

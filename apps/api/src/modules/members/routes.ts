@@ -53,10 +53,15 @@ router.post(
     const existing = await prisma.trustMember.findUnique({ where: { trustId_userId: { trustId: req.trustId!, userId: user.id } } })
     if (existing) {
       if (existing.status === 'REMOVED') {
-        await prisma.trustMember.update({ where: { id: existing.id }, data: { status: 'ACTIVE', role: body.role } })
-      } else {
-        throw new AppError(409, 'User is already a member')
+        const member = await prisma.trustMember.update({
+          where: { id: existing.id },
+          data: { status: 'ACTIVE', role: body.role, position: body.position ?? null, introduction: body.introduction ?? null, contactVisible: body.contactVisible ?? false },
+        })
+        await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'MEMBER_ADDED', entityType: 'TrustMember', entityId: member.id, metadata: { role: body.role, userId: user.id } })
+        ok(res, { member, user }, 201)
+        return
       }
+      throw new AppError(409, 'User is already a member')
     }
     const member = await prisma.trustMember.create({
       data: {

@@ -107,10 +107,16 @@ describe('buildDrawOps', () => {
     expect(ops).toEqual([])
   })
 
-  it('prefixes amount with ₹', () => {
-    const cfg = [{ key: 'amount', label: 'x', x: 10, y: 10, width: 50, height: 10, fontSize: 20, fontFamily: 'Mukta', color: '#000', align: 'right', bold: false, visible: true }]
+  it('prefixes amount with ₹ (from field prefix)', () => {
+    const cfg = [{ key: 'amount', label: 'x', x: 10, y: 10, width: 50, height: 10, fontSize: 20, fontFamily: 'Mukta', color: '#000', align: 'right', bold: false, visible: true, prefix: '₹ ' }]
     const { ops } = buildDrawOps({ ...base, fieldConfigs: cfg } as any, SAMPLE as any, { measure })
     expect(ops[0].value).toBe('₹ 501')
+  })
+
+  it('omits prefix when none is configured', () => {
+    const cfg = [{ key: 'amount', label: 'x', x: 10, y: 10, width: 50, height: 10, fontSize: 20, fontFamily: 'Mukta', color: '#000', align: 'right', bold: false, visible: true }]
+    const { ops } = buildDrawOps({ ...base, fieldConfigs: cfg } as any, SAMPLE as any, { measure })
+    expect(ops[0].value).toBe('501')
   })
 
   it('applies field prefixes', () => {

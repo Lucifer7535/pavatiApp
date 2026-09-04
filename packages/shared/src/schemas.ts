@@ -29,9 +29,10 @@ export const DISPOSABLE_EMAIL_DOMAINS = [
 ] as const
 
 export function isDisposableEmail(value: string): boolean {
-  const domain = value.trim().toLowerCase().split('@')[1]
+  const domain = value.trim().toLowerCase().split('@').at(-1)
   if (!domain) return false
-  return (DISPOSABLE_EMAIL_DOMAINS as readonly string[]).includes(domain)
+  const blocklist = DISPOSABLE_EMAIL_DOMAINS as readonly string[]
+  return blocklist.some((d) => domain === d || domain.endsWith(`.${d}`))
 }
 
 export const email = z
@@ -67,7 +68,7 @@ export const googleAuthSchema = z.object({
   profile: z
     .object({
       name: z.string().optional(),
-      email: z.string().optional(),
+      email: z.string().optional().refine((v) => !v || /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v), 'Invalid email'),
       picture: z.string().optional(),
     })
     .optional(),
@@ -114,7 +115,7 @@ export const updateMemberSchema = z.object({
   position: z.string().optional().nullable(),
   introduction: z.string().optional().nullable(),
   contactVisible: z.boolean().optional(),
-  permissions: z.array(z.enum(ALL_PERMISSIONS as unknown as [string, ...string[]])).optional(),
+  permissions: z.array(z.enum(ALL_PERMISSIONS as [Permission, ...Permission[]])).optional(),
 })
 
 export const donationCategorySchema = z.string().trim().min(1, 'Category is required').max(50)
@@ -131,6 +132,7 @@ export const createDonationSchema = z
     trustId: z.string().uuid(),
     donorName: z.string().min(2, 'Donor name is required'),
     phone: phoneOrEmpty.optional(),
+    email: email.optional().nullable(),
     address: z.string().optional().nullable(),
     amount: z.number().positive('Amount must be greater than 0'),
     category: donationCategorySchema,
@@ -166,6 +168,7 @@ export const createCampaignSchema = z.object({
 export const selfDonationSchema = z.object({
   amount: z.number().int().positive('Amount must be greater than 0').max(10_000_000),
   category: donationCategorySchema.optional(),
+  email: email.optional().nullable(),
   campaignId: z.string().uuid().optional().nullable(),
   transactionRef: z.string().optional().nullable(),
   proofUrl: z.string().url('Invalid proof URL').optional().nullable(),

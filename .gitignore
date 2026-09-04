@@ -14,3 +14,19 @@ apps/api/uploads/
 apps/api/prisma/dev.db
 apps/web/dist/
 .vite/
+
+# OpenCode
+.opencode/
+**/.opencode/
+*.opencode
+*.opencode.json
+*.opencode.jsonc
+opencode.json
+opencode.jsonc
+.opencode-state/
+**/.opencode-state/
+*.opencode.log
+.opencode/cache/
+**/.opencode/cache/
+.opencode/plans/
+**/.opencode/plans/

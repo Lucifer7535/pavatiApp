@@ -16,23 +16,47 @@ let refreshToken: string | null = null
 export function setTokens(access: string, refresh: string) {
   accessToken = access
   refreshToken = refresh
-  localStorage.setItem('pp_access', access)
-  localStorage.setItem('pp_refresh', refresh)
+  sessionStorage.setItem('pp_access', access)
+  sessionStorage.setItem('pp_refresh', refresh)
 }
 
 export function getAccessToken() {
-  return accessToken ?? localStorage.getItem('pp_access')
+  return accessToken ?? sessionStorage.getItem('pp_access')
 }
 
 export function getRefreshToken() {
-  return refreshToken ?? localStorage.getItem('pp_refresh')
+  return refreshToken ?? sessionStorage.getItem('pp_refresh')
 }
 
 export function clearTokens() {
   accessToken = null
   refreshToken = null
-  localStorage.removeItem('pp_access')
-  localStorage.removeItem('pp_refresh')
+  sessionStorage.removeItem('pp_access')
+  sessionStorage.removeItem('pp_refresh')
+}
+
+let refreshPromise: Promise<boolean> | null = null
+
+async function tryRefresh(): Promise<boolean> {
+  const refresh = getRefreshToken()
+  if (!refresh) return false
+  try {
+    const refreshed = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: refresh }),
+    })
+    if (refreshed.ok) {
+      const data = await refreshed.json()
+      const s = data.data
+      setTokens(s.accessToken, s.refreshToken)
+      return true
+    }
+    clearTokens()
+    return false
+  } catch {
+    return false
+  }
 }
 
 async function request<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
@@ -45,22 +69,14 @@ async function request<T>(path: string, options: RequestInit = {}, retry = true)
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
 
-  if (res.status === 401 && retry) {
-    const refresh = getRefreshToken()
-    if (refresh) {
-      const refreshed = await fetch(`${API_BASE}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: refresh }),
+  if (res.status === 401 && retry && getRefreshToken()) {
+    if (!refreshPromise) {
+      refreshPromise = tryRefresh().finally(() => {
+        refreshPromise = null
       })
-      if (refreshed.ok) {
-        const data = await refreshed.json()
-        const s = data.data
-        setTokens(s.accessToken, s.refreshToken)
-        return request<T>(path, options, false)
-      }
-      clearTokens()
     }
+    const ok = await refreshPromise
+    if (ok) return request<T>(path, options, false)
   }
 
   const body = await res.json().catch(() => null)
@@ -108,7 +124,7 @@ export function uploadFile(dataUrl: string, kind: 'image' | 'pdf' = 'image') {
 
 async function fetchPdf(id: string): Promise<Blob> {
   const token = getAccessToken()
-  const res = await fetch(`${API_BASE}/receipts/receipts/${id}/pdf`, {
+  const res = await fetch(`${API_BASE}/receipts/${id}/pdf`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
   if (!res.ok) throw new ApiError(res.status, 'Failed to load receipt PDF')
@@ -136,9 +152,14 @@ export async function getReceiptPdfBlob(id: string): Promise<Blob> {
   return fetchPdf(id)
 }
 
-export async function exportDonationsCsv(trustId: string) {
+export async function exportDonationsCsv(trustId: string, filters: Record<string, string | number | undefined> = {}) {
   const token = getAccessToken()
-  const res = await fetch(`${API_BASE}/trusts/${trustId}/reports/export`, {
+  const params = new URLSearchParams()
+  for (const [k, v] of Object.entries(filters)) {
+    if (v !== undefined && v !== '') params.set(k, String(v))
+  }
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  const res = await fetch(`${API_BASE}/trusts/${trustId}/reports/export${qs}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
   if (!res.ok) throw new ApiError(res.status, 'Failed to export CSV')
@@ -147,6 +168,28 @@ export async function exportDonationsCsv(trustId: string) {
   const a = document.createElement('a')
   a.href = url
   a.download = 'donations-export.csv'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+export async function exportDonationsExcel(trustId: string, filters: Record<string, string | number | undefined> = {}) {
+  const token = getAccessToken()
+  const params = new URLSearchParams()
+  for (const [k, v] of Object.entries(filters)) {
+    if (v !== undefined && v !== '') params.set(k, String(v))
+  }
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  const res = await fetch(`${API_BASE}/trusts/${trustId}/reports/export-excel${qs}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new ApiError(res.status, 'Failed to export Excel')
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'donations-report.xlsx'
   document.body.appendChild(a)
   a.click()
   a.remove()

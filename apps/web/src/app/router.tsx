@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet, useLocation, useRouteError, isRouteErrorResponse } from 'react-router-dom'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { useAuth, useActiveTrust } from '../lib/stores/auth'
 import { permissionsForRole, type Permission, type TrustRole } from '@pavati/shared'
@@ -45,6 +45,26 @@ function AppShell() {
       </Suspense>
       <Toaster position="top-right" richColors />
     </>
+  )
+}
+
+function RouteError() {
+  const error = useRouteError()
+  const is404 = isRouteErrorResponse(error) && error.status === 404
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-stone-50 p-6 text-center">
+      <h1 className="text-xl font-semibold text-stone-800">{is404 ? 'Page not found' : 'Something went wrong'}</h1>
+      <p className="text-sm text-stone-500">
+        {is404 ? 'The page you are looking for does not exist.' : 'An unexpected error occurred. Please refresh the page to try again.'}
+      </p>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        className="mt-2 rounded-lg bg-amber-800 px-4 py-2 text-sm font-medium text-white hover:bg-amber-900"
+      >
+        Refresh
+      </button>
+    </div>
   )
 }
 
@@ -107,6 +127,7 @@ function DashboardLoader() {
 export const router = createBrowserRouter([
   {
     element: <AppShell />,
+    errorElement: <RouteError />,
     children: [
       { path: '/', element: <LandingPage /> },
       { path: '/login', element: <LoginPage /> },

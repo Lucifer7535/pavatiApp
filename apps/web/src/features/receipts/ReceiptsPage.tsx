@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { FileText, Download, Send, MessageCircle, Mail } from 'lucide-react'
+import { FileText, Download, Send, MessageCircle, Mail, Phone } from 'lucide-react'
 import { api, downloadReceiptPdf } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
-import { Card, Badge, Spinner, Input, Select, Pagination, EmptyState, PageHeader } from '../../components/ui'
+import { Card, Badge, Spinner, Input, Select, Pagination, EmptyState, PageHeader, Modal, Button } from '../../components/ui'
 import { formatINR, timeAgo } from '../../lib/utils'
 import { useActiveTrust } from '../../lib/stores/auth'
 
@@ -95,13 +95,17 @@ function SendPopover({ receipt, channels, onSend }: { receipt: any; channels: st
 
 export default function ReceiptsPage() {
   const active = useActiveTrust()!
+  const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
+  const [addPhoneReceiptId, setAddPhoneReceiptId] = useState<string | null>(null)
+  const [addPhoneValue, setAddPhoneValue] = useState('')
+  const [addPhoneError, setAddPhoneError] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['receipts', active.trustId, page, q, status],
-    queryFn: () => api.get<{ total: number; page: number; pageSize: number; items: any[] }>(`/trusts/${active.trustId}/receipts`, { page, pageSize: 20, status: status || undefined }),
+    queryFn: () => api.get<{ total: number; page: number; pageSize: number; items: any[] }>(`/trusts/${active.trustId}/receipts`, { page, pageSize: 20, status: status || undefined, search: q || undefined }),
   })
 
   const { data: settings } = useQuery({
@@ -116,7 +120,37 @@ export default function ReceiptsPage() {
     onError: (e: any) => toast.error(e.message),
   })
 
-  const filtered = data?.items.filter((r) => !q || r.receiptNumber.toLowerCase().includes(q.toLowerCase()) || r.donation?.donorName.toLowerCase().includes(q.toLowerCase()))
+  const updatePhoneMutation = useMutation({
+    mutationFn: ({ receiptId, phone }: { receiptId: string; phone: string }) =>
+      api.patch<{ donation: any }>(`/trusts/${active.trustId}/receipts/${receiptId}/phone`, { phone }),
+    onSuccess: () => {
+      toast.success('Mobile number saved')
+      queryClient.invalidateQueries({ queryKey: ['receipts', active.trustId] })
+      setAddPhoneReceiptId(null)
+      setAddPhoneValue('')
+      setAddPhoneError('')
+    },
+    onError: (e: any) => setAddPhoneError(e.message),
+  })
+
+  function handleAddPhoneSubmit() {
+    if (!addPhoneReceiptId) return
+    if (!/^[6-9]\d{9}$/.test(addPhoneValue)) {
+      setAddPhoneError('Enter a valid 10-digit Indian mobile number')
+      return
+    }
+    setAddPhoneError('')
+    updatePhoneMutation.mutate({ receiptId: addPhoneReceiptId, phone: addPhoneValue })
+  }
+
+  function handleSearchChange(v: string) {
+    setQ(v)
+    setPage(1)
+  }
+  function handleStatusChange(v: string) {
+    setStatus(v)
+    setPage(1)
+  }
 
   function getActiveChannels(r: any): string[] {
     if (!settings || r.status !== 'ACTIVE') return []
@@ -131,14 +165,14 @@ export default function ReceiptsPage() {
       <PageHeader title="Receipts" subtitle="All generated Pāvati receipts" />
       <Card>
         <div className="flex flex-col gap-2 border-b border-stone-100 p-4 sm:flex-row">
-          <Input placeholder="Search receipt no. or donor…" value={q} onChange={(e) => setQ(e.target.value)} className="sm:max-w-xs" />
-          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-40">
+          <Input placeholder="Search receipt no. or donor…" value={q} onChange={(e) => handleSearchChange(e.target.value)} className="sm:max-w-xs" />
+          <Select value={status} onChange={(e) => handleStatusChange(e.target.value)} className="sm:max-w-40">
             <option value="">All statuses</option>
             <option value="ACTIVE">Active</option>
             <option value="VOID">Void</option>
           </Select>
         </div>
-        {isLoading || !data ? <Spinner /> : filtered!.length === 0 ? (
+        {isLoading || !data ? <Spinner /> : data.items.length === 0 ? (
           <EmptyState icon={<FileText className="h-6 w-6" />} title="No receipts found" description="Receipts are generated automatically with each donation." />
         ) : (
           <>
@@ -155,7 +189,7 @@ export default function ReceiptsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {filtered!.map((r) => {
+                  {data.items.map((r) => {
                     const channels = getActiveChannels(r)
                     return (
                       <tr key={r.id} className="hover:bg-stone-50">
@@ -184,6 +218,14 @@ export default function ReceiptsPage() {
                                   }}
                                 />
                               )}
+                              {!r.donation?.phone && settings?.notificationWhatsapp && (
+                                <button
+                                  onClick={() => { setAddPhoneReceiptId(r.id); setAddPhoneValue(''); setAddPhoneError('') }}
+                                  className="btn-outline px-2.5 py-1.5 text-xs"
+                                >
+                                  <Phone className="h-3.5 w-3.5" /> Add Mobile
+                                </button>
+                              )}
                               <button onClick={() => downloadReceiptPdf(r.id)} className="btn-outline px-2.5 py-1.5 text-xs"><Download className="h-3.5 w-3.5" /> PDF</button>
                             </div>
                           )}
@@ -198,6 +240,22 @@ export default function ReceiptsPage() {
           </>
         )}
       </Card>
+
+      <Modal open={!!addPhoneReceiptId} onClose={() => setAddPhoneReceiptId(null)} title="Add Mobile Number">
+        <p className="mb-3 text-sm text-stone-600">Enter the donor's mobile number to enable WhatsApp sharing.</p>
+        <Input
+          placeholder="10-digit mobile number"
+          value={addPhoneValue}
+          onChange={(e) => { setAddPhoneValue(e.target.value); setAddPhoneError('') }}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleAddPhoneSubmit() }}
+          autoFocus
+        />
+        {addPhoneError && <p className="mt-1 text-xs text-red-600">{addPhoneError}</p>}
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setAddPhoneReceiptId(null)}>Cancel</Button>
+          <Button onClick={handleAddPhoneSubmit} loading={updatePhoneMutation.isPending}>Save</Button>
+        </div>
+      </Modal>
     </AppLayout>
   )
 }

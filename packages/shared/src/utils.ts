@@ -1,4 +1,5 @@
 export function formatINR(amount: number, opts: { compact?: boolean } = {}): string {
+  if (!Number.isFinite(amount)) return '—'
   const formatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -24,10 +25,11 @@ const ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'
 const TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
 
 function twoDigits(n: number): string {
-  if (n < 20) return ONES[n]
+  if (!Number.isFinite(n) || n < 0) return ''
+  if (n < 20) return ONES[n] ?? ''
   const t = Math.floor(n / 10)
   const o = n % 10
-  return o ? `${TENS[t]} ${ONES[o]}` : TENS[t]
+  return `${TENS[t] ?? ''}${o ? ` ${ONES[o] ?? ''}` : ''}`.trim()
 }
 
 function threeDigits(n: number): string {
@@ -39,8 +41,10 @@ function threeDigits(n: number): string {
 
 /** Indian numbering system: rupees in words with paise. */
 export function amountInWords(amount: number): string {
-  const rupees = Math.floor(amount)
-  const paise = Math.round((amount - rupees) * 100)
+  if (!Number.isFinite(amount) || amount < 0) return 'Zero Rupees Only'
+  const totalPaise = Math.round(amount * 100)
+  const rupees = Math.floor(totalPaise / 100)
+  const paise = totalPaise % 100
   const crore = Math.floor(rupees / 10_000_000)
   const lakh = Math.floor((rupees % 10_000_000) / 100_000)
   const thousand = Math.floor((rupees % 100_000) / 1000)
@@ -53,8 +57,8 @@ export function amountInWords(amount: number): string {
   if (rest) parts.push(threeDigits(rest))
 
   const rupeesWords = parts.length ? parts.join(' ') : 'Zero'
-  if (!paise) return `${rupeesWords} Rupees Only`
-  return `${rupeesWords} and ${twoDigits(paise)} Paise Only`
+  const rupeesPart = paise ? `${rupeesWords} and ${twoDigits(paise)} Paise Only` : `${rupeesWords} Rupees Only`
+  return rupeesPart
 }
 
 export function initials(name: string): string {

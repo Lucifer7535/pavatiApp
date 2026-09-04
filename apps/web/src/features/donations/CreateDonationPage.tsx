@@ -28,6 +28,7 @@ const emptySplit = (): SplitRow => ({ paymentMode: PAYMENT_MODE.CASH, amount: ''
 const schema = z.object({
   donorName: z.string().min(2, 'Donor name is required'),
   phone: z.string().trim().refine((v) => v === '' || /^[6-9]\d{9}$/.test(v), 'Enter a valid 10-digit Indian mobile number').optional(),
+  email: z.string().trim().refine((v) => v === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Enter a valid email address').optional(),
   address: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
   paymentDate: z.string().optional(),
@@ -90,6 +91,7 @@ export default function CreateDonationPage() {
       const res = await api.post<{ donation: any; receipt: any; whatsappShareUrl?: string | null }>(`/trusts/${active.trustId}/donations`, {
         trustId: active.trustId,
         ...data,
+        email: data.email?.trim() || null,
         amount: total,
         splits: splits.map((s) => ({
           paymentMode: s.paymentMode,
@@ -183,6 +185,11 @@ export default function CreateDonationPage() {
                 <Input placeholder="9876543210" inputMode="numeric" {...register('phone')} />
                 {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>}
               </div>
+            </div>
+            <div>
+              <label className="label">Email <span className="text-stone-400">(to send receipt via email)</span></label>
+              <Input type="email" placeholder="donor@example.com" {...register('email')} />
+              {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
             </div>
             <div>
               <label className="label">Address</label>

@@ -6,7 +6,7 @@ import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { validateBody, validateQuery } from '../../middleware/validate.js'
-import { createDonationSchema, selfDonationSchema, PAYMENT_MODE, type PaymentMode } from '@pavati/shared'
+import { createDonationSchema, selfDonationSchema, PAYMENT_MODE, OFFICIAL_ROLES, type PaymentMode, type TrustRole } from '@pavati/shared'
 import { generateReceipt } from '../../services/receipts.js'
 import { sendReceiptNotifications, buildReceiptWhatsAppUrl } from '../../services/notifications.js'
 import { audit } from '../../services/audit.js'
@@ -87,6 +87,7 @@ router.post(
         trustId: trust.id,
         donorName: body.donorName,
         phone: body.phone || null,
+        email: body.email || null,
         address: body.address ?? null,
         amount: Math.round(body.amount),
         category: body.category,
@@ -153,9 +154,14 @@ router.get(
   validateQuery(listQuery),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof listQuery>
+    const member = req.trustMember!
     const ownOnly = !req.effectivePermissions?.includes('donation:view')
+    const isOfficial = OFFICIAL_ROLES.includes(member.role as TrustRole)
     const where: Prisma.DonationWhereInput = { trustId: req.trustId }
-    if (ownOnly) where.submittedById = req.trustMember!.id
+    if (ownOnly) where.submittedById = member.id
+    if (!isOfficial) {
+      where.AND = [{ OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] }]
+    }
     if (q.from || q.to) {
       where.donationDate = {}
       if (q.from) where.donationDate.gte = new Date(q.from)
@@ -187,12 +193,15 @@ router.get(
   '/:trustId/donations/:donationId',
   requirePermission(['donation:view', 'donation:view_own']),
   asyncHandler(async (req: TrustContextRequest, res) => {
+    const member = req.trustMember!
     const ownOnly = !req.effectivePermissions?.includes('donation:view')
+    const isOfficial = OFFICIAL_ROLES.includes(member.role as TrustRole)
     const donation = await prisma.donation.findFirst({
       where: {
         id: req.params.donationId,
         trustId: req.trustId,
-        ...(ownOnly ? { submittedById: req.trustMember!.id } : {}),
+        ...(ownOnly ? { submittedById: member.id } : {}),
+        ...(isOfficial ? {} : { OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] }),
       },
       include: { receipts: true, collector: { include: { user: true } }, campaign: true, splits: { orderBy: { createdAt: 'asc' }, include: { verifiedBy: { include: { user: true } } } } },
     })
@@ -270,6 +279,7 @@ router.post(
         trustId: trust.id,
         donorName: req.user!.name,
         phone: req.user!.phone ?? null,
+        email: req.user!.email ?? null,
         amount: Math.round(body.amount),
         category: body.category ?? 'General Donation',
         paymentMode: 'UPI',

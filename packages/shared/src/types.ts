@@ -1,6 +1,5 @@
 import type {
   AuditAction,
-  DonationCategory,
   DonationPrivacy,
   DonationStatus,
   JoinMode,
@@ -85,7 +84,7 @@ export interface Donation {
   donorName: string
   phone: string
   amount: number
-  category: DonationCategory | string
+  category: string
   paymentMode: PaymentMode
   transactionRef: string | null
   privacy: DonationPrivacy
