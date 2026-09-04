@@ -10,14 +10,14 @@ Built as a TypeScript monorepo with an Express.js API, React frontend, and Postg
 
 ## Features
 
-- **Multi-provider Authentication** — Phone, Email, and Google OAuth sign-in with JWT access/refresh token pairs
+- **Multi-provider Authentication** — Email, and Google OAuth sign-in with JWT access/refresh token pairs
 - **Trust Management** — Create and configure trusts with custom branding, registration details, financial year settings, and join policies (open, approval-based, invite-only)
 - **Role-Based Access Control** — Granular permission system with 11 trust roles (Primary Admin, President, Secretary, Treasurer, Collector, etc.) and per-member permission overrides
-- **Donation Tracking** — Record donations with multiple payment modes (Cash, UPI, Bank Transfer, Card, Online, Mixed), split payments, categories, and donor privacy controls (Public, Private, Anonymous)
+- **Donation Tracking** — Record donations with multiple payment modes (Cash, UPI, Mixed), split payments, categories, and donor privacy controls (Public, Private, Anonymous)
 - **Receipt Generation** — PDF receipt engine with customizable templates (A4/A5/A6/Custom page sizes), background images, field positioning, auto-numbering with configurable prefixes, and verification tokens
 - **Payment Campaigns** — Create campaigns with suggested amounts, QR codes, and public donation pages via slug-based URLs
 - **Announcements** — Publish notices, events, festival greetings, and meeting announcements with read tracking
-- **Notifications** — Multi-channel messaging (Email via Resend, SMS, WhatsApp) for receipt delivery and trust communications
+- **Notifications** — Multi-channel messaging (Email via Resend, WhatsApp) for receipt delivery and trust communications
 - **File Uploads** — Cloudflare R2 object storage with presigned URLs, or local disk fallback for development
 - **Dashboard & Reports** — Donation summaries, collection analytics, and exportable reports
 - **Audit Logging** — Full activity trail for compliance and accountability
@@ -216,6 +216,96 @@ npm run test
 
 ---
 
+## Deploy to Heroku
+
+This project is pre-configured for Heroku:
+
+- **`Procfile`** — `release` runs `prisma migrate deploy` (applies DB migrations), `web` serves the built API (`node apps/api/dist/src/index.js`).
+- **`heroku-postbuild`** — automatically runs `prisma generate` and `npm run build` on every deploy, so no manual build step is needed.
+- **`app.json`** — used by the Deploy button to provision a PostgreSQL addon, set config vars, and pick the Node buildpack.
+- The API dyno also serves the built frontend from `WEB_DIST_DIR` (single-dyno deployment).
+
+### Option A — Deploy button
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Lucifer7535/pavatiApp)
+
+Clicking the button opens Heroku, creates the app, provisions a PostgreSQL database, and sets the default config vars. After the first deploy, update `WEB_ORIGIN` and `PUBLIC_BASE_URL` to match your app's actual URL.
+
+### Option B — Heroku CLI
+
+1. **Install the CLI and log in**
+
+   ```bash
+   heroku login
+   ```
+
+2. **Create the app**
+
+   ```bash
+   heroku create pavati-pustak
+   ```
+
+3. **Set the buildpack**
+
+   ```bash
+   heroku buildpacks:set heroku/nodejs
+   ```
+
+4. **Add a PostgreSQL database** (this sets `DATABASE_URL` automatically)
+
+   ```bash
+   heroku addons:create heroku-postgresql:hobby-dev
+   ```
+
+5. **Set config variables**
+
+   ```bash
+   heroku config:set JWT_SECRET="$(openssl rand -base64 48)"
+   heroku config:set REFRESH_SECRET="$(openssl rand -base64 48)"
+   heroku config:set JWT_EXPIRES_IN=7d
+   heroku config:set WEB_ORIGIN=https://pavati-pustak.herokuapp.com
+   heroku config:set PUBLIC_BASE_URL=https://pavati-pustak.herokuapp.com
+   heroku config:set WEB_DIST_DIR=apps/web/dist
+   heroku config:set MOCK_MODE=true
+   ```
+
+   Optional — enable real integrations instead of mock providers:
+
+   ```bash
+   heroku config:set R2_ACCOUNT_ID=your-cloudflare-account-id
+   heroku config:set R2_ACCESS_KEY_ID=your-r2-access-key-id
+   heroku config:set R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+   heroku config:set R2_BUCKET=your-bucket-name
+   heroku config:set GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+   heroku config:set RESEND_API_KEY=re_your-resend-api-key
+   heroku config:set RESEND_FROM_EMAIL=no-reply@yourdomain.com
+   heroku config:set MOCK_MODE=false
+   ```
+
+   > `DATABASE_URL` is set by the Postgres addon — do **not** set it manually.
+
+6. **Deploy**
+
+   ```bash
+   git push heroku master
+   ```
+
+7. **Open the app**
+
+   ```bash
+   heroku open
+   ```
+
+8. **Watch the deploy logs** (optional)
+
+   ```bash
+   heroku logs --tail
+   ```
+
+> Your Heroku repo URL is `git@heroku.com:pavati-pustak.git` (from `heroku create`). Running `git push heroku master` sends your current `master` branch to Heroku, which triggers the `release` and `web` processes defined in the `Procfile`.
+
+---
+
 ## API Endpoints
 
 All API routes are prefixed with `/api/v1/`:
@@ -256,10 +346,9 @@ All API routes are prefixed with `/api/v1/`:
 - Shared types and validation schemas are in `packages/shared/`
 - Use **Zod** for runtime validation
 - Use **Pino** for structured logging (not `console.log`)
-- Never commit `.env` files or secrets
 
 ---
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](./LICENSE).

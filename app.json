@@ -1,0 +1,43 @@
+{
+  "name": "Pāvati Pustak",
+  "description": "Digital Trust, Donation & Receipt Management",
+  "repository": "https://github.com/Lucifer7535/pavatiApp",
+  "keywords": ["node", "express", "react", "postgresql", "prisma", "donation", "receipt", "typescript", "monorepo"],
+  "env": {
+    "JWT_SECRET": {
+      "generator": "secret"
+    },
+    "REFRESH_SECRET": {
+      "generator": "secret"
+    },
+    "JWT_EXPIRES_IN": {
+      "value": "7d"
+    },
+    "WEB_ORIGIN": {
+      "value": "https://<app-name>.herokuapp.com",
+      "description": "Must match your app's Heroku URL — update after deploy."
+    },
+    "PUBLIC_BASE_URL": {
+      "value": "https://<app-name>.herokuapp.com",
+      "description": "Must match your app's Heroku URL — update after deploy."
+    },
+    "WEB_DIST_DIR": {
+      "value": "apps/web/dist"
+    },
+    "MOCK_MODE": {
+      "value": "true",
+      "description": "Set to false and configure R2 / Resend / Google OAuth for real integrations."
+    }
+  },
+  "addons": ["heroku-postgresql:hobby-dev"],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  }
+}
