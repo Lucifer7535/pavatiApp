@@ -75,9 +75,13 @@ export default function AccountPage() {
   }
 
   const loadDonations = async () => {
-    const res = await api.get<any[]>('/users/me/donations')
-    setDonations(res)
-    setLoaded(true)
+    try {
+      const res = await api.get<{ items: any[] }>('/users/me/donations')
+      setDonations(res.items ?? [])
+      setLoaded(true)
+    } catch (e: any) {
+      toast.error(e.message)
+    }
   }
 
   const logout = useLogout()
