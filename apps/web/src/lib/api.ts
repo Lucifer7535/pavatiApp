@@ -124,7 +124,7 @@ export function uploadFile(dataUrl: string, kind: 'image' | 'pdf' = 'image') {
 
 async function fetchPdf(id: string): Promise<Blob> {
   const token = getAccessToken()
-  const res = await fetch(`${API_BASE}/receipts/${id}/pdf`, {
+  const res = await fetch(`${API_BASE}/receipts/receipts/${id}/pdf`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
   if (!res.ok) throw new ApiError(res.status, 'Failed to load receipt PDF')
