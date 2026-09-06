@@ -32,7 +32,6 @@ router.get(
 
 router.get(
   '/:trustId/notifications/settings',
-  requirePermission('notification:manage'),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const trust = await prisma.trust.findUnique({ where: { id: req.trustId }, select: { notificationSms: true, notificationWhatsapp: true, notificationEmail: true } })
     ok(res, trust)
