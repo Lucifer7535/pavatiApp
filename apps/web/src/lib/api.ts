@@ -16,23 +16,23 @@ let refreshToken: string | null = null
 export function setTokens(access: string, refresh: string) {
   accessToken = access
   refreshToken = refresh
-  sessionStorage.setItem('pp_access', access)
-  sessionStorage.setItem('pp_refresh', refresh)
+  localStorage.setItem('pp_access', access)
+  localStorage.setItem('pp_refresh', refresh)
 }
 
 export function getAccessToken() {
-  return accessToken ?? sessionStorage.getItem('pp_access')
+  return accessToken ?? localStorage.getItem('pp_access')
 }
 
 export function getRefreshToken() {
-  return refreshToken ?? sessionStorage.getItem('pp_refresh')
+  return refreshToken ?? localStorage.getItem('pp_refresh')
 }
 
 export function clearTokens() {
   accessToken = null
   refreshToken = null
-  sessionStorage.removeItem('pp_access')
-  sessionStorage.removeItem('pp_refresh')
+  localStorage.removeItem('pp_access')
+  localStorage.removeItem('pp_refresh')
 }
 
 let refreshPromise: Promise<boolean> | null = null
@@ -52,7 +52,9 @@ async function tryRefresh(): Promise<boolean> {
       setTokens(s.accessToken, s.refreshToken)
       return true
     }
-    clearTokens()
+    if (refreshed.status === 401 || refreshed.status === 403) {
+      clearTokens()
+    }
     return false
   } catch {
     return false

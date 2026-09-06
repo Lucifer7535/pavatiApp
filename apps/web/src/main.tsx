@@ -10,7 +10,7 @@ import './styles/index.css'
 import { router } from './app/router'
 import { setLocale, getLocale } from './lib/i18n'
 import { useAuth } from './lib/stores/auth'
-import { api } from './lib/api'
+import { api, getRefreshToken } from './lib/api'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
 const queryClient = new QueryClient({
@@ -19,10 +19,19 @@ const queryClient = new QueryClient({
 
 setLocale(getLocale())
 
-api.get<{ user: any; memberships: any[] }>('/auth/me').then((data) => {
-  useAuth.getState().setSession(data)
+async function loadSession(attempt = 0) {
+  try {
+    const data = await api.get<{ user: any; memberships: any[] }>('/auth/me')
+    useAuth.getState().setSession(data)
+  } catch {
+    if (attempt < 2 && getRefreshToken()) {
+      await new Promise((r) => setTimeout(r, 750 * (attempt + 1)))
+      return loadSession(attempt + 1)
+    }
+  }
   render()
-}).catch(() => render())
+}
+loadSession()
 
 let rendered = false
 function render() {
