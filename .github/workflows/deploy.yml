@@ -29,6 +29,9 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate --schema apps/api/prisma/schema.prisma
 
+      - name: Build workspace libraries
+        run: npm run build -w @pavati/shared && npm run build -w @pavati/receipt-engine
+
       - name: Typecheck
         run: npm run typecheck
 
