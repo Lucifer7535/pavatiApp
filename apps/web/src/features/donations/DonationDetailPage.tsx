@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Download, Ban, FileText, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Download, Ban, FileText, CheckCircle2, Clock, ExternalLink, Edit2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, downloadReceiptPdf } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
-import { Card, CardHeader, Badge, Spinner, Button } from '../../components/ui'
+import { Card, CardHeader, Badge, Spinner, Button, Modal, Input, Textarea } from '../../components/ui'
 import { formatINR, timeAgo } from '../../lib/utils'
 import { PAYMENT_MODE_LABELS, permissionsForRole, type TrustRole } from '@pavati/shared'
 import { useActiveTrust } from '../../lib/stores/auth'
@@ -18,6 +19,9 @@ export default function DonationDetailPage() {
   const perms = permissionsForRole(active.role as TrustRole) as string[]
   const canVerify = perms.includes('donation:verify')
   const canVoid = perms.includes('donation:void')
+  const canEdit = perms.includes('donation:create')
+  const [editOpen, setEditOpen] = useState(false)
+  const [form, setForm] = useState({ donorName: '', phone: '', email: '', address: '', notes: '' })
   const { data: d, isLoading } = useQuery({
     queryKey: ['donation', donationId],
     queryFn: () => api.get<any>(`/trusts/${active.trustId}/donations/${donationId}`),
@@ -48,6 +52,33 @@ export default function DonationDetailPage() {
     }
   }
 
+  const openEdit = () => {
+    setForm({ donorName: d?.donorName ?? '', phone: d?.phone ?? '', email: d?.email ?? '', address: d?.address ?? '', notes: d?.notes ?? '' })
+    setEditOpen(true)
+  }
+
+  const editDonation = useMutation({
+    mutationFn: (body: any) => api.patch<{ donation: any; regenerated: number }>(`/trusts/${active.trustId}/donations/${donationId}`, body),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['donation', donationId] })
+      qc.invalidateQueries({ queryKey: ['donations', active.trustId] })
+      qc.invalidateQueries({ queryKey: ['dashboard', active.trustId] })
+      setEditOpen(false)
+      toast.success(res.regenerated > 0 ? `Details updated — ${res.regenerated} receipt${res.regenerated > 1 ? 's' : ''} regenerated` : 'Donor details updated')
+    },
+    onError: (e: any) => toast.error(e.message),
+  })
+
+  const submitEdit = () => {
+    editDonation.mutate({
+      donorName: form.donorName.trim(),
+      phone: form.phone.trim() || null,
+      email: form.email.trim() || null,
+      address: form.address.trim() || null,
+      notes: form.notes.trim() || null,
+    })
+  }
+
   if (isLoading || !d) return <AppLayout><Spinner /></AppLayout>
 
   const pendingSplits = (d.splits ?? []).filter((s: any) => !s.verifiedAt)
@@ -59,7 +90,11 @@ export default function DonationDetailPage() {
       </Link>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader title={`${d.donorName}'s donation`} subtitle={`${new Date(d.donationDate).toLocaleString()}`} />
+          <CardHeader
+            title={`${d.donorName}'s donation`}
+            subtitle={`${new Date(d.donationDate).toLocaleString()}`}
+            action={canEdit && d.status !== 'CANCELLED' ? <Button size="sm" variant="outline" onClick={openEdit}><Edit2 className="h-3.5 w-3.5" /> Edit details</Button> : undefined}
+          />
           <div className="p-6">
             <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-saffron-50 to-cream-100 p-5">
               <div>
@@ -77,6 +112,8 @@ export default function DonationDetailPage() {
               <div><dt className="text-stone-400">Category</dt><dd className="font-medium text-stone-800">{d.category}</dd></div>
               <div><dt className="text-stone-400">Payment mode</dt><dd className="font-medium text-stone-800">{(PAYMENT_MODE_LABELS as Record<string, string>)[d.paymentMode] ?? d.paymentMode}</dd></div>
               <div><dt className="text-stone-400">Phone</dt><dd className="font-medium text-stone-800">{d.phone ?? '—'}</dd></div>
+              <div><dt className="text-stone-400">Email</dt><dd className="font-medium text-stone-800 break-all">{d.email ?? '—'}</dd></div>
+              <div><dt className="text-stone-400">Address</dt>{d.address ? <dd className="font-medium text-stone-800">{d.address}</dd> : <dd className="font-medium text-stone-400">{canEdit ? <>Not added — <button onClick={openEdit} className="text-saffron-600 underline">add now</button></> : '—'}</dd>}</div>
               <div><dt className="text-stone-400">Privacy</dt><dd className="font-medium text-stone-800">{d.privacy}</dd></div>
               <div><dt className="text-stone-400">Collector</dt><dd className="font-medium text-stone-800">{d.collector?.user?.name ?? 'Online'}</dd></div>
               {d.campaign && <div><dt className="text-stone-400">Payment link</dt><dd className="font-medium text-stone-800"><a href={`/donate/${d.campaign.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-saffron-600 hover:underline">{d.campaign.name} <ExternalLink className="h-3 w-3" /></a></dd></div>}
@@ -148,6 +185,38 @@ export default function DonationDetailPage() {
           )}
         </div>
       </div>
+
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit donor details">
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submitEdit() }}>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-stone-600">Donor name</label>
+            <Input value={form.donorName} onChange={(e) => setForm({ ...form, donorName: e.target.value })} required minLength={2} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-stone-600">Phone</label>
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} inputMode="numeric" maxLength={10} placeholder="10-digit mobile" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-stone-600">Email</label>
+              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" placeholder="for receipt email" />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-stone-600">Address</label>
+            <Textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Printed on the receipt" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-stone-600">Notes</label>
+            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes (not on the receipt)" />
+          </div>
+          <p className="text-xs text-stone-500">Saving regenerates the active receipt. Already-shared older links keep working.</p>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button type="submit" loading={editDonation.isPending}>Save changes</Button>
+          </div>
+        </form>
+      </Modal>
     </AppLayout>
   )
 }

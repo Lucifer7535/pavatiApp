@@ -157,6 +157,14 @@ export const createDonationSchema = z
     }
   })
 
+export const updateDonationSchema = z.object({
+  donorName: z.string().min(2, 'Donor name is required').optional(),
+  phone: phoneOrEmpty.optional().nullable(),
+  email: email.optional().nullable(),
+  address: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+})
+
 export const createCampaignSchema = z.object({
   name: z.string().min(2, 'Campaign name is required'),
   description: z.string().optional().nullable(),
@@ -241,6 +249,7 @@ export { phone, phoneOrEmpty, SUGGESTED_AMOUNTS }
 export type CreateTrustInput = z.infer<typeof createTrustSchema>
 export type UpdateTrustInput = z.infer<typeof updateTrustSchema>
 export type CreateDonationInput = z.infer<typeof createDonationSchema>
+export type UpdateDonationInput = z.infer<typeof updateDonationSchema>
 export type SelfDonationInput = z.infer<typeof selfDonationSchema>
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>
 export type CreateAnnouncementInput = z.infer<typeof createAnnouncementSchema>

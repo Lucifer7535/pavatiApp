@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import type { Donation, Trust, TrustMember } from '@prisma/client'
+import type { Donation, ReceiptTemplate, Trust, TrustMember } from '@prisma/client'
 import type { ReceiptFieldConfig } from '@pavati/shared'
 import { PAYMENT_MODE_LABELS } from '@pavati/shared'
 import { randomBytes } from 'node:crypto'
@@ -49,18 +49,8 @@ export async function getNextReceiptNumber(trustId: string, year: string): Promi
   })
 }
 
-export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id: string; receiptNumber: string; pdfUrl: string; verificationToken: string }> {
-  const { donation, trust } = input
-
-  const template = input.templateId
-    ? await prisma.receiptTemplate.findUnique({ where: { id: input.templateId } })
-    : await prisma.receiptTemplate.findFirst({ where: { trustId: trust.id, active: true } })
-
-  if (!template) {
-    throw new AppError(400, 'No receipt template configured. Please create and activate a Pāvati template first.')
-  }
-
-  const templateView: ReceiptTemplateView = {
+function toTemplateView(template: ReceiptTemplate): ReceiptTemplateView {
+  return {
     id: template.id,
     name: template.name,
     pageSize: template.pageSize,
@@ -69,17 +59,25 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
     backgroundImageUrl: template.backgroundImageUrl,
     fieldConfigs: template.fieldConfigs as unknown as ReceiptFieldConfig[],
   }
+}
 
-  const year = new Date(donation.donationDate).getFullYear().toString()
-  const receiptNumber = await getNextReceiptNumber(trust.id, year)
+async function findTemplate(trustId: string, templateId?: string): Promise<ReceiptTemplate | null> {
+  return templateId
+    ? await prisma.receiptTemplate.findUnique({ where: { id: templateId } })
+    : await prisma.receiptTemplate.findFirst({ where: { trustId, active: true } })
+}
 
-  const verificationToken = randomBytes(16).toString('hex')
-  const verificationUrl = `${config.webOrigin}/receipt/verify/${verificationToken}`
+interface ReceiptBuilderInput {
+  collector?: (TrustMember & { user?: { name: string } | null }) | null
+  collectorName?: string | null
+}
 
-  const background = template.backgroundImageUrl ? (await fileFromUrl(template.backgroundImageUrl))?.buffer ?? null : null
-  const logo = trust.logoUrl ? (await fileFromUrl(trust.logoUrl))?.buffer ?? null : null
-  const qr = await generateQrPng(verificationUrl)
-
+async function buildReceiptData(
+  trust: Trust,
+  donation: Donation,
+  receiptNumber: string,
+  input: ReceiptBuilderInput = {},
+): Promise<ReceiptData> {
   let paymentBreakdown: string | undefined
   let transactionRef: string | undefined
   if (donation.paymentMode === 'MIXED') {
@@ -89,7 +87,7 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
     if (refs.length) transactionRef = refs.join(' / ')
   }
 
-  const data: ReceiptData = {
+  return {
     trustName: trust.name,
     trustAddress: [trust.address, trust.city, trust.pinCode].filter(Boolean).join(', '),
     receiptNumber,
@@ -105,16 +103,46 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
     collectorName: input.collectorName ?? (input.collector ? `${input.collector.position || ''} ${input.collector.user?.name ?? ''}`.trim() : undefined),
     footerText: `धन्यवाद - Thank you for your generous support`,
   }
+}
+
+async function renderAndStoreReceiptPdf(params: {
+  trust: Trust
+  template: ReceiptTemplateView
+  data: ReceiptData
+  verificationToken: string
+}): Promise<string> {
+  const verificationUrl = `${config.webOrigin}/receipt/verify/${params.verificationToken}`
+  const background = params.template.backgroundImageUrl ? (await fileFromUrl(params.template.backgroundImageUrl))?.buffer ?? null : null
+  const logo = params.trust.logoUrl ? (await fileFromUrl(params.trust.logoUrl))?.buffer ?? null : null
+  const qr = await generateQrPng(verificationUrl)
+  const pdfBytes = await renderReceiptPdf({
+    template: params.template,
+    data: params.data,
+    background,
+    logo,
+    qr,
+  })
+  const stored = await savePdf(pdfBytes, `receipts/${params.trust.id}`)
+  return stored.url
+}
+
+export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id: string; receiptNumber: string; pdfUrl: string; verificationToken: string }> {
+  const { donation, trust } = input
+
+  const template = await findTemplate(trust.id, input.templateId)
+
+  if (!template) {
+    throw new AppError(400, 'No receipt template configured. Please create and activate a Pāvati template first.')
+  }
+
+  const year = new Date(donation.donationDate).getFullYear().toString()
+  const receiptNumber = await getNextReceiptNumber(trust.id, year)
+
+  const verificationToken = randomBytes(16).toString('hex')
 
   try {
-    const pdfBytes = await renderReceiptPdf({
-      template: templateView,
-      data,
-      background,
-      logo,
-      qr,
-    })
-    const stored = await savePdf(pdfBytes, `receipts/${trust.id}`)
+    const data = await buildReceiptData(trust, donation, receiptNumber, { collector: input.collector, collectorName: input.collectorName })
+    const pdfUrl = await renderAndStoreReceiptPdf({ trust, template: toTemplateView(template), data, verificationToken })
 
     const receipt = await prisma.receipt.create({
       data: {
@@ -122,7 +150,7 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
         donationId: donation.id,
         trustId: trust.id,
         templateId: template.id,
-        pdfUrl: stored.url,
+        pdfUrl,
         verificationToken,
       },
     })
@@ -130,13 +158,44 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
     return {
       id: receipt.id,
       receiptNumber,
-      pdfUrl: stored.url,
+      pdfUrl,
       verificationToken,
     }
   } catch (e) {
     logger.error({ err: e }, 'PDF generation failed')
     throw new AppError(500, 'Failed to generate receipt PDF')
   }
+}
+
+export async function regenerateReceiptPdf(donationId: string): Promise<number> {
+  const receipts = await prisma.receipt.findMany({
+    where: { donationId, status: 'ACTIVE' },
+    include: { donation: true, trust: true },
+  })
+  if (receipts.length === 0) return 0
+
+  let regenerated = 0
+  for (const receipt of receipts) {
+    try {
+      const template = await prisma.receiptTemplate.findUnique({ where: { id: receipt.templateId } })
+      if (!template) continue
+      const collector = receipt.donation.collectorId
+        ? await prisma.trustMember.findUnique({ where: { id: receipt.donation.collectorId }, include: { user: true } })
+        : null
+      const data = await buildReceiptData(receipt.trust, receipt.donation, receipt.receiptNumber, { collector })
+      const pdfUrl = await renderAndStoreReceiptPdf({
+        trust: receipt.trust,
+        template: toTemplateView(template),
+        data,
+        verificationToken: receipt.verificationToken,
+      })
+      await prisma.receipt.update({ where: { id: receipt.id }, data: { pdfUrl } })
+      regenerated++
+    } catch (e) {
+      logger.error({ err: e, receiptId: receipt.id }, 'Receipt PDF regeneration failed')
+    }
+  }
+  return regenerated
 }
 
 export async function verifyReceiptData(token: string) {

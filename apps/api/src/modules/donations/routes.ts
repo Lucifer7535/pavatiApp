@@ -6,8 +6,8 @@ import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { validateBody, validateQuery } from '../../middleware/validate.js'
-import { createDonationSchema, selfDonationSchema, PAYMENT_MODE, OFFICIAL_ROLES, type PaymentMode, type TrustRole } from '@pavati/shared'
-import { generateReceipt } from '../../services/receipts.js'
+import { createDonationSchema, selfDonationSchema, updateDonationSchema, PAYMENT_MODE, OFFICIAL_ROLES, type PaymentMode, type TrustRole } from '@pavati/shared'
+import { generateReceipt, regenerateReceiptPdf } from '../../services/receipts.js'
 import { sendReceiptNotifications, buildReceiptWhatsAppUrl } from '../../services/notifications.js'
 import { audit } from '../../services/audit.js'
 
@@ -207,6 +207,61 @@ router.get(
     })
     if (!donation) throw new AppError(404, 'Donation not found')
     ok(res, donation)
+  })
+)
+
+router.patch(
+  '/:trustId/donations/:donationId',
+  requirePermission('donation:create'),
+  validateBody(updateDonationSchema),
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    const donation = await prisma.donation.findFirst({ where: { id: req.params.donationId, trustId: req.trustId } })
+    if (!donation) throw new AppError(404, 'Donation not found')
+    if (donation.status === 'CANCELLED') throw new AppError(400, 'Donation is voided')
+
+    const data: Prisma.DonationUpdateInput = {}
+    if (req.body.donorName !== undefined) data.donorName = req.body.donorName
+    if ('phone' in req.body) data.phone = req.body.phone ?? null
+    if ('email' in req.body) data.email = req.body.email ?? null
+    if ('address' in req.body) data.address = req.body.address ?? null
+    if ('notes' in req.body) data.notes = req.body.notes ?? null
+
+    const previousReceipts = donation.status === 'SUCCEEDED'
+      ? await prisma.receipt.findMany({ where: { donationId: donation.id, status: 'ACTIVE' }, select: { id: true, receiptNumber: true, pdfUrl: true } })
+      : []
+
+    const updated = await prisma.donation.update({ where: { id: donation.id }, data })
+
+    let regenerated = 0
+    const pdfChanges: { receiptId: string; receiptNumber: string; oldPdfUrl: string | null; newPdfUrl: string }[] = []
+    if (updated.status === 'SUCCEEDED') {
+      regenerated = await regenerateReceiptPdf(donation.id)
+      if (regenerated > 0) {
+        const current = await prisma.receipt.findMany({ where: { id: { in: previousReceipts.map((r) => r.id) } }, select: { id: true, pdfUrl: true } })
+        const byId = new Map(current.map((r) => [r.id, r.pdfUrl]))
+        for (const prev of previousReceipts) {
+          const newUrl = byId.get(prev.id)
+          if (newUrl && newUrl !== prev.pdfUrl) {
+            pdfChanges.push({ receiptId: prev.id, receiptNumber: prev.receiptNumber, oldPdfUrl: prev.pdfUrl, newPdfUrl: newUrl })
+          }
+        }
+      }
+    }
+
+    await audit({
+      actorId: req.user!.id,
+      trustId: req.trustId,
+      action: 'DONATION_UPDATED',
+      entityType: 'Donation',
+      entityId: donation.id,
+      metadata: {
+        fields: Object.keys(data),
+        regenerated,
+        receipts: pdfChanges.length ? pdfChanges : undefined,
+      },
+    })
+
+    ok(res, { donation: updated, regenerated })
   })
 )
 
