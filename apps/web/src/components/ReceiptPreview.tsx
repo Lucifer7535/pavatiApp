@@ -5,13 +5,16 @@ import { Spinner } from './ui'
 import { cn } from '../lib/utils'
 
 function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error(`Failed to load image: ${url}`))
-    img.src = url
-  })
+  const bust = (u: string) => u + (u.includes('?') ? '&' : '?') + `_=${Date.now()}`
+  const load = (cors: boolean) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image()
+      if (cors) img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error(`Failed to load image: ${url}`))
+      img.src = bust(url)
+    })
+  return load(true).catch(() => load(false))
 }
 
 export interface PreviewData {
