@@ -106,7 +106,7 @@ function TrustSwitcher() {
                 {m.role !== 'PRIMARY_ADMIN' && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleLeaveClick(m.trustId, m.trust.name) }}
-                    className="mr-2 rounded-lg p-1.5 text-stone-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                    className="mr-2 rounded-lg p-1.5 text-stone-300 transition-colors hover:bg-red-50 hover:text-red-500 group-hover:text-stone-500"
                     title="Leave trust"
                   >
                     <DoorOpen className="h-3.5 w-3.5" />
