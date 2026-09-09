@@ -41,18 +41,22 @@ function TrustSwitcher() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [open, setOpen] = useState(false)
-  const [leaveTrustId, setLeaveTrustId] = useState<string | null>(null)
-  const [leaveTrustName, setLeaveTrustName] = useState('')
+  const [leaveOpen, setLeaveOpen] = useState(false)
+  const [selectedToLeave, setSelectedToLeave] = useState<string[]>([])
+
+  const leavable = memberships.filter((m) => m.role !== 'PRIMARY_ADMIN')
+  const hasPrimaryAdmin = memberships.some((m) => m.role === 'PRIMARY_ADMIN')
 
   const leave = useMutation({
-    mutationFn: (trustId: string) => api.post(`/trusts/${trustId}/leave`),
+    mutationFn: (trustIds: string[]) => Promise.all(trustIds.map((id) => api.post(`/trusts/${id}/leave`))),
     onSuccess: () => {
-      removeMembership(leaveTrustId!)
+      selectedToLeave.forEach((id) => removeMembership(id))
       qc.invalidateQueries({ queryKey: ['auth-me'] })
-      toast.success('Left trust successfully')
-      setLeaveTrustId(null)
+      toast.success(`Left ${selectedToLeave.length} ${selectedToLeave.length === 1 ? 'trust' : 'trusts'}`)
+      setLeaveOpen(false)
+      setSelectedToLeave([])
       setOpen(false)
-      const remaining = memberships.filter((m) => m.trustId !== leaveTrustId)
+      const remaining = memberships.filter((m) => !selectedToLeave.includes(m.trustId))
       if (remaining.length > 0) {
         navigate('/app')
       } else {
@@ -62,9 +66,8 @@ function TrustSwitcher() {
     onError: (e: any) => toast.error(e.message),
   })
 
-  const handleLeaveClick = (trustId: string, trustName: string) => {
-    setLeaveTrustId(trustId)
-    setLeaveTrustName(trustName)
+  const toggleSelectAll = () => {
+    setSelectedToLeave(selectedToLeave.length === leavable.length ? [] : leavable.map((m) => m.trustId))
   }
 
   if (memberships.length === 0) return null
@@ -103,18 +106,17 @@ function TrustSwitcher() {
                   <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-700">{m.trust.name}</span>
                   {m.trustId === active?.trustId && <span className="h-2 w-2 rounded-full bg-saffron-500" />}
                 </button>
-                {m.role !== 'PRIMARY_ADMIN' && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleLeaveClick(m.trustId, m.trust.name) }}
-                    className="mr-2 rounded-lg p-1.5 text-stone-300 transition-colors hover:bg-red-50 hover:text-red-500 group-hover:text-stone-500"
-                    title="Leave trust"
-                  >
-                    <DoorOpen className="h-3.5 w-3.5" />
-                  </button>
-                )}
               </div>
             ))}
             <div className="border-t border-stone-100 p-2">
+              {leavable.length > 0 && (
+                <button
+                  onClick={() => { setLeaveOpen(true); setOpen(false) }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                >
+                  <DoorOpen className="h-4 w-4" /> Leave Trust
+                </button>
+              )}
               <Link to="/onboarding" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-saffron-600 hover:bg-saffron-50">
                 <PlusCircle className="h-4 w-4" /> Create or join trust
               </Link>
@@ -123,13 +125,54 @@ function TrustSwitcher() {
         </>
       )}
 
-      <Modal open={!!leaveTrustId} onClose={() => setLeaveTrustId(null)} title={`Leave ${leaveTrustName}?`}>
+      <Modal open={leaveOpen} onClose={() => setLeaveOpen(false)} title="Leave trusts">
         <div className="space-y-3">
-          <p className="text-sm text-stone-600">Your donation history will be preserved in the trust. You can rejoin anytime using the join code.</p>
-          <p className="text-sm text-amber-600">You will lose access to this trust's dashboard and data.</p>
+          <p className="text-sm text-stone-600">Select the trusts you want to leave. Your donation history is preserved and you can rejoin anytime using the join code.</p>
+          {hasPrimaryAdmin && (
+            <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">Primary-admin trusts can't be left directly — transfer ownership first, then leave.</p>
+          )}
+          {leavable.length > 0 ? (
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-stone-200 px-3 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                <input type="checkbox" checked={selectedToLeave.length === leavable.length && leavable.length > 0} onChange={toggleSelectAll} className="h-4 w-4 rounded border-stone-300" />
+                Select all
+              </label>
+              <div className="max-h-56 divide-y divide-stone-100 overflow-y-auto rounded-xl border border-stone-200">
+                {leavable.map((m) => (
+                  <label key={m.trustId} className="flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-stone-50">
+                    <input
+                      type="checkbox"
+                      checked={selectedToLeave.includes(m.trustId)}
+                      onChange={() =>
+                        setSelectedToLeave((prev) =>
+                          prev.includes(m.trustId) ? prev.filter((id) => id !== m.trustId) : [...prev, m.trustId]
+                        )
+                      }
+                      className="h-4 w-4 rounded border-stone-300"
+                    />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-stone-100 text-xs font-bold text-stone-600">
+                      {m.trust.logoUrl ? <img src={m.trust.logoUrl} alt="" className="h-full w-full object-cover" /> : m.trust.name[0]}
+                    </div>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-700">{m.trust.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-stone-500">You are not a member of any trust you can leave.</p>
+          )}
+          <p className="text-sm text-amber-600">You will lose access to the selected trusts' dashboards and data.</p>
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" className="flex-1" onClick={() => setLeaveTrustId(null)}>Cancel</Button>
-            <Button variant="danger" className="flex-1" loading={leave.isPending} onClick={() => leave.mutate(leaveTrustId!)}>Leave Trust</Button>
+            <Button variant="outline" className="flex-1" onClick={() => setLeaveOpen(false)}>Cancel</Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              disabled={selectedToLeave.length === 0}
+              loading={leave.isPending}
+              onClick={() => leave.mutate(selectedToLeave)}
+            >
+              {selectedToLeave.length > 0 ? `Leave ${selectedToLeave.length} ${selectedToLeave.length === 1 ? 'trust' : 'trusts'}` : 'Leave'}
+            </Button>
           </div>
         </div>
       </Modal>
