@@ -32,6 +32,7 @@ interface AuthState {
   setSession: (data: { user: AuthState['user']; memberships: Membership[] }) => void
   setActiveTrust: (trustId: string) => void
   updateUser: (user: AuthState['user']) => void
+  removeMembership: (trustId: string) => void
   logout: () => void
 }
 
@@ -50,6 +51,20 @@ export const useAuth = create<AuthState>((set) => ({
     set({ activeTrustId: trustId })
   },
   updateUser: (user) => set({ user }),
+  removeMembership: (trustId) =>
+    set((state) => {
+      const remaining = state.memberships.filter((m) => m.trustId !== trustId)
+      let nextActiveId = state.activeTrustId
+      if (nextActiveId === trustId) {
+        nextActiveId = remaining[0]?.trustId ?? null
+      }
+      if (nextActiveId) {
+        localStorage.setItem('pp_active_trust', nextActiveId)
+      } else {
+        localStorage.removeItem('pp_active_trust')
+      }
+      return { memberships: remaining, activeTrustId: nextActiveId }
+    }),
   logout: () => {
     localStorage.removeItem('pp_active_trust')
     set({ user: null, memberships: [], activeTrustId: null })

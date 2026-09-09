@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ReceiptText, Users, Megaphone, Link2, BarChart3, Bell, Settings, FileClock, Wallet, Menu, ChevronDown, LogOut, PlusCircle, UserCircle2, HeartHandshake } from 'lucide-react'
+import { LayoutDashboard, ReceiptText, Users, Megaphone, Link2, BarChart3, Bell, Settings, FileClock, Wallet, Menu, ChevronDown, LogOut, PlusCircle, UserCircle2, HeartHandshake, DoorOpen } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useAuth, useActiveTrust } from '../lib/stores/auth'
 import { useLogout } from '../lib/auth-actions'
+import { api } from '../lib/api'
 import { cn } from '../lib/utils'
-import { Badge } from './ui'
+import { Badge, Modal, Button } from './ui'
 import AppLogo from './AppLogo'
 import { permissionsForRole } from '@pavati/shared'
 
@@ -34,8 +37,35 @@ function TrustSwitcher() {
   const memberships = useAuth((s) => s.memberships)
   const active = useActiveTrust()
   const setActiveTrust = useAuth((s) => s.setActiveTrust)
+  const removeMembership = useAuth((s) => s.removeMembership)
   const navigate = useNavigate()
+  const qc = useQueryClient()
   const [open, setOpen] = useState(false)
+  const [leaveTrustId, setLeaveTrustId] = useState<string | null>(null)
+  const [leaveTrustName, setLeaveTrustName] = useState('')
+
+  const leave = useMutation({
+    mutationFn: (trustId: string) => api.post(`/trusts/${trustId}/leave`),
+    onSuccess: () => {
+      removeMembership(leaveTrustId!)
+      qc.invalidateQueries({ queryKey: ['auth-me'] })
+      toast.success('Left trust successfully')
+      setLeaveTrustId(null)
+      setOpen(false)
+      const remaining = memberships.filter((m) => m.trustId !== leaveTrustId)
+      if (remaining.length > 0) {
+        navigate('/app')
+      } else {
+        navigate('/onboarding')
+      }
+    },
+    onError: (e: any) => toast.error(e.message),
+  })
+
+  const handleLeaveClick = (trustId: string, trustName: string) => {
+    setLeaveTrustId(trustId)
+    setLeaveTrustName(trustName)
+  }
 
   if (memberships.length === 0) return null
   return (
@@ -58,21 +88,31 @@ function TrustSwitcher() {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-xl">
             {memberships.map((m) => (
-              <button
-                key={m.trustId}
-                className="flex w-full items-center gap-2 px-3 py-2.5 text-left hover:bg-saffron-50"
-                onClick={() => {
-                  setActiveTrust(m.trustId)
-                  setOpen(false)
-                  navigate('/app')
-                }}
-              >
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-stone-100 text-xs font-bold text-stone-600">
-                  {m.trust.logoUrl ? <img src={m.trust.logoUrl} alt="" className="h-full w-full object-cover" /> : m.trust.name[0]}
-                </div>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-700">{m.trust.name}</span>
-                {m.trustId === active?.trustId && <span className="h-2 w-2 rounded-full bg-saffron-500" />}
-              </button>
+              <div key={m.trustId} className="group flex items-center">
+                <button
+                  className="flex flex-1 items-center gap-2 px-3 py-2.5 text-left hover:bg-saffron-50"
+                  onClick={() => {
+                    setActiveTrust(m.trustId)
+                    setOpen(false)
+                    navigate('/app')
+                  }}
+                >
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-stone-100 text-xs font-bold text-stone-600">
+                    {m.trust.logoUrl ? <img src={m.trust.logoUrl} alt="" className="h-full w-full object-cover" /> : m.trust.name[0]}
+                  </div>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-700">{m.trust.name}</span>
+                  {m.trustId === active?.trustId && <span className="h-2 w-2 rounded-full bg-saffron-500" />}
+                </button>
+                {m.role !== 'PRIMARY_ADMIN' && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleLeaveClick(m.trustId, m.trust.name) }}
+                    className="mr-2 rounded-lg p-1.5 text-stone-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                    title="Leave trust"
+                  >
+                    <DoorOpen className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             ))}
             <div className="border-t border-stone-100 p-2">
               <Link to="/onboarding" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-saffron-600 hover:bg-saffron-50">
@@ -82,6 +122,17 @@ function TrustSwitcher() {
           </div>
         </>
       )}
+
+      <Modal open={!!leaveTrustId} onClose={() => setLeaveTrustId(null)} title={`Leave ${leaveTrustName}?`}>
+        <div className="space-y-3">
+          <p className="text-sm text-stone-600">Your donation history will be preserved in the trust. You can rejoin anytime using the join code.</p>
+          <p className="text-sm text-amber-600">You will lose access to this trust's dashboard and data.</p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setLeaveTrustId(null)}>Cancel</Button>
+            <Button variant="danger" className="flex-1" loading={leave.isPending} onClick={() => leave.mutate(leaveTrustId!)}>Leave Trust</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

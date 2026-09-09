@@ -191,6 +191,47 @@ router.post(
   })
 )
 
+router.post(
+  '/:trustId/leave',
+  requireAuth,
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const trust = await prisma.trust.findUnique({ where: { id: req.params.trustId } })
+    if (!trust) throw new AppError(404, 'Trust not found')
+    const member = await prisma.trustMember.findUnique({
+      where: { trustId_userId: { trustId: trust.id, userId: req.user!.id } },
+    })
+    if (!member || member.status !== 'ACTIVE') throw new AppError(400, 'You are not a member of this trust')
+    if (member.role === 'PRIMARY_ADMIN') throw new AppError(400, 'Primary admin cannot leave. Transfer ownership first.')
+    await prisma.trustMember.update({ where: { id: member.id }, data: { status: 'REMOVED' } })
+    await audit({ actorId: req.user!.id, trustId: trust.id, action: 'MEMBER_REMOVED', entityType: 'TrustMember', entityId: member.id, metadata: { self: true } })
+    ok(res, { message: 'Left trust successfully' })
+  })
+)
+
+router.post(
+  '/:trustId/transfer-ownership',
+  requireAuth,
+  loadTrustContext,
+  asyncHandler(async (req: TrustContextRequest, res) => {
+    if (req.trustMember!.role !== 'PRIMARY_ADMIN') throw new AppError(403, 'Only the primary admin can transfer ownership')
+    const { newAdminId } = req.body as { newAdminId?: string }
+    if (!newAdminId) throw new AppError(400, 'newAdminId is required')
+    const target = await prisma.trustMember.findUnique({ where: { id: newAdminId } })
+    if (!target || target.trustId !== req.trustId) throw new AppError(404, 'Member not found in this trust')
+    if (target.status !== 'ACTIVE') throw new AppError(400, 'Target member must be active')
+    if (target.userId === req.user!.id) throw new AppError(400, 'You cannot transfer ownership to yourself')
+    const activeCount = await prisma.trustMember.count({ where: { trustId: req.trustId, status: 'ACTIVE' } })
+    if (activeCount < 2) throw new AppError(400, 'Cannot transfer ownership — no other active members')
+    await prisma.$transaction([
+      prisma.trustMember.update({ where: { id: req.trustMember!.id }, data: { role: 'ADMIN' } }),
+      prisma.trustMember.update({ where: { id: target.id }, data: { role: 'PRIMARY_ADMIN' } }),
+    ])
+    await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'MEMBER_ROLE_CHANGED', entityType: 'TrustMember', entityId: req.trustMember!.id, metadata: { from: 'PRIMARY_ADMIN', to: 'ADMIN' } })
+    await audit({ actorId: req.user!.id, trustId: req.trustId, action: 'MEMBER_ROLE_CHANGED', entityType: 'TrustMember', entityId: target.id, metadata: { from: target.role, to: 'PRIMARY_ADMIN' } })
+    ok(res, { message: 'Ownership transferred successfully' })
+  })
+)
+
 router.get(
   '/:trustId/committee',
   asyncHandler(async (req: TrustContextRequest, res) => {

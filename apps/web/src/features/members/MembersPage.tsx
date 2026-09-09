@@ -1,18 +1,19 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { UserPlus, Users, Search, Mail, Shield } from 'lucide-react'
+import { UserPlus, Users, Search, Mail, Shield, ArrowRightLeft } from 'lucide-react'
 import { ROLE_LABELS, ROLE_ORDER, type TrustRole } from '@pavati/shared'
 import { api } from '../../lib/api'
 import { AppLayout } from '../../components/layout'
 import { Button, Card, Input, Select, Spinner, Badge, Modal, EmptyState, PageHeader } from '../../components/ui'
-import { useActiveTrust } from '../../lib/stores/auth'
+import { useActiveTrust, useAuth } from '../../lib/stores/auth'
 import { formatDate } from '../../lib/utils'
 
 const memberStatusColor: Record<string, string> = { ACTIVE: 'green', INVITED: 'gold', PENDING_APPROVAL: 'gold', REMOVED: 'red' }
 
 export default function MembersPage() {
   const active = useActiveTrust()!
+  const user = useAuth((s) => s.user)
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [addOpen, setAddOpen] = useState(false)
@@ -20,6 +21,8 @@ export default function MembersPage() {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null)
 
   const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'MEMBER', position: '' })
+  const [transferOpen, setTransferOpen] = useState(false)
+  const [transferTargetId, setTransferTargetId] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['members', active.trustId],
@@ -49,6 +52,12 @@ export default function MembersPage() {
   const remove = useMutation({
     mutationFn: (id: string) => api.del(`/trusts/${active.trustId}/members/${id}`),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['members', active.trustId] }); toast.success('Member removed') },
+    onError: (e: any) => toast.error(e.message),
+  })
+
+  const transfer = useMutation({
+    mutationFn: () => api.post(`/trusts/${active.trustId}/transfer-ownership`, { newAdminId: transferTargetId }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['members', active.trustId] }); qc.invalidateQueries({ queryKey: ['auth-me'] }); setTransferOpen(false); setTransferTargetId(''); toast.success('Ownership transferred') },
     onError: (e: any) => toast.error(e.message),
   })
 
@@ -94,6 +103,46 @@ export default function MembersPage() {
           </div>
         )}
       </Card>
+
+      {active.role === 'PRIMARY_ADMIN' && user && data && data.filter((m) => m.status === 'ACTIVE' && m.userId !== user.id).length > 0 && (
+        <Card className="mt-4">
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowRightLeft className="h-4 w-4 text-stone-500" />
+              <h3 className="font-semibold text-stone-800">Transfer Ownership</h3>
+            </div>
+            <p className="text-sm text-stone-500 mb-3">You will become an Admin. The selected member will become the Primary Admin.</p>
+            <Button variant="outline" onClick={() => setTransferOpen(true)}>Transfer Ownership</Button>
+          </div>
+        </Card>
+      )}
+
+      <Modal open={transferOpen} onClose={() => setTransferOpen(false)} title="Transfer Ownership">
+        {(() => {
+          const candidates = data?.filter((m) => m.status === 'ACTIVE' && m.userId !== user?.id) ?? []
+          const selected = candidates.find((m) => m.id === transferTargetId)
+          return (
+            <div className="space-y-3">
+              <p className="text-sm text-stone-600">Select a member to transfer primary admin rights to. You will be demoted to Admin.</p>
+              <div>
+                <label className="label">New Primary Admin</label>
+                <Select value={transferTargetId} onChange={(e) => setTransferTargetId(e.target.value)}>
+                  <option value="">Select a member…</option>
+                  {candidates.map((m) => <option key={m.id} value={m.id}>{m.user.name} ({ROLE_LABELS[m.role as TrustRole]})</option>)}
+                </Select>
+              </div>
+              {selected && (
+                <p className="text-sm text-amber-600 bg-amber-50 rounded-lg p-3">
+                  <strong>{selected.user.name}</strong> will become the Primary Admin. You will become an Admin.
+                </p>
+              )}
+              <Button variant="danger" className="w-full" disabled={!transferTargetId} loading={transfer.isPending} onClick={() => transfer.mutate()}>
+                Transfer Ownership
+              </Button>
+            </div>
+          )
+        })()}
+      </Modal>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add or invite a member">
         <div className="space-y-3">
