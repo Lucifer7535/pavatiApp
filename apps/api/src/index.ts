@@ -9,6 +9,7 @@ import { logger } from './lib/logger.js'
 import { AppError, asyncHandler } from './lib/http.js'
 import { errorHandler, notFound } from './middleware/error.js'
 import { globalRateLimiter } from './middleware/rateLimit.js'
+import { botPrerender } from './middleware/botPrerender.js'
 import { r2Active, presignedGetUrl } from './providers/storage.js'
 import authRoutes from './modules/auth/routes.js'
 import trustRoutes from './modules/trusts/routes.js'
@@ -103,6 +104,8 @@ ${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</
   app.use('/api/v1/receipts', receiptRoutes)
   app.use('/api/v1/users', userRoutes)
   app.use('/api/v1/uploads', uploadRoutes)
+
+  app.use(botPrerender())
 
   if (config.webDistDir) {
     const distDir = path.isAbsolute(config.webDistDir) ? config.webDistDir : path.join(process.cwd(), config.webDistDir)
