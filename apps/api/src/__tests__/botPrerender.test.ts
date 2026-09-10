@@ -6,35 +6,44 @@ import { config } from '../config/index.js'
 
 const base = config.publicBaseUrl.replace(/\/$/, '')
 
-let app: Express
+const dbAvailable = await (async () => {
+  try {
+    const { prisma } = await import('../lib/prisma.js')
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch {
+    return false
+  }
+})()
 
-const trustId = 'prerender-test-trust'
-const campaignSlug = `prerender-test-campaign-${Date.now()}`
+describe.skipIf(!dbAvailable)('bot prerendering', () => {
+  let app: Express
 
-beforeAll(async () => {
-  process.env.NODE_ENV = 'test'
-  app = createApp()
-  const { prisma } = await import('../lib/prisma.js')
-  await prisma.trust.create({
-    data: {
-      id: trustId,
-      name: 'Prerender Test Trust',
-      uniqueCode: 'PRERENDERTEST',
-      joinCode: `JOIN-${Date.now()}`,
-      description: 'A trust used to verify bot prerendering.',
-      city: 'Pune',
-      state: 'Maharashtra',
-    },
+  const trustId = 'prerender-test-trust'
+  const campaignSlug = `prerender-test-campaign-${Date.now()}`
+
+  beforeAll(async () => {
+    process.env.NODE_ENV = 'test'
+    app = createApp()
+    const { prisma } = await import('../lib/prisma.js')
+    await prisma.trust.create({
+      data: {
+        id: trustId,
+        name: 'Prerender Test Trust',
+        uniqueCode: 'PRERENDERTEST',
+        joinCode: `JOIN-${Date.now()}`,
+        description: 'A trust used to verify bot prerendering.',
+        city: 'Pune',
+        state: 'Maharashtra',
+      },
+    })
   })
-})
 
-afterAll(async () => {
-  const { prisma } = await import('../lib/prisma.js')
-  await prisma.trust.delete({ where: { id: trustId } }).catch(() => {})
-  await prisma.$disconnect()
-})
-
-describe('bot prerendering', () => {
+  afterAll(async () => {
+    const { prisma } = await import('../lib/prisma.js')
+    await prisma.trust.delete({ where: { id: trustId } }).catch(() => {})
+    await prisma.$disconnect()
+  })
   it('serves a prerendered header + canonical + JSON-LD to social bots for /trust/:id', async () => {
     const res = await request(app).get(`/trust/${trustId}`).set('User-Agent', 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)')
     expect(res.status).toBe(200)
