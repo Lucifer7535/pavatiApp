@@ -7,6 +7,7 @@ import { api } from '../../lib/api'
 import { Card, Input, Spinner, Button } from '../../components/ui'
 import { formatINR } from '../../lib/utils'
 import { useAuth } from '../../lib/stores/auth'
+import { Seo } from '../../lib/seo'
 
 interface PublicTrust {
   id: string
@@ -93,6 +94,12 @@ export default function DonatePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10">
+      <Seo
+        title={`${data.campaign.name} — Donate to ${data.trust.name}`}
+        description={data.campaign.description ?? `Donate to ${data.trust.name} via Pāvati Pustak. Secure UPI donation with an instant verifiable receipt.`}
+        path={slug ? `/donate/${slug}` : `/?trust=${data.trust.id}`}
+        image={data.campaign.qrCodeUrl ?? data.trust.logoUrl}
+      />
       <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white text-xl font-bold text-saffron-700 shadow-sm">

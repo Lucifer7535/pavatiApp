@@ -4,6 +4,7 @@ import { ShieldCheck, XCircle, Download } from 'lucide-react'
 import { api, downloadReceiptPdf } from '../../lib/api'
 import { Card, Spinner } from '../../components/ui'
 import { formatINR } from '../../lib/utils'
+import { Seo } from '../../lib/seo'
 
 interface VerifyData {
   id: string
@@ -37,6 +38,7 @@ export default function ReceiptVerifyPage() {
   if (error || !data) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-cream-50 p-4">
+        <Seo title="Receipt not found — Pāvati Pustak" path="/receipt/verify" noindex />
         <Card className="max-w-sm p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-red-600"><XCircle className="h-8 w-8" /></div>
           <h1 className="mt-4 text-xl font-bold text-stone-900">Receipt not found</h1>
@@ -49,6 +51,12 @@ export default function ReceiptVerifyPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10 p-4">
+      <Seo
+        title={`Verified receipt ${data.receiptNumber} — ${data.trustName}`}
+        description={`Verified donation receipt from ${data.trustName} — ${formatINR(data.amount)} via ${data.paymentMode}.`}
+        path="/receipt/verify"
+        noindex
+      />
       <div className="w-full max-w-2xl animate-slide-up">
         <Card className="overflow-hidden">
           <div className="bg-emerald-500 p-6 text-center text-white">

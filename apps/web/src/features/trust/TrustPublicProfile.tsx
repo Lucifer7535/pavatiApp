@@ -6,6 +6,7 @@ import { api } from '../../lib/api'
 import { Badge, Button, Card, Spinner } from '../../components/ui'
 import { formatINR } from '../../lib/utils'
 import { useAuth } from '../../lib/stores/auth'
+import { Seo } from '../../lib/seo'
 
 interface TrustPublic {
   id: string
@@ -67,6 +68,21 @@ export default function TrustPublicProfile() {
 
   return (
     <div className="min-h-screen bg-cream-50">
+      <Seo
+        title={`${trust.name} — Donate & Join`}
+        description={trust.description ?? `${trust.name} — a registered trust accepting donations. View its profile and donate securely via Pāvati Pustak.`}
+        path={`/trust/${trust.id}`}
+        image={trust.logoUrl}
+        type="organization"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'NGO',
+          name: trust.name,
+          description: trust.description ?? undefined,
+          url: `https://pavatipustak.app/trust/${trust.id}`,
+          address: { '@type': 'PostalAddress', addressLocality: trust.city ?? undefined, addressRegion: trust.state ?? undefined },
+        }}
+      />
       <div className="bg-gradient-to-br from-maroon-800 via-maroon-700 to-saffron-600 px-4 pb-16 pt-10 text-center text-white">
         <Link to="/" className="absolute left-4 top-4 flex items-center gap-2 text-sm text-white/80 hover:text-white">
           <ArrowLeft className="h-4 w-4" /> Home

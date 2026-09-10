@@ -2,6 +2,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, ReceiptText, ShieldCheck, Users, Wallet, Landmark, Smartphone, Bell } from 'lucide-react'
 import { Badge } from '../../components/ui'
 import AppLogo from '../../components/AppLogo'
+import { Seo, DEFAULTS } from '../../lib/seo'
 
 const features = [
   { icon: Landmark, title: 'One Trust, One Book', desc: 'Replace paper pāvatis with a single digital register that stores every donation, receipt, and member.' },
@@ -27,6 +28,15 @@ export default function LandingPage() {
   if (user) return <Navigate to="/app" replace />
   return (
     <div className="min-h-screen bg-cream-50">
+      <Seo
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Pāvati Pustak',
+          url: 'https://pavatipustak.app',
+          description: DEFAULTS.description,
+        }}
+      />
       <header className="sticky top-0 z-20 border-b border-stone-200/60 bg-cream-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-2">

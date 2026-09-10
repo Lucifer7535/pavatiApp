@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { config } from './config/index.js'
+import { prisma } from './lib/prisma.js'
 import { logger } from './lib/logger.js'
 import { AppError, asyncHandler } from './lib/http.js'
 import { errorHandler, notFound } from './middleware/error.js'
@@ -33,6 +34,9 @@ export function createApp() {
     res.setHeader('X-Content-Type-Options', 'nosniff')
     res.setHeader('X-Frame-Options', 'DENY')
     res.setHeader('Referrer-Policy', 'no-referrer')
+    if (_req.path.startsWith('/api')) {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow')
+    }
     next()
   })
   app.use(express.json({ limit: '8mb' }))
@@ -62,6 +66,26 @@ export function createApp() {
   }
 
   app.get('/health', (_req, res) => res.json({ ok: true, service: 'pavati-api', time: new Date().toISOString() }))
+
+  app.get('/sitemap.xml', asyncHandler(async (_req, res) => {
+    const base = config.publicBaseUrl.replace(/\/$/, '')
+    const now = new Date().toISOString()
+    const staticPages = [{ loc: `${base}/`, lastmod: now }]
+    const [trusts, campaigns] = await Promise.all([
+      prisma.trust.findMany({ select: { id: true, updatedAt: true } }),
+      prisma.paymentCampaign.findMany({ where: { active: true }, select: { slug: true, createdAt: true } }),
+    ])
+    const urls = [
+      ...staticPages,
+      ...trusts.map((t) => ({ loc: `${base}/trust/${t.id}`, lastmod: t.updatedAt.toISOString() })),
+      ...campaigns.map((c) => ({ loc: `${base}/donate/${c.slug}`, lastmod: c.createdAt.toISOString() })),
+    ]
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n  </url>`).join('\n')}
+</urlset>`
+    res.type('application/xml').send(xml)
+  }))
 
   app.use('/api/v1/auth', authRoutes)
   app.use('/api/v1/trusts', trustRoutes)

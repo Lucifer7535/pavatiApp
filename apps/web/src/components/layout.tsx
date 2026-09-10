@@ -10,6 +10,7 @@ import { cn } from '../lib/utils'
 import { Badge, Modal, Button } from './ui'
 import AppLogo from './AppLogo'
 import { permissionsForRole } from '@pavati/shared'
+import { Seo } from '../lib/seo'
 
 const navItems = (permissionCheck: (p: string) => boolean) => [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard, always: true },
@@ -237,6 +238,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-cream-50">
+      <Seo noindex />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-stone-200 bg-white lg:block">{sidebar}</aside>
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">

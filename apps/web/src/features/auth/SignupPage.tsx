@@ -9,6 +9,7 @@ import { api, setTokens } from '../../lib/api'
 import { useAuth } from '../../lib/stores/auth'
 import { Input, Button, Card } from '../../components/ui'
 import AppLogo from '../../components/AppLogo'
+import { Seo } from '../../lib/seo'
 
 const schema = z.object({
   name: z.string().min(2, 'Enter your full name'),
@@ -41,6 +42,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10 p-4">
+      <Seo title="Create account — Pāvati Pustak" path="/signup" noindex />
       <div className="w-full max-w-sm animate-slide-up">
         <Link to="/" className="mb-6 flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700">
           <ArrowLeft className="h-4 w-4" /> Back to home

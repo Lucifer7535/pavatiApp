@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /trust/
+Allow: /donate/
+Disallow: /app
+Disallow: /api
+Disallow: /onboarding
+Disallow: /account
+Disallow: /login
+Disallow: /signup
+Disallow: /search
+Disallow: /receipt/verify/
+Disallow: /uploads
+Sitemap: https://pavatipustak.app/sitemap.xml
