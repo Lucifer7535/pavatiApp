@@ -4,6 +4,7 @@ import { useAuth, useActiveTrust } from '../lib/stores/auth'
 import { permissionsForRole, type Permission, type TrustRole } from '@pavati/shared'
 import { Toaster } from 'sonner'
 import { Spinner } from '../components/ui'
+import { getDevToken } from '../lib/dev-auth'
 
 const LandingPage = lazy(() => import('../features/landing/LandingPage'))
 const LoginPage = lazy(() => import('../features/auth/LoginPage'))
@@ -36,6 +37,8 @@ const ReportsPage = lazy(() => import('../features/reports/ReportsPage'))
 const NotificationsPage = lazy(() => import('../features/notifications/NotificationsPage'))
 const TrustSettingsPage = lazy(() => import('../features/settings/TrustSettingsPage'))
 const AuditLogPage = lazy(() => import('../features/audit/AuditLogPage'))
+const DeveloperLoginPage = lazy(() => import('../features/developer/DeveloperLoginPage'))
+const DeveloperDashboard = lazy(() => import('../features/developer/DeveloperDashboard'))
 
 function AppShell() {
   return (
@@ -118,6 +121,15 @@ export function RequirePermission({ permission, children }: { permission: Permis
   return <>{children}</>
 }
 
+function RequireDevAuth({ children }: { children: ReactNode }) {
+  const token = getDevToken()
+  const location = useLocation()
+  if (!token) {
+    return <Navigate to="/dev/login" state={{ from: location.pathname }} replace />
+  }
+  return <>{children}</>
+}
+
 function DashboardLoader() {
   const active = useActiveTrust()
   if (!active) return <Spinner />
@@ -138,6 +150,19 @@ export const router = createBrowserRouter([
       { path: '/donate', element: <DonatePage /> },
       { path: '/trust/:trustId', element: <TrustPublicProfile /> },
       { path: '/receipt/verify/:token', element: <ReceiptVerifyPage /> },
+
+      { path: '/dev/login', element: <DeveloperLoginPage /> },
+      {
+        element: (
+          <RequireDevAuth>
+            <Outlet />
+          </RequireDevAuth>
+        ),
+        children: [
+          { path: '/dev', element: <Navigate to="/dev/dashboard" replace /> },
+          { path: '/dev/dashboard', element: <DeveloperDashboard /> },
+        ],
+      },
 
       {
         element: (

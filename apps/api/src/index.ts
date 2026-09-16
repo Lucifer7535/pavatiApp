@@ -24,6 +24,7 @@ import reportRoutes from './modules/reports/routes.js'
 import userRoutes from './modules/users/routes.js'
 import dashboardRoutes from './modules/dashboard/routes.js'
 import uploadRoutes from './modules/uploads/routes.js'
+import developerRoutes from './modules/developer/routes.js'
 
 export function createApp() {
   const app = express()
@@ -104,6 +105,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</
   app.use('/api/v1/receipts', receiptRoutes)
   app.use('/api/v1/users', userRoutes)
   app.use('/api/v1/uploads', uploadRoutes)
+  app.use('/api/v1/dev', developerRoutes)
 
   app.use(botPrerender())
 

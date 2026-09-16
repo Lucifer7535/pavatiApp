@@ -41,5 +41,7 @@ export const config = {
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
   resendApiKey: process.env.RESEND_API_KEY ?? '',
   resendFromEmail: process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev',
+  devEmail: process.env.DEV_EMAIL ?? 'dev@pavati.com',
+  devPassword: process.env.DEV_PASSWORD ?? 'Pavati@Dev2026',
   env,
 }
