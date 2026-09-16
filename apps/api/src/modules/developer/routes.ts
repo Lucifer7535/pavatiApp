@@ -128,7 +128,7 @@ router.get(
           t."name",
           (SELECT COUNT(*)::int FROM "TrustMember" tm WHERE tm."trustId" = t."id") AS member_count,
           (SELECT COUNT(*)::int FROM "Donation" d WHERE d."trustId" = t."id") AS donation_count,
-          (SELECT COALESCE(SUM(d."amount"), 0)::int FROM "Donation" d WHERE d."trustId" = t."id") AS total_amount
+          (SELECT COALESCE(SUM(d."amount"), 0)::int FROM "Donation" d WHERE d."trustId" = t."id" AND d."status" = 'SUCCEEDED') AS total_amount
         FROM "Trust" t
         ORDER BY total_amount DESC
       `,
@@ -145,7 +145,7 @@ router.get(
       totalAmount: d._sum.amount ?? 0,
     }))
 
-    const totalDonationAmount = donationByStatus.reduce((sum, d) => sum + d.totalAmount, 0)
+    const totalDonationAmount = donationByStatus.find((d) => d.status === 'SUCCEEDED')?.totalAmount ?? 0
 
     const trustBreakdownFormatted = trustBreakdown.map((t) => ({
       id: t.id,

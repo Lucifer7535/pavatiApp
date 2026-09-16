@@ -204,8 +204,8 @@ export default function DeveloperDashboard() {
                 })}
                 <div className="rounded-xl border border-stone-100 bg-stone-50 p-4">
                   <div className="flex items-center justify-between">
-                    <Badge color="default">Total</Badge>
-                    <span className="text-lg font-bold text-stone-900">{s.totalDonations}</span>
+                    <Badge color="default">Total received</Badge>
+                    <span className="text-lg font-bold text-stone-900">{getStatus('SUCCEEDED')?.count ?? 0}</span>
                   </div>
                   <p className="mt-1 text-sm font-semibold text-stone-700">{formatINR(s.totalDonationAmount)}</p>
                 </div>
