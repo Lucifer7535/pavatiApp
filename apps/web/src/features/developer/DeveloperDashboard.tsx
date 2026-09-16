@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Users, Landmark, UserPlus, Wallet, ReceiptText, Link2, Megaphone, DoorOpen,
@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid,
 } from 'recharts'
 import { Button, Card, CardHeader, Spinner, StatCard, Badge, Input, EmptyState, PageHeader } from '../../components/ui'
-import { formatINR } from '../../lib/utils'
+import { formatINR, cn } from '../../lib/utils'
 import { getDevToken } from '../../lib/dev-auth'
 import DeveloperLayout from './DeveloperLayout'
 
@@ -54,11 +54,25 @@ type SortDir = 'asc' | 'desc'
 const statusLabel: Record<string, string> = { SUCCEEDED: 'Successful', PENDING: 'Pending', CANCELLED: 'Cancelled' }
 const statusColor: Record<string, string> = { SUCCEEDED: 'green', PENDING: 'gold', CANCELLED: 'red' }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return isMobile
+}
+
+const compactINR = (v: number) => (v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`)
+
 export default function DeveloperDashboard() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('totalAmount')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const isMobile = useIsMobile()
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['dev-stats', from, to],
@@ -212,7 +226,7 @@ export default function DeveloperDashboard() {
                 <div className="h-52 sm:col-span-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80} label={(e: any) => `${e.name}`}>
+                      <Pie data={pieData} dataKey="value" nameKey="name" outerRadius="75%" label={(e: any) => `${e.name}: ${e.value}`}>
                         {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
                       <Tooltip />
@@ -268,12 +282,12 @@ export default function DeveloperDashboard() {
               <CardHeader title="Donations by Trust" subtitle="Top 10 trusts by donation count" />
               <div className="h-64 p-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={donationsByTrust} layout="vertical" margin={{ left: 8, right: 8 }}>
+                  <BarChart data={donationsByTrust} layout="vertical" margin={{ left: 8, right: isMobile ? 16 : 28 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
                     <XAxis type="number" tick={{ fontSize: 10 }} allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={170} tickFormatter={(v: string) => (v.length > 22 ? `${v.slice(0, 22)}…` : v)} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: isMobile ? 9 : 10 }} width={isMobile ? 96 : 170} tickFormatter={(v: string) => (v.length > (isMobile ? 12 : 22) ? `${v.slice(0, isMobile ? 12 : 22)}…` : v)} />
                     <Tooltip />
-                    <Bar dataKey="donations" fill="#d4af37" radius={[0, 4, 4, 0]} name="Donations" />
+                    <Bar dataKey="donations" fill="#d4af37" radius={[0, 4, 4, 0]} name="Donations" label={{ position: 'right', fontSize: 10, fill: '#78716c' }} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -283,12 +297,12 @@ export default function DeveloperDashboard() {
               <CardHeader title="Donation Amount by Trust" subtitle="Top 10 trusts by total value" />
               <div className="h-64 p-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={amountByTrust} layout="vertical" margin={{ left: 8, right: 8 }}>
+                  <BarChart data={amountByTrust} layout="vertical" margin={{ left: 8, right: isMobile ? 44 : 52 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
                     <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v))} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={170} tickFormatter={(v: string) => (v.length > 22 ? `${v.slice(0, 22)}…` : v)} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: isMobile ? 9 : 10 }} width={isMobile ? 96 : 170} tickFormatter={(v: string) => (v.length > (isMobile ? 12 : 22) ? `${v.slice(0, isMobile ? 12 : 22)}…` : v)} />
                     <Tooltip formatter={(v: number) => formatINR(v)} />
-                    <Bar dataKey="amount" fill="#0d9488" radius={[0, 4, 4, 0]} name="Amount" />
+                    <Bar dataKey="amount" fill="#0d9488" radius={[0, 4, 4, 0]} name="Amount" label={{ position: 'right', fontSize: 10, fill: '#78716c', formatter: compactINR }} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -309,34 +323,79 @@ export default function DeveloperDashboard() {
             {sortedTrusts.length === 0 ? (
               <EmptyState icon={<Landmark className="h-6 w-6" />} title="No trusts yet" description="Trusts will appear here once they are created." />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400">
-                      {([
-                        ['name', 'Trust Name'],
-                        ['memberCount', 'Members'],
-                        ['donationCount', 'Donations'],
-                        ['totalAmount', 'Total Amount'],
-                      ] as [SortKey, string][]).map(([key, label]) => (
-                        <th key={key} className="cursor-pointer select-none px-4 py-3 hover:text-stone-600" onClick={() => handleSort(key)}>
-                          <span className="inline-flex items-center gap-1">{label} <SortIcon col={key} /></span>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {sortedTrusts.map((t) => (
-                      <tr key={t.id} className="hover:bg-stone-50">
-                        <td className="px-4 py-2.5 font-medium text-stone-800">{t.name}</td>
-                        <td className="px-4 py-2.5 text-stone-600">{t.memberCount}</td>
-                        <td className="px-4 py-2.5 text-stone-600">{t.donationCount}</td>
-                        <td className="px-4 py-2.5 font-bold text-stone-900">{formatINR(t.totalAmount)}</td>
+              <>
+                <div className="flex flex-wrap items-center gap-1.5 border-b border-stone-100 px-5 py-3 md:hidden">
+                  {([
+                    ['name', 'Trust Name'],
+                    ['memberCount', 'Members'],
+                    ['donationCount', 'Donations'],
+                    ['totalAmount', 'Amount'],
+                  ] as [SortKey, string][]).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleSort(key)}
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                        sortKey === key ? 'border-saffron-300 bg-saffron-50 text-saffron-700' : 'border-stone-200 text-stone-500 hover:border-saffron-200 hover:text-stone-700'
+                      )}
+                    >
+                      {label} <SortIcon col={key} />
+                    </button>
+                  ))}
+                </div>
+
+                <ul className="divide-y divide-stone-100 md:hidden">
+                  {sortedTrusts.map((t) => (
+                    <li key={t.id} className="px-5 py-4">
+                      <p className="truncate font-medium text-stone-800" title={t.name}>{t.name}</p>
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <div className="rounded-xl bg-stone-50 p-2 text-center">
+                          <p className="text-xs text-stone-400">Members</p>
+                          <p className="text-sm font-semibold text-stone-800">{t.memberCount}</p>
+                        </div>
+                        <div className="rounded-xl bg-stone-50 p-2 text-center">
+                          <p className="text-xs text-stone-400">Donations</p>
+                          <p className="text-sm font-semibold text-stone-800">{t.donationCount}</p>
+                        </div>
+                        <div className="rounded-xl bg-stone-50 p-2 text-center">
+                          <p className="text-xs text-stone-400">Total Amount</p>
+                          <p className="truncate text-sm font-bold text-stone-900" title={formatINR(t.totalAmount)}>{formatINR(t.totalAmount)}</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400">
+                        {([
+                          ['name', 'Trust Name'],
+                          ['memberCount', 'Members'],
+                          ['donationCount', 'Donations'],
+                          ['totalAmount', 'Total Amount'],
+                        ] as [SortKey, string][]).map(([key, label]) => (
+                          <th key={key} className="cursor-pointer select-none px-4 py-3 hover:text-stone-600" onClick={() => handleSort(key)}>
+                            <span className="inline-flex items-center gap-1">{label} <SortIcon col={key} /></span>
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {sortedTrusts.map((t) => (
+                        <tr key={t.id} className="hover:bg-stone-50">
+                          <td className="px-4 py-2.5 font-medium text-stone-800">{t.name}</td>
+                          <td className="px-4 py-2.5 text-stone-600">{t.memberCount}</td>
+                          <td className="px-4 py-2.5 text-stone-600">{t.donationCount}</td>
+                          <td className="px-4 py-2.5 font-bold text-stone-900">{formatINR(t.totalAmount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </Card>
 
