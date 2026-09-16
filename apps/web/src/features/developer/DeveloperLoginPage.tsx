@@ -60,12 +60,12 @@ export default function DeveloperLoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="label text-stone-300">Developer Email</label>
-              <Input type="email" placeholder="dev@example.com" {...register('email')} autoFocus className="border-stone-700 bg-stone-800 text-white placeholder:text-stone-500" />
+              <Input type="email" placeholder="dev@example.com" {...register('email')} autoFocus className="border-stone-700" />
               {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>}
             </div>
             <div>
               <label className="label text-stone-300">Password</label>
-              <Input type="password" placeholder="••••••••" {...register('password')} className="border-stone-700 bg-stone-800 text-white placeholder:text-stone-500" />
+              <Input type="password" placeholder="••••••••" {...register('password')} className="border-stone-700" />
               {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>}
             </div>
             <Button type="submit" className="w-full bg-maroon-700 hover:bg-maroon-800" loading={loading}>
