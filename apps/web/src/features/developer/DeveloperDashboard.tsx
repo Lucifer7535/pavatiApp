@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   Users, Landmark, UserPlus, Wallet, ReceiptText, Link2, Megaphone, DoorOpen,
@@ -8,8 +9,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid,
 } from 'recharts'
 import { Button, Card, CardHeader, Spinner, StatCard, Badge, Input, EmptyState, PageHeader } from '../../components/ui'
-import { formatINR, cn } from '../../lib/utils'
-import { getDevToken } from '../../lib/dev-auth'
+import { cn } from '../../lib/utils'
+import { getDevToken, clearDevToken } from '../../lib/dev-auth'
 import DeveloperLayout from './DeveloperLayout'
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#0284c7']
@@ -17,7 +18,6 @@ const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#0284c7']
 interface DonationStatus {
   status: string
   count: number
-  totalAmount: number
 }
 
 interface TrustRow {
@@ -25,7 +25,6 @@ interface TrustRow {
   name: string
   memberCount: number
   donationCount: number
-  totalAmount: number
 }
 
 interface StatPayload {
@@ -34,7 +33,6 @@ interface StatPayload {
     totalTrusts: number
     totalMembers: number
     totalDonations: number
-    totalDonationAmount: number
     totalReceipts: number
     totalCampaigns: number
     totalAnnouncements: number
@@ -45,10 +43,9 @@ interface StatPayload {
   usersByDay: { date: string; count: number }[]
   trustsByDay: { date: string; count: number }[]
   trustBreakdown: TrustRow[]
-  recentUsers: { id: string; name: string; email: string | null; phone: string | null; createdAt: string }[]
 }
 
-type SortKey = 'name' | 'memberCount' | 'donationCount' | 'totalAmount'
+type SortKey = 'name' | 'memberCount' | 'donationCount'
 type SortDir = 'asc' | 'desc'
 
 const statusLabel: Record<string, string> = { SUCCEEDED: 'Successful', PENDING: 'Pending', CANCELLED: 'Cancelled' }
@@ -65,13 +62,13 @@ function useIsMobile() {
   return isMobile
 }
 
-const compactINR = (v: number) => (v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`)
-
 export default function DeveloperDashboard() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('totalAmount')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [sortKey, setSortKey] = useState<SortKey>('donationCount')
+const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [sessionExpired, setSessionExpired] = useState(false)
+  const navigate = useNavigate()
   const isMobile = useIsMobile()
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -80,16 +77,25 @@ export default function DeveloperDashboard() {
       const params = new URLSearchParams()
       if (from) params.set('from', from)
       if (to) params.set('to', to)
-      const qs = params.toString() ? `?${params}` : ''
+      const qs = params.toString() ? `?${params.toString()}` : ''
       return fetch(`/api/v1/dev/stats${qs}`, {
         headers: { Authorization: `Bearer ${getDevToken()}` },
       }).then(async (res) => {
         const body = await res.json().catch(() => null)
+        if (res.status === 401) {
+          clearDevToken()
+          setSessionExpired(true)
+          throw new Error('Your session has expired')
+        }
         if (!res.ok) throw new Error(body?.error ?? 'Failed to load stats')
         return body.data as StatPayload
       })
     },
   })
+
+  useEffect(() => {
+    if (sessionExpired) navigate('/dev/login', { state: { expired: true } })
+  }, [sessionExpired, navigate])
 
   const sortedTrusts = useMemo(() => {
     if (!data?.trustBreakdown) return []
@@ -97,19 +103,13 @@ export default function DeveloperDashboard() {
       let cmp = 0
       if (sortKey === 'name') cmp = a.name.localeCompare(b.name)
       else if (sortKey === 'memberCount') cmp = a.memberCount - b.memberCount
-      else if (sortKey === 'donationCount') cmp = a.donationCount - b.donationCount
-      else cmp = a.totalAmount - b.totalAmount
+      else cmp = a.donationCount - b.donationCount
       return sortDir === 'asc' ? cmp : -cmp
     })
   }, [data?.trustBreakdown, sortKey, sortDir])
 
   const donationsByTrust = useMemo(
     () => sortedTrusts.slice(0, 10).map((t) => ({ name: t.name, donations: t.donationCount })),
-    [sortedTrusts]
-  )
-
-  const amountByTrust = useMemo(
-    () => sortedTrusts.slice(0, 10).map((t) => ({ name: t.name, amount: t.totalAmount })),
     [sortedTrusts]
   )
 
@@ -180,8 +180,17 @@ export default function DeveloperDashboard() {
 
       {isError && (
         <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
-          <p className="text-sm text-stone-500">Could not load platform analytics.</p>
-          <Button onClick={() => refetch()}>Retry</Button>
+          {sessionExpired ? (
+            <>
+              <p className="text-sm text-stone-500">Your session has expired. Please sign in again.</p>
+              <Button onClick={() => navigate('/dev/login', { state: { expired: true } })}>Go to login</Button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-stone-500">Could not load platform analytics.</p>
+              <Button onClick={() => refetch()}>Retry</Button>
+            </>
+          )}
         </div>
       )}
 
@@ -193,7 +202,7 @@ export default function DeveloperDashboard() {
             <StatCard label="Users Signed Up" value={s.totalUsers} icon={<Users className="h-5 w-5" />} accent="saffron" sub="registered accounts" />
             <StatCard label="Trusts Created" value={s.totalTrusts} icon={<Landmark className="h-5 w-5" />} accent="maroon" sub="public trusts" />
             <StatCard label="Trust Members" value={s.totalMembers} icon={<UserPlus className="h-5 w-5" />} accent="blue" sub="across all trusts" />
-            <StatCard label="Donations" value={s.totalDonations} icon={<Wallet className="h-5 w-5" />} accent="green" sub={formatINR(s.totalDonationAmount)} />
+            <StatCard label="Donations" value={s.totalDonations} icon={<Wallet className="h-5 w-5" />} accent="green" sub="recorded donations" />
             <StatCard label="Receipts Issued" value={s.totalReceipts} icon={<ReceiptText className="h-5 w-5" />} accent="gold" sub="generated" />
             <StatCard label="Payment Campaigns" value={s.totalCampaigns} icon={<Link2 className="h-5 w-5" />} accent="purple" sub="active links" />
             <StatCard label="Announcements" value={s.totalAnnouncements} icon={<Megaphone className="h-5 w-5" />} accent="saffron" sub="published" />
@@ -212,7 +221,6 @@ export default function DeveloperDashboard() {
                         <Badge color={statusColor[st]}>{statusLabel[st]}</Badge>
                         <span className="text-lg font-bold text-stone-900">{row?.count ?? 0}</span>
                       </div>
-                      <p className="mt-1 text-sm text-stone-500">{formatINR(row?.totalAmount ?? 0)}</p>
                     </div>
                   )
                 })}
@@ -221,7 +229,6 @@ export default function DeveloperDashboard() {
                     <Badge color="default">Total received</Badge>
                     <span className="text-lg font-bold text-stone-900">{getStatus('SUCCEEDED')?.count ?? 0}</span>
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-stone-700">{formatINR(s.totalDonationAmount)}</p>
                 </div>
                 <div className="h-52 sm:col-span-2">
                   <ResponsiveContainer width="100%" height="100%">
@@ -292,28 +299,13 @@ export default function DeveloperDashboard() {
                 </ResponsiveContainer>
               </div>
             </Card>
-
-            <Card>
-              <CardHeader title="Donation Amount by Trust" subtitle="Top 10 trusts by total value" />
-              <div className="h-64 p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={amountByTrust} layout="vertical" margin={{ left: 8, right: isMobile ? 44 : 52 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v))} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: isMobile ? 9 : 10 }} width={isMobile ? 96 : 170} tickFormatter={(v: string) => (v.length > (isMobile ? 12 : 22) ? `${v.slice(0, isMobile ? 12 : 22)}…` : v)} />
-                    <Tooltip formatter={(v: number) => formatINR(v)} />
-                    <Bar dataKey="amount" fill="#0d9488" radius={[0, 4, 4, 0]} name="Amount" label={{ position: 'right', fontSize: 10, fill: '#78716c', formatter: compactINR }} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
           </div>
 
           <Card>
             <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
               <div>
-                <h3 className="font-semibold text-stone-900">Trust-wise Donation Breakdown</h3>
-                <p className="mt-0.5 text-sm text-stone-500">Performance of every trust on the platform</p>
+                <h3 className="font-semibold text-stone-900">Trust Breakdown</h3>
+                <p className="mt-0.5 text-sm text-stone-500">Members and donations across every trust on the platform</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-stone-500">
                 <span className="font-semibold text-stone-800">{sortedTrusts.length}</span> trusts
@@ -329,7 +321,6 @@ export default function DeveloperDashboard() {
                     ['name', 'Trust Name'],
                     ['memberCount', 'Members'],
                     ['donationCount', 'Donations'],
-                    ['totalAmount', 'Amount'],
                   ] as [SortKey, string][]).map(([key, label]) => (
                     <button
                       key={key}
@@ -349,7 +340,7 @@ export default function DeveloperDashboard() {
                   {sortedTrusts.map((t) => (
                     <li key={t.id} className="px-5 py-4">
                       <p className="truncate font-medium text-stone-800" title={t.name}>{t.name}</p>
-                      <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className="mt-3 grid grid-cols-2 gap-2">
                         <div className="rounded-xl bg-stone-50 p-2 text-center">
                           <p className="text-xs text-stone-400">Members</p>
                           <p className="text-sm font-semibold text-stone-800">{t.memberCount}</p>
@@ -357,10 +348,6 @@ export default function DeveloperDashboard() {
                         <div className="rounded-xl bg-stone-50 p-2 text-center">
                           <p className="text-xs text-stone-400">Donations</p>
                           <p className="text-sm font-semibold text-stone-800">{t.donationCount}</p>
-                        </div>
-                        <div className="rounded-xl bg-stone-50 p-2 text-center">
-                          <p className="text-xs text-stone-400">Total Amount</p>
-                          <p className="truncate text-sm font-bold text-stone-900" title={formatINR(t.totalAmount)}>{formatINR(t.totalAmount)}</p>
                         </div>
                       </div>
                     </li>
@@ -375,7 +362,6 @@ export default function DeveloperDashboard() {
                           ['name', 'Trust Name'],
                           ['memberCount', 'Members'],
                           ['donationCount', 'Donations'],
-                          ['totalAmount', 'Total Amount'],
                         ] as [SortKey, string][]).map(([key, label]) => (
                           <th key={key} className="cursor-pointer select-none px-4 py-3 hover:text-stone-600" onClick={() => handleSort(key)}>
                             <span className="inline-flex items-center gap-1">{label} <SortIcon col={key} /></span>
@@ -389,7 +375,6 @@ export default function DeveloperDashboard() {
                           <td className="px-4 py-2.5 font-medium text-stone-800">{t.name}</td>
                           <td className="px-4 py-2.5 text-stone-600">{t.memberCount}</td>
                           <td className="px-4 py-2.5 text-stone-600">{t.donationCount}</td>
-                          <td className="px-4 py-2.5 font-bold text-stone-900">{formatINR(t.totalAmount)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -397,25 +382,6 @@ export default function DeveloperDashboard() {
                 </div>
               </>
             )}
-          </Card>
-
-          <Card>
-            <CardHeader title="Recent Users" subtitle="Latest sign-ups on the platform" />
-            <div className="divide-y divide-stone-100">
-              {data?.recentUsers.length === 0 && <p className="px-5 py-8 text-center text-sm text-stone-400">No users yet</p>}
-              {data?.recentUsers.map((u) => (
-                <div key={u.id} className="flex items-center gap-3 px-5 py-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-saffron-100 text-xs font-bold text-saffron-700">
-                    {u.name[0]}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-stone-800">{u.name}</p>
-                    <p className="truncate text-xs text-stone-400">{u.email ?? u.phone ?? '—'}</p>
-                  </div>
-                  <p className="shrink-0 text-xs text-stone-400">{new Date(u.createdAt).toLocaleDateString('en-IN')}</p>
-                </div>
-              ))}
-            </div>
           </Card>
         </div>
       )}
