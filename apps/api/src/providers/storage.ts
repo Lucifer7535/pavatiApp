@@ -22,6 +22,13 @@ const CONTENT_TYPES: Record<string, string> = {
   pdf: 'application/pdf',
 }
 
+/**
+ * The extensions this sink will write. Derived from CONTENT_TYPES so the allowlist and
+ * the stored MIME type cannot drift apart. Exported so the security suite asserts against
+ * the real allowlist rather than a copy of it.
+ */
+export const ALLOWED_EXTENSIONS: ReadonlySet<string> = new Set(Object.keys(CONTENT_TYPES))
+
 export function r2Active(): boolean {
   return (
     config.storageDriver === 'r2' &&
@@ -49,6 +56,13 @@ function s3(): S3Client {
 }
 
 export async function saveBuffer(buffer: Buffer, ext: string, subdir = ''): Promise<StoredFile> {
+  // `ext` becomes part of the on-disk filename, so it is the second attacker-influenced
+  // input on this sink alongside `subdir`. The upload route allowlists it before calling,
+  // but this function is exported, so a future caller passing a value like
+  // "png/../../x" would resolve outside the upload root. Validate here so containment does
+  // not depend on every caller behaving. Checked against the same allowlist the route
+  // uses, which is also the source of CONTENT_TYPES.
+  if (!ALLOWED_EXTENSIONS.has(ext)) throw new AppError(400, 'Unsupported file type')
   const filename = `${Date.now()}-${randomCode(6)}.${ext}`
   // The write path needs the same containment guarantee as the read path: `subdir` is
   // joined onto uploadDir for the disk driver and used verbatim as the R2 Key. Today's

@@ -85,6 +85,41 @@ describe('storage write containment', () => {
     await expect(saveBuffer(Buffer.from('x'), 'png', '/etc')).rejects.toThrow()
     await expect(saveBuffer(Buffer.from('x'), 'png', 'images\\..\\..')).rejects.toThrow()
   })
+
+  // `ext` lands in the on-disk filename, so it is the second attacker-influenced input
+  // on this sink. The upload route allowlists it today, but saveBuffer is exported, so the
+  // sink itself must not trust its callers. Rejects before any filesystem or S3 call.
+  //
+  // Asserts the specific 400, not merely "it threw": with R2 configured, an unvalidated
+  // traversal ext reaches S3 and fails there with an unrelated SDK error, which would
+  // satisfy a bare rejects.toThrow() while proving nothing about this check.
+  it('refuses an ext that would traverse out of the upload root', async () => {
+    const { saveBuffer } = await import('../providers/storage.js')
+    const cases = ['png/../../../../etc/cron.d/x', '../../../etc/passwd', 'png/../x']
+    for (const ext of cases) {
+      await expect(saveBuffer(Buffer.from('x'), ext), `ext "${ext}" must be rejected`).rejects.toMatchObject({
+        status: 400,
+        message: 'Unsupported file type',
+      })
+    }
+  })
+
+  it('refuses an ext outside the supported allowlist', async () => {
+    const { saveBuffer } = await import('../providers/storage.js')
+    for (const ext of ['svg', 'html', 'exe', 'php', 'PNG', '', 'png ', 'x'.repeat(40)]) {
+      await expect(saveBuffer(Buffer.from('x'), ext), `ext "${ext}" must be rejected`).rejects.toMatchObject({
+        status: 400,
+        message: 'Unsupported file type',
+      })
+    }
+  })
+
+  it('accepts every allowlisted ext, so the check cannot reject a supported upload', async () => {
+    // The sink is on the hot path for trust logos, donation receipts and template
+    // backgrounds, so an over-tight allowlist would be a functional regression.
+    const { ALLOWED_EXTENSIONS } = await import('../providers/storage.js')
+    expect([...ALLOWED_EXTENSIONS].sort()).toEqual(['gif', 'jpeg', 'jpg', 'pdf', 'png', 'webp'])
+  })
 })
 
 describe.skipIf(!dbAvailable)('prismaPublic credential stripping', () => {
