@@ -12,6 +12,15 @@ jobs:
     env:
       NODE_VERSION: 24
       DATABASE_URL: postgresql://ci:ci@localhost:5432/pavati_ci
+      # Throwaway, non-secret values. The API now refuses to boot without a strong
+      # JWT_SECRET/REFRESH_SECRET on any host, so CI has to supply them explicitly.
+      # They only ever sign tokens inside an ephemeral runner.
+      JWT_SECRET: ci-only-jwt-secret-not-a-real-credential-0123456789
+      REFRESH_SECRET: ci-only-refresh-secret-not-a-real-credential-0123456789
+      # The developer console is mounted when NODE_ENV is unset, so its credential
+      # must also be a real-looking value rather than a published or placeholder one.
+      DEV_EMAIL: ci-developer@localhost.invalid
+      DEV_PASSWORD: ci-only-developer-console-password
     steps:
       - uses: actions/checkout@v4
 
