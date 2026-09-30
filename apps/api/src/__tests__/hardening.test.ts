@@ -15,16 +15,6 @@ import '../config/index.js'
  * and the receipt visibility predicate. They need no database.
  */
 
-const dbAvailable = await (async () => {
-  try {
-    const { prisma } = await import('../lib/prisma.js')
-    await prisma.$queryRaw`SELECT 1`
-    return true
-  } catch {
-    return false
-  }
-})()
-
 /** Recursively collects every object key present in a serialised payload. */
 function collectKeys(value: unknown, into = new Set<string>()): Set<string> {
   if (Array.isArray(value)) {
@@ -37,6 +27,16 @@ function collectKeys(value: unknown, into = new Set<string>()): Set<string> {
   }
   return into
 }
+
+const dbAvailable = await (async () => {
+  try {
+    const { prisma } = await import('../lib/prisma.js')
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch {
+    return false
+  }
+})()
 
 describe('refresh token verification', () => {
   // Regression: jwt.verify throws JsonWebTokenError, which asyncHandler cannot map to a
@@ -61,10 +61,29 @@ describe('refresh token verification', () => {
     expect(res.status).toBe(401)
   })
 
-  it('still rejects a well-formed refresh token with no database record as 401', async () => {
+  // Reaches the database, so it is gated on availability like the rest of the db-backed
+  // suite. CI's check job sets DATABASE_URL but runs no postgres service.
+  it.skipIf(!dbAvailable)('still rejects a well-formed refresh token with no database record as 401', async () => {
     const valid = jwt.sign({ sub: '00000000-0000-0000-0000-000000000000', type: 'refresh', ver: 0 }, config.refreshSecret, { expiresIn: '1h' })
     const res = await request(app).post('/api/v1/auth/refresh').send({ refreshToken: valid })
     expect(res.status).toBe(401)
+  })
+})
+
+describe('storage write containment', () => {
+  // The read path was validated already; saveBuffer is the sink that writes, and it now
+  // validates subdir at the boundary so no caller can write outside the upload root.
+  // These reject before any filesystem call, so they have no side effects.
+  it('refuses a subdir that escapes the upload root', async () => {
+    const { saveBuffer } = await import('../providers/storage.js')
+    await expect(saveBuffer(Buffer.from('x'), 'png', '../../etc')).rejects.toThrow()
+    await expect(saveBuffer(Buffer.from('x'), 'png', 'images/../../..')).rejects.toThrow()
+  })
+
+  it('refuses an absolute or backslash subdir', async () => {
+    const { saveBuffer } = await import('../providers/storage.js')
+    await expect(saveBuffer(Buffer.from('x'), 'png', '/etc')).rejects.toThrow()
+    await expect(saveBuffer(Buffer.from('x'), 'png', 'images\\..\\..')).rejects.toThrow()
   })
 })
 

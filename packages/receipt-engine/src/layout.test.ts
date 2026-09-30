@@ -15,7 +15,7 @@ const SAMPLE = {
   collectorName: 'Sanjay Kulkarni',
 }
 
-const measure: BuildDrawOpts['measure'] = (text, size) => text.length * size * 0.5
+const measure: BuildDrawOpts['measure'] = (text, size, _bold, _family) => text.length * size * 0.5
 
 describe('pagePx', () => {
   it('returns standard sizes for A4/A5/A6', () => {

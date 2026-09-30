@@ -50,7 +50,13 @@ function s3(): S3Client {
 
 export async function saveBuffer(buffer: Buffer, ext: string, subdir = ''): Promise<StoredFile> {
   const filename = `${Date.now()}-${randomCode(6)}.${ext}`
-  const rel = subdir ? `${subdir}/${filename}` : filename
+  // The write path needs the same containment guarantee as the read path: `subdir` is
+  // joined onto uploadDir for the disk driver and used verbatim as the R2 Key. Today's
+  // callers pass literals, but validating here means a future caller cannot turn this
+  // into a write outside the upload root.
+  const safeSubdir = subdir ? safeStorageKey(subdir) : ''
+  if (subdir && !safeSubdir) throw new AppError(400, 'Invalid upload subdirectory')
+  const rel = safeSubdir ? `${safeSubdir}/${filename}` : filename
   if (r2Active()) {
     await s3().send(
       new PutObjectCommand({
@@ -61,7 +67,7 @@ export async function saveBuffer(buffer: Buffer, ext: string, subdir = ''): Prom
       }),
     )
   } else {
-    const dir = subdir ? path.join(config.uploadDir, subdir) : config.uploadDir
+    const dir = safeSubdir ? path.join(config.uploadDir, safeSubdir) : config.uploadDir
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     await fs.promises.writeFile(path.join(dir, filename), buffer)
   }
