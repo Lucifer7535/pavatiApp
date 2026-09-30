@@ -28,6 +28,18 @@ Built as a TypeScript monorepo with an Express.js API, React frontend, and Postg
 
 ## Screenshots
 
+### Dashboard
+
+| Platform Dashboard |
+|--------------------|
+| ![Platform Dashboard](screenshots/dashboard.png) |
+
+### Developer Console
+
+| Analytics | Analytics | Analytics + Server Health |
+|----------|-----------|--------------------------|
+| ![Developer Console](screenshots/devDashboard1.png) | ![Developer Console](screenshots/devDashboard2.png) | ![Developer Console server health](screenshots/devDashboard3.png) |
+
 ### Dashboard & Reports
 
 | Reports | Detailed Reports | Audit Logs |
@@ -65,18 +77,6 @@ Built as a TypeScript monorepo with an Express.js API, React frontend, and Postg
 | Announcements | Notifications | Settings |
 |--------------|---------------|----------|
 | ![Announcements](screenshots/announcements.png) | ![Notifications](screenshots/notifications.png) | ![Settings](screenshots/settings.png) |
-
-### Dashboard
-
-| Platform Dashboard |
-|--------------------|
-| ![Platform Dashboard](screenshots/dashboard.png) |
-
-### Developer Console
-
-| Analytics | Analytics | Analytics + Server Health |
-|----------|-----------|--------------------------|
-| ![Developer Console](screenshots/devDashboard1.png) | ![Developer Console](screenshots/devDashboard2.png) | ![Developer Console server health](screenshots/devDashboard3.png) |
 
 ---
 
