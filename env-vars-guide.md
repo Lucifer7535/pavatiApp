@@ -2,6 +2,8 @@
 
 This guide explains every environment variable used by Pāvati Pustak and how to obtain each value.
 
+> Several variables are **validated at startup** — see [Fail-Closed Startup Checks](#fail-closed-startup-checks) before deploying.
+
 ---
 
 ## Table of Contents
@@ -24,7 +26,14 @@ This guide explains every environment variable used by Pāvati Pustak and how to
   - [GOOGLE_CLIENT_ID](#google_client_id)
   - [RESEND_API_KEY](#resend_api_key)
   - [RESEND_FROM_EMAIL](#resend_from_email)
+  - [WEB_DIST_DIR](#web_dist_dir)
+  - [LOG_LEVEL](#log_level)
   - [MOCK_MODE](#mock_mode)
+  - [ALLOW_INSECURE_MOCK_AUTH](#allow_insecure_mock_auth)
+  - [DEV_EMAIL](#dev_email)
+  - [DEV_PASSWORD](#dev_password)
+  - [DEV_ROUTES_ENABLED](#dev_routes_enabled)
+- [Fail-Closed Startup Checks](#fail-closed-startup-checks)
 - [apps/web/.env](#appswebenv)
   - [VITE_GOOGLE_CLIENT_ID](#vite_google_client_id)
 
@@ -74,7 +83,7 @@ This guide explains every environment variable used by Pāvati Pustak and how to
 
 | | |
 |---|---|
-| **Required** | Yes (enforced in production) |
+| **Required** | Yes (enforced on every host) |
 | **Example** | `k7Gq3xLm9P2wR5tY8nB4vJ1cF6hD0aE3sQ7iO2uK5xZ8mW4nT9rY1bV6gC0fH` |
 
 **What it does:** Signs JWT access tokens. A weak or leaked value compromises all user sessions.
@@ -92,7 +101,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
 python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-> **Never** use a short or guessable string in production. The app will refuse to start if this is left as the default dev value.
+> **Never** use a short or guessable string. The app **refuses to start** if this is missing, shorter than 32 characters, or still a `pavati-dev-` placeholder — on every host, not only production. See [Fail-Closed Startup Checks](#fail-closed-startup-checks).
 
 ---
 
@@ -114,7 +123,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 
 | | |
 |---|---|
-| **Required** | Yes (enforced in production) |
+| **Required** | Yes (enforced on every host) |
 | **Example** | `aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4yZ5aB6cD7eF8gH9iJ0kL1mN2` |
 
 **What it does:** Signs JWT refresh tokens. Separate from `JWT_SECRET` so access tokens can be rotated without invalidating refresh tokens.
@@ -125,7 +134,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 openssl rand -base64 48
 ```
 
-> Use a **different** value from `JWT_SECRET`.
+> Use a **different** value from `JWT_SECRET`. Both must be ≥ 32 characters and must not start with `pavati-dev-`, or the API will refuse to start.
 
 ---
 
@@ -196,6 +205,20 @@ openssl rand -base64 48
 **What it does:** Selects the file storage backend.
 - `disk` — stores files in the local `UPLOAD_DIR`
 - `r2` — stores files in Cloudflare R2
+
+---
+
+### WEB_DIST_DIR
+
+| | |
+|---|---|
+| **Required** | No (single-dyno deploys only) |
+| **Default** | `''` (disabled) |
+| **Example** | `apps/web/dist` |
+
+**What it does:** When set, the API serves the built React app from this directory in addition to the API routes. This is what lets one Heroku dyno serve both the API and the frontend.
+
+**How to set:** Point it at the Vite build output. Required for a production single-dyno deployment; leave unset when the web app is hosted separately.
 
 ---
 
@@ -336,6 +359,22 @@ openssl rand -base64 48
 
 ---
 
+### LOG_LEVEL
+
+| | |
+|---|---|
+| **Required** | No |
+| **Default** | `info` |
+| **Example** | `debug` |
+
+**What it does:** Sets the Pino log verbosity for the API.
+
+**Valid values:** `fatal`, `error`, `warn`, `info`, `debug`, `trace`, or `silent`.
+
+> Use `debug` or `trace` locally when troubleshooting. `debug` in production will log request details — leave it at `info` or `warn` for deployed environments.
+
+---
+
 ### MOCK_MODE
 
 | | |
@@ -344,7 +383,125 @@ openssl rand -base64 48
 | **Default** | `false` |
 | **Example** | `false` |
 
-**What it does:** When `true`, payment processing uses mock providers instead of real payment gateways. Useful for local development and testing.
+**What it does:** Enables the mock payment providers instead of real payment gateways. Useful for local development and testing.
+
+> **This flag alone no longer enables mock authentication.** The mock *login* branch accepts a caller-supplied email, so it is now gated behind a second explicit opt-in. See [ALLOW_INSECURE_MOCK_AUTH](#allow_insecure_mock_auth) below.
+
+---
+
+### ALLOW_INSECURE_MOCK_AUTH
+
+| | |
+|---|---|
+| **Required** | No |
+| **Default** | `false` |
+| **Example** | `false` |
+
+**What it does:** Second, independent opt-in required before the Google mock-login branch will run. That branch signs a session for any email the caller supplies, so it is treated as an authentication bypass rather than a testing convenience.
+
+**How it works:** Mock authentication runs only when **all three** conditions hold:
+
+1. `MOCK_MODE=true`, **and**
+2. `ALLOW_INSECURE_MOCK_AUTH=true`, **and**
+3. `NODE_ENV` is **not** `production`
+
+> **Leave this `false` in any shared, staging, or production environment.** It exists for local development only. There is no supported way to enable it in production, by design.
+
+---
+
+### DEV_EMAIL
+
+| | |
+|---|---|
+| **Required** | Only if the developer console is mounted |
+| **Default** | `dev@pavati.com` (rejected while mounted) |
+| **Example** | `dev-console@yourdomain.com` |
+
+**What it does:** The username accepted by the developer console login at `/developer`.
+
+**How to set:** Any email address that is not the published default. The console is a local-only surface; it exposes platform analytics and live server health metrics, so treat this like any other credential.
+
+> The published default `dev@pavati.com` is rejected at startup on any host where the console is actually mounted. See [Fail-Closed Startup Checks](#fail-closed-startup-checks).
+
+---
+
+### DEV_PASSWORD
+
+| | |
+|---|---|
+| **Required** | Only if the developer console is mounted |
+| **Default** | `Pavati@Dev2026` (rejected while mounted) |
+| **Example** | *(a unique password of 12+ characters)* |
+
+**What it does:** The password compared against the developer console login. It mints a bearer token accepted by `/api/v1/dev/*`, so it is a real credential, not a placeholder.
+
+**How to generate:**
+
+```bash
+openssl rand -base64 24
+```
+
+**Requirements:** At least 12 characters, and not one of the `.env.example` placeholder shapes (`change-me…`, `your-…`, `placeholder`, `example…`, `xxx…`). Copying `.env.example` verbatim will not produce a working login — the API refuses to start instead.
+
+---
+
+### DEV_ROUTES_ENABLED
+
+| | |
+|---|---|
+| **Required** | No |
+| **Default** | `false` in production, always on otherwise |
+| **Example** | `true` |
+
+**What it does:** Controls whether `/api/v1/dev` is mounted at all.
+
+**How it works:**
+
+| `NODE_ENV` | `DEV_ROUTES_ENABLED` | Result |
+|---|---|---|
+| `production` | unset or anything but `true` | **Not mounted** — `/api/v1/dev/*` returns `404` |
+| `production` | exactly `true` | Mounted, and dev credentials become live |
+| anything else | unset or anything | Mounted |
+
+> **Leave this unset in production.** The default is deliberately safe: a production host that forgets this variable serves no developer routes at all. Setting it to `true` makes an internet-reachable analytics and metrics console available, so only do so deliberately with strong [DEV_EMAIL](#dev_email) and [DEV_PASSWORD](#dev_password).
+
+**On Heroku**, enable it with:
+
+```bash
+heroku config:set DEV_ROUTES_ENABLED=true
+heroku config:set DEV_EMAIL=dev-console@yourdomain.com
+heroku config:set DEV_PASSWORD="$(openssl rand -base64 24)"
+```
+
+---
+
+## Fail-Closed Startup Checks
+
+Several variables are validated at boot rather than trusted. The API **throws and refuses to start** when any of these fail — this applies on **every** host, including local development, not only production.
+
+| Variable | Rule |
+|----------|------|
+| `JWT_SECRET` | Required. Must be ≥ 32 characters and must not start with `pavati-dev-` |
+| `REFRESH_SECRET` | Required. Same rules; must differ from `JWT_SECRET` |
+| `DEV_EMAIL` | Required, and must not be the published default, when the console is mounted |
+| `DEV_PASSWORD` | Required, ≥ 12 characters, and must not match a `.env.example` placeholder, when the console is mounted |
+
+**Why this is stricter than before:** these checks used to be keyed on `NODE_ENV=production`. A host that simply forgot `NODE_ENV` could boot using the dev literals published in the source tree and sign real tokens with a key that is in the public repository. The check is now unconditional.
+
+**What a failure looks like:**
+
+```
+Error: Environment variable JWT_SECRET must be set to a strong secret (>=32 chars, not a dev placeholder)
+Error: Environment variable DEV_PASSWORD must not be left at its published default while the developer console is mounted
+```
+
+A dev-credential check is skipped when the console is not mounted — a production host that correctly left `DEV_ROUTES_ENABLED` unset never serves `/api/v1/dev`, so an unused placeholder there must not block a boot.
+
+**Quick sanity check before deploying:**
+
+```bash
+node -e "for (const k of ['JWT_SECRET','REFRESH_SECRET']) { const v=process.env[k]; if(!v||v.length<32||v.startsWith('pavati-dev-')) throw new Error(k+' too weak or still a dev default'); } console.log('secrets ok')"
+```
 
 ---
 
@@ -384,5 +541,11 @@ openssl rand -base64 48
 | `GOOGLE_CLIENT_ID` | Google Cloud Console | No |
 | `RESEND_API_KEY` | Resend Dashboard | No |
 | `RESEND_FROM_EMAIL` | Resend verified domain | No |
+| `WEB_DIST_DIR` | Path to Vite build output | No (needed for single-dyno deploys) |
+| `LOG_LEVEL` | Any Pino level | No (default: `info`) |
 | `MOCK_MODE` | `true` or `false` | No (default: `false`) |
+| `ALLOW_INSECURE_MOCK_AUTH` | `true` or `false` | No (default: `false`) |
+| `DEV_EMAIL` | Any non-default email | Only if the console is mounted |
+| `DEV_PASSWORD` | `openssl rand -base64 24` | Only if the console is mounted |
+| `DEV_ROUTES_ENABLED` | `true` mounts `/api/v1/dev` in production | No (default: off in production) |
 | `VITE_GOOGLE_CLIENT_ID` | Same as `GOOGLE_CLIENT_ID` | No |

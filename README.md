@@ -22,6 +22,61 @@ Built as a TypeScript monorepo with an Express.js API, React frontend, and Postg
 - **Dashboard & Reports** — Donation summaries, collection analytics, and exportable reports
 - **Audit Logging** — Full activity trail for compliance and accountability
 - **Receipt Verification** — Public verification page using unique tokens to validate receipt authenticity
+- **Developer Console** — Platform analytics and live server health metrics
+
+---
+
+## Screenshots
+
+### Dashboard & Reports
+
+| Reports | Detailed Reports | Audit Logs |
+|---------|------------------|------------|
+| ![Reports](screenshots/reports.png) | ![Detailed Reports](screenshots/detailedReports.png) | ![Audit Logs](screenshots/auditLogs.png) |
+
+### Trusts & Members
+
+| Find Trusts | Create Trust | Trust Settings |
+|-------------|--------------|----------------|
+| ![Find Trusts](screenshots/findTrusts.png) | ![Create Trust](screenshots/createTrust.png) | ![Trust Settings](screenshots/trustSettings.png) |
+
+| Members | Create Join Trust | New Pāvati |
+|---------|------------------|-------------|
+| ![Members](screenshots/members.png) | ![Create Join Trust](screenshots/createJoinTrust.png) | ![New Pāvati](screenshots/newPavati.png) |
+
+### Donations
+
+| Donations | Donation Details | Payment Links |
+|----------|------------------|---------------|
+| ![Donations](screenshots/donations.png) | ![Donation Details](screenshots/donationDetails.png) | ![Payment Links](screenshots/paymentLinks.png) |
+
+### Receipts & Templates
+
+| Receipts | Receipt Details | Templates |
+|----------|------------------|-----------|
+| ![Receipts](screenshots/receipts.png) | ![Receipt Details](screenshots/receiptDetails.png) | ![Templates](screenshots/templates.png) |
+
+| Template Editor |
+|-----------------|
+| ![Template Editor](screenshots/templateEdit.png) |
+
+### Announcements, Notifications & Settings
+
+| Announcements | Notifications | Settings |
+|--------------|---------------|----------|
+| ![Announcements](screenshots/announcements.png) | ![Notifications](screenshots/notifications.png) | ![Settings](screenshots/settings.png) |
+
+### Dashboard
+
+| Platform Dashboard |
+|--------------------|
+| ![Platform Dashboard](screenshots/dashboard.png) |
+
+### Developer Console
+
+| Analytics | Analytics | Analytics + Server Health |
+|----------|-----------|--------------------------|
+| ![Developer Console](screenshots/devDashboard1.png) | ![Developer Console](screenshots/devDashboard2.png) | ![Developer Console server health](screenshots/devDashboard3.png) |
 
 ---
 
@@ -71,8 +126,10 @@ pavati-app/
 ├── packages/
 │   ├── shared/               # Shared types, schemas, permissions, utilities
 │   └── receipt-engine/       # PDF receipt generation library
+├── screenshots/              # README screenshots
 ├── Procfile                  # Heroku deployment
 ├── package.json              # Root workspace config
+├── env-vars-guide.md         # Detailed environment variable reference
 └── tsconfig.base.json        # Shared TypeScript config
 ```
 
@@ -266,10 +323,23 @@ Clicking the button opens Heroku, creates the app, provisions a PostgreSQL datab
    heroku config:set WEB_ORIGIN=https://pavati-pustak.herokuapp.com
    heroku config:set PUBLIC_BASE_URL=https://pavati-pustak.herokuapp.com
    heroku config:set WEB_DIST_DIR=apps/web/dist
-   heroku config:set MOCK_MODE=true
    ```
 
-   Optional — enable real integrations instead of mock providers:
+   > `MOCK_MODE` is intentionally not set here. Mock *authentication* requires a second
+   > opt-in, `ALLOW_INSECURE_MOCK_AUTH=true`, and is refused when `NODE_ENV=production`
+   > because that branch signs a session for any email the caller supplies. See
+   > [env-vars-guide.md](./env-vars-guide.md#mock_mode).
+
+   Optional — expose the developer console (`/developer`) at `/api/v1/dev`. Off by default
+   in production; see [DEV_ROUTES_ENABLED](./env-vars-guide.md#dev_routes_enabled).
+
+   ```bash
+   heroku config:set DEV_ROUTES_ENABLED=true
+   heroku config:set DEV_EMAIL=dev-console@yourdomain.com
+   heroku config:set DEV_PASSWORD="$(openssl rand -base64 24)"
+   ```
+
+   Optional — enable real integrations instead of the default local/mock providers:
 
    ```bash
    heroku config:set R2_ACCOUNT_ID=your-cloudflare-account-id
@@ -279,7 +349,6 @@ Clicking the button opens Heroku, creates the app, provisions a PostgreSQL datab
    heroku config:set GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
    heroku config:set RESEND_API_KEY=re_your-resend-api-key
    heroku config:set RESEND_FROM_EMAIL=no-reply@yourdomain.com
-   heroku config:set MOCK_MODE=false
    ```
 
    > `DATABASE_URL` is set by the Postgres addon — do **not** set it manually.
@@ -325,7 +394,8 @@ All API routes are prefixed with `/api/v1/`:
 | Dashboard | `/api/v1/trusts/:trustId/dashboard` | Dashboard statistics |
 | Users | `/api/v1/users` | User profile management |
 | Uploads | `/api/v1/uploads` | File upload endpoints |
-| Health | `/health` | Health check |
+| Health | `/health` | Public liveness probe (Heroku polls this) |
+| Developer Console | `/api/v1/dev` | Platform analytics and server health — authenticated, not mounted in production unless `DEV_ROUTES_ENABLED=true` |
 
 ---
 
