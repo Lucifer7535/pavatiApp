@@ -34,6 +34,19 @@ function collectKeys(value: unknown, into = new Set<string>()): Set<string> {
   return into
 }
 
+/**
+ * Collapses casing and underscore differences so a banned name cannot be evaded by
+ * renaming it: "totalAmount", "total_amount" and "TOTAL_AMOUNT" all normalise alike.
+ */
+function normalizeKey(key: string): string {
+  return key.replace(/_/g, '').toLowerCase()
+}
+
+function bannedKeysPresent(body: unknown, banned: string[]): string[] {
+  const keys = new Set([...collectKeys(body)].map(normalizeKey))
+  return banned.map(normalizeKey).filter((b) => keys.has(b))
+}
+
 describe('developer console analytics payload', () => {
   const app = createApp()
   const devToken = () => jwt.sign({ sub: 'developer', type: 'developer' }, config.jwtSecret, { expiresIn: '24h' })
@@ -45,13 +58,14 @@ describe('developer console analytics payload', () => {
 
     expect(res.status).toBe(200)
 
-    const keys = collectKeys(res.body)
-    for (const banned of ['totalDonationAmount', 'totalAmount', 'total_amount', 'recentUsers', '_sum']) {
-      expect(keys.has(banned), `response must not expose "${banned}"`).toBe(false)
-    }
+    // Case/underscore-insensitive so "recentUsers" cannot return as "recent_users".
+    expect(bannedKeysPresent(res.body, ['totalDonationAmount', 'totalAmount', 'total_amount', 'recentUsers', 'recentUser', '_sum'])).toEqual([])
 
-    // Raw body scan catches an amount leaking under a differently-named key.
-    expect(JSON.stringify(res.body)).not.toMatch(/"amount"|"total_amount"/)
+    // Raw body scan is the backstop for values under an unfamiliar key name.
+    const raw = JSON.stringify(res.body)
+    expect(raw).not.toMatch(/"amount"|"total_amount"/)
+    // PII field names, in case they reappear under a name the key scan does not list.
+    expect(raw).not.toMatch(/"email"|"phone"|"fullName"|"recent_users"/i)
   })
 
   it.skipIf(!dbAvailable)('still returns the non-PII aggregate counts', async () => {
@@ -70,6 +84,57 @@ describe('developer console analytics payload', () => {
       expect(row).toHaveProperty('donationCount')
       expect(row).not.toHaveProperty('totalAmount')
     }
+  })
+})
+
+describe('developer console health metrics', () => {
+  const app = createApp()
+  const devToken = () => jwt.sign({ sub: 'developer', type: 'developer' }, config.jwtSecret, { expiresIn: '24h' })
+
+  it.skipIf(!dbAvailable)('reports runtime metrics without leaking credentials', async () => {
+    const res = await request(app)
+      .get('/api/v1/dev/health')
+      .set('Authorization', `Bearer ${devToken()}`)
+
+    expect(res.status).toBe(200)
+
+    const h = res.body.data
+    expect(h.uptimeSeconds).toBeGreaterThan(0)
+    expect(h.uptime).toMatch(/^\d+[dhm]/)
+    expect(h.memoryMb.rss).toBeGreaterThan(0)
+    expect(h.db.ok).toBe(true)
+    expect(typeof h.eventLoopDelayMs).toBe('number')
+    expect(typeof h.cpuPercent).toBe('number')
+    expect(h.host.node).toBe(process.version)
+
+    // Same key scan as the analytics payload: nothing secret may ride along.
+    expect(bannedKeysPresent(res.body, ['jwtSecret', 'refreshSecret', 'devPassword', 'devEmail', 'databaseUrl', 'smtpPassword', 'r2SecretAccessKey', 'stripeSecretKey'])).toEqual([])
+  })
+
+  it.skipIf(!dbAvailable)('formats uptime with days only once there are days', async () => {
+    const { formatUptime } = await import('../lib/health.js')
+    expect(formatUptime(59)).toBe('0m 59s')
+    expect(formatUptime(3661)).toBe('1h 1m')
+    expect(formatUptime(90061)).toBe('1d 1h 1m')
+  })
+
+  it('requires a bearer token for the health endpoint', async () => {
+    const res = await request(app).get('/api/v1/dev/health')
+    expect(res.status).toBe(401)
+  })
+
+  it('answers an expired developer token with 401 on the health endpoint', async () => {
+    const expired = jwt.sign({ sub: 'developer', type: 'developer' }, config.jwtSecret, { expiresIn: '-1s' })
+    const res = await request(app).get('/api/v1/dev/health').set('Authorization', `Bearer ${expired}`)
+    expect(res.status).toBe(401)
+  })
+
+  it('keeps the platform health probe free of runtime metrics', async () => {
+    // Heroku polls /health for dyno status. Runtime metrics and a database round-trip
+    // would slow that probe, so they must stay on the developer route only.
+    const res = await request(app).get('/health')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ ok: true, service: 'pavati-api', time: expect.any(String) })
   })
 })
 

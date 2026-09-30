@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Users, Landmark, UserPlus, Wallet, ReceiptText, Link2, Megaphone, DoorOpen,
   RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, Download,
+  Clock, HardDrive, Cpu, Database,
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid,
@@ -48,6 +49,51 @@ interface StatPayload {
 type SortKey = 'name' | 'memberCount' | 'donationCount'
 type SortDir = 'asc' | 'desc'
 
+interface HealthSnapshot {
+  uptimeSeconds: number
+  uptime: string
+  memoryMb: { rss: number; heapUsed: number; heapTotal: number; external: number }
+  cpuPercent: number
+  eventLoopDelayMs: number
+  activeResources: number
+  db: { ok: boolean; latencyMs: number }
+  requests: { total: number; perMin: number }
+  host: {
+    cpus: number
+    loadAvg: number
+    totalMemMb: number
+    freeMemMb: number
+    platform: string
+    arch: string
+    node: string
+  }
+}
+
+/** green / amber / red thresholds for a single metric reading. */
+function healthTone(value: number, warn: number, critical: number): 'ok' | 'warn' | 'bad' {
+  if (value >= critical) return 'bad'
+  if (value >= warn) return 'warn'
+  return 'ok'
+}
+
+const toneDot: Record<'ok' | 'warn' | 'bad', string> = {
+  ok: 'bg-emerald-500',
+  warn: 'bg-amber-500',
+  bad: 'bg-red-500',
+}
+
+function HealthRow({ label, value, tone }: { label: string; value: string; tone: 'ok' | 'warn' | 'bad' }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <span className="text-sm text-stone-500">{label}</span>
+      <span className="inline-flex items-center gap-2">
+        <span className="text-sm font-medium tabular-nums text-stone-800">{value}</span>
+        <span className={cn('h-2 w-2 rounded-full', toneDot[tone])} />
+      </span>
+    </div>
+  )
+}
+
 const statusLabel: Record<string, string> = { SUCCEEDED: 'Successful', PENDING: 'Pending', CANCELLED: 'Cancelled' }
 const statusColor: Record<string, string> = { SUCCEEDED: 'green', PENDING: 'gold', CANCELLED: 'red' }
 
@@ -70,6 +116,21 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [sessionExpired, setSessionExpired] = useState(false)
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+
+  const { data: h } = useQuery<HealthSnapshot>({
+    queryKey: ['dev-health'],
+    queryFn: () =>
+      fetch('/api/v1/dev/health', { headers: { Authorization: `Bearer ${getDevToken()}` } }).then(async (res) => {
+        const body = await res.json().catch(() => null)
+        if (!res.ok) throw new Error(body?.error ?? 'Failed to load health')
+        return body.data as HealthSnapshot
+      }),
+    // Ten seconds is frequent enough to catch a spike and cheap enough to ignore.
+    // Paused while the tab is hidden, so an overnight tab polls nothing.
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 5_000,
+  })
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['dev-stats', from, to],
@@ -145,6 +206,7 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   const s = data?.summary
   const byStatus = data?.donationByStatus ?? []
+  const totalDonations = byStatus.reduce((acc, d) => acc + d.count, 0)
 
   const getStatus = (st: string) => byStatus.find((d) => d.status === st)
 
@@ -198,7 +260,7 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
         <Spinner label="Loading platform analytics…" />
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Users Signed Up" value={s.totalUsers} icon={<Users className="h-5 w-5" />} accent="saffron" sub="registered accounts" />
             <StatCard label="Trusts Created" value={s.totalTrusts} icon={<Landmark className="h-5 w-5" />} accent="maroon" sub="public trusts" />
             <StatCard label="Trust Members" value={s.totalMembers} icon={<UserPlus className="h-5 w-5" />} accent="blue" sub="across all trusts" />
@@ -212,25 +274,26 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader title="Donation Status" subtitle="Distribution by status" />
-              <div className="grid gap-3 p-4 sm:grid-cols-2">
+              <div className="grid gap-3 p-4 sm:grid-cols-3">
                 {(['SUCCEEDED', 'PENDING', 'CANCELLED'] as const).map((st) => {
                   const row = getStatus(st)
+                  const pct = totalDonations > 0 ? Math.round(((row?.count ?? 0) / totalDonations) * 100) : 0
                   return (
                     <div key={st} className="rounded-xl border border-stone-100 p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <Badge color={statusColor[st]}>{statusLabel[st]}</Badge>
-                        <span className="text-lg font-bold text-stone-900">{row?.count ?? 0}</span>
+                        <span className="text-lg font-bold leading-none text-stone-900">{row?.count ?? 0}</span>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-stone-100">
+                          <div className="h-full rounded-full bg-saffron-400 transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-9 text-right text-xs tabular-nums text-stone-400">{pct}%</span>
                       </div>
                     </div>
                   )
                 })}
-                <div className="rounded-xl border border-stone-100 bg-stone-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <Badge color="default">Total received</Badge>
-                    <span className="text-lg font-bold text-stone-900">{getStatus('SUCCEEDED')?.count ?? 0}</span>
-                  </div>
-                </div>
-                <div className="h-52 sm:col-span-2">
+                <div className="h-52 sm:col-span-3">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={pieData} dataKey="value" nameKey="name" outerRadius="75%" label={(e: any) => `${e.name}: ${e.value}`}>
@@ -284,8 +347,7 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
+          <Card>
               <CardHeader title="Donations by Trust" subtitle="Top 10 trusts by donation count" />
               <div className="h-64 p-4">
                 <ResponsiveContainer width="100%" height="100%">
@@ -299,7 +361,6 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
                 </ResponsiveContainer>
               </div>
             </Card>
-          </div>
 
           <Card>
             <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
@@ -383,6 +444,33 @@ const [sortDir, setSortDir] = useState<SortDir>('desc')
               </>
             )}
           </Card>
+
+          {h && (
+            <Card>
+              <CardHeader title="Server Health" subtitle="Live process and runtime metrics" />
+              <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard label="Uptime" value={h.uptime} icon={<Clock className="h-5 w-5" />} accent="blue" sub={`${h.requests.total} requests served`} />
+                <StatCard label="Memory (RSS)" value={`${h.memoryMb.rss} MB`} icon={<HardDrive className="h-5 w-5" />} accent="green" sub={`heap ${h.memoryMb.heapUsed} / ${h.memoryMb.heapTotal} MB`} />
+                <StatCard label="CPU" value={`${h.cpuPercent}%`} icon={<Cpu className="h-5 w-5" />} accent="purple" sub={`load ${h.host.loadAvg} across ${h.host.cpus} cores`} />
+                <StatCard label="Database" value={`${h.db.latencyMs} ms`} icon={<Database className="h-5 w-5" />} accent={h.db.ok ? 'saffron' : 'maroon'} sub={h.db.ok ? `${h.requests.perMin} req/min` : 'unreachable'} />
+              </div>
+
+              <div className="grid gap-x-8 border-t border-stone-100 px-5 py-4 sm:grid-cols-2">
+                <div className="divide-y divide-stone-100">
+                  <HealthRow label="Event loop delay" value={`${h.eventLoopDelayMs} ms`} tone={healthTone(h.eventLoopDelayMs, 50, 200)} />
+                  <HealthRow label="Active resources" value={String(h.activeResources)} tone="ok" />
+                  <HealthRow label="Requests / min" value={String(h.requests.perMin)} tone="ok" />
+                  <HealthRow label="Free memory" value={`${h.host.freeMemMb} MB`} tone={healthTone(100 - (h.host.freeMemMb / Math.max(1, h.host.totalMemMb)) * 100, 80, 90)} />
+                </div>
+                <div className="divide-y divide-stone-100">
+                  <HealthRow label="Database" value={h.db.ok ? 'reachable' : 'unreachable'} tone={h.db.ok ? 'ok' : 'bad'} />
+                  <HealthRow label="Platform" value={`${h.host.platform} ${h.host.arch}`} tone="ok" />
+                  <HealthRow label="Node" value={h.host.node} tone="ok" />
+                  <HealthRow label="Total memory" value={`${h.host.totalMemMb} MB`} tone="ok" />
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       )}
     </DeveloperLayout>

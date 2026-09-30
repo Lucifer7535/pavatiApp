@@ -4,6 +4,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { config } from './config/index.js'
 import { prisma } from './lib/prisma.js'
+import { recordRequest } from './lib/health.js'
 import { logger } from './lib/logger.js'
 import { AppError, asyncHandler } from './lib/http.js'
 import { errorHandler, notFound } from './middleware/error.js'
@@ -41,6 +42,12 @@ export function createApp() {
     next()
   })
   app.use(express.json({ limit: '8mb' }))
+  // Feeds the developer console's request-rate metric. Registered after the security
+  // headers so the counter reflects requests that actually reach routing.
+  app.use((_req, _res, next) => {
+    recordRequest()
+    next()
+  })
   // No cookieParser: the API is bearer-token only and nothing reads req.cookies, so
   // mounting it only added an untrusted-cookie surface with no CSRF protection behind it.
   app.use(globalRateLimiter())

@@ -136,15 +136,19 @@ export function StatCard({ label, value, icon, accent = 'saffron', sub }: { labe
     green: 'bg-emerald-50 text-emerald-600',
     gold: 'bg-amber-50 text-amber-600',
     blue: 'bg-sky-50 text-sky-600',
+    // Missing before: accent="purple" fell through to undefined, and cn() drops
+    // undefined, so the icon rendered with no background and no text colour.
+    // Keep in sync with the badgeColors keys above.
+    purple: 'bg-purple-50 text-purple-600',
   }
   return (
     <Card className="p-5">
       <div className="flex items-center gap-3">
         {icon && <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', accents[accent])}>{icon}</div>}
         <div className="min-w-0">
-          <p className="truncate text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p>
-          <p className="text-xl font-bold text-stone-900">{value}</p>
-          {sub && <p className="text-xs text-stone-400">{sub}</p>}
+          <p className="text-xs font-medium uppercase leading-tight tracking-wide text-stone-500">{label}</p>
+          <p className="text-xl font-bold leading-tight text-stone-900">{value}</p>
+          {sub && <p className="text-xs leading-tight text-stone-400">{sub}</p>}
         </div>
       </div>
     </Card>

@@ -4,6 +4,7 @@ import { prisma } from '../../lib/prisma.js'
 import { config } from '../../config/index.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireDevAuth } from '../../middleware/dev-auth.js'
+import { collectHealth } from '../../lib/health.js'
 import { assertNotLocked, recordLoginFailure, resetLoginFailures, clientIp } from '../../middleware/rateLimit.js'
 import rateLimit from 'express-rate-limit'
 
@@ -176,6 +177,17 @@ router.get(
       trustsByDay: trustsByDay.map((d) => ({ date: d.date, count: Number(d.count) })),
       trustBreakdown: trustBreakdownFormatted,
     })
+  })
+)
+
+// Kept separate from /health, which Heroku polls for the dyno status. Folding runtime
+// metrics and a database round-trip into that route would slow the platform's own probe,
+// so the richer snapshot lives here behind developer auth instead.
+router.get(
+  '/health',
+  requireDevAuth,
+  asyncHandler(async (_req, res) => {
+    ok(res, await collectHealth(() => prisma.$queryRaw`SELECT 1`))
   })
 )
 
