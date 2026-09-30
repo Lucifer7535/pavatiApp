@@ -15,6 +15,16 @@ jobs:
     env:
       NODE_VERSION: 24
       DATABASE_URL: postgresql://ci:ci@localhost:5432/pavati_ci
+      # Throwaway, non-secret values. The API refuses to boot on any host without a
+      # strong JWT_SECRET/REFRESH_SECRET, so CI has to supply them explicitly. They
+      # only ever sign tokens inside an ephemeral runner and carry no privilege; the
+      # Heroku app has its own real values.
+      JWT_SECRET: ci-only-jwt-secret-not-a-real-credential-0123456789
+      REFRESH_SECRET: ci-only-refresh-secret-not-a-real-credential-0123456789
+      # The developer console is mounted whenever NODE_ENV is unset, so its credential
+      # must be a real-looking value rather than a published or placeholder one.
+      DEV_EMAIL: ci-developer@localhost.invalid
+      DEV_PASSWORD: ci-only-developer-console-password
     services:
       postgres:
         image: postgres:16
