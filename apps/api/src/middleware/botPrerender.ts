@@ -60,7 +60,8 @@ export function isPreviewBot(userAgent: string): boolean {
   return PREVIEW_BOT_MARKERS.some((m) => ua.includes(m))
 }
 
-function escapeHtml(value: string): string {
+/** Exported so the security suite can assert against the real escaper, not a copy. */
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

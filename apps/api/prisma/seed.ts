@@ -61,7 +61,7 @@ function assertDestructiveResetAllowed() {
   }
 
   // Name the target so the operator can confirm which database they just destroyed.
-  let host = '(unknown)'
+  let host: string
   try {
     host = new URL(process.env.DATABASE_URL ?? '').host
   } catch {

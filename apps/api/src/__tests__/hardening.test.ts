@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import { createApp } from '../index.js'
@@ -136,21 +136,10 @@ describe.skipIf(!dbAvailable)('prismaPublic credential stripping', () => {
 })
 
 describe('storage key containment', () => {
-  // Mirrors the guard in providers/storage.ts.
-  function safeStorageKey(raw: string): string | null {
-    let decoded: string
-    try {
-      decoded = decodeURIComponent(raw)
-    } catch {
-      return null
-    }
-    if (decoded.includes('\0') || decoded.includes('\\')) return null
-    if (decoded.startsWith('/') || /^[A-Za-z]:/.test(decoded)) return null
-    const segments = decoded.split('/')
-    if (segments.some((s) => s === '..' || s === '.')) return null
-    if (!segments.some((s) => s.length > 0)) return null
-    return segments.join('/')
-  }
+  let safeStorageKey: (raw: string) => string | null
+  beforeAll(async () => {
+    ;({ safeStorageKey } = await import('../providers/storage.js'))
+  })
 
   it.each([
     ['../etc/passwd'],
@@ -175,11 +164,10 @@ describe('storage key containment', () => {
 })
 
 describe('CSV formula neutralisation', () => {
-  function csvCell(value: unknown): string {
-    const raw = value === null || value === undefined ? '' : String(value)
-    if (/^[=+\-@\t\r]/.test(raw)) return `'${raw}`
-    return raw.replace(/"/g, '""')
-  }
+  let csvCell: (value: unknown) => string
+  beforeAll(async () => {
+    ;({ csvCell } = await import('../modules/reports/routes.js'))
+  })
 
   it.each([
     ['=HYPERLINK("http://evil.example","x")'],
@@ -204,22 +192,26 @@ describe('CSV formula neutralisation', () => {
 })
 
 describe('bot prerender attribute escaping', () => {
-  function escapeHtml(value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-  }
+  let escapeHtml: (value: string) => string
+  beforeAll(async () => {
+    ;({ escapeHtml } = await import('../middleware/botPrerender.js'))
+  })
 
   it('prevents an attacker-controlled logoUrl from breaking out of the og:image attribute', () => {
     const logo = 'x"><script>alert(1)</script><meta x="'
     const rendered = `<meta property="og:image" content="${escapeHtml(logo)}" />`
     expect(rendered).not.toContain('<script>')
     expect(rendered).toContain('&quot;')
-    // Exactly one tag boundary: the injected angle brackets are inert.
-    expect(rendered.match(/<script>/g)).toBeNull()
+    // Case-insensitive: a /<script>/g test would pass even if an uppercase
+    // <SCRIPT> payload survived untouched.
+    expect(rendered.match(/<\/?\s*script/i)).toBeNull()
+  })
+
+  it('neutralises an uppercase SCRIPT payload too', () => {
+    const logo = '"><SCRIPT>alert(1)</SCRIPT>'
+    const rendered = `<meta property="og:image" content="${escapeHtml(logo)}" />`
+    expect(rendered).toContain('&lt;SCRIPT&gt;')
+    expect(rendered.match(/<\/?\s*script/i)).toBeNull()
   })
 })
 

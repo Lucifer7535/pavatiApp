@@ -95,7 +95,8 @@ function keyFromUrl(url: string): string | null {
  * `..` escapes the upload directory on the disk driver and reaches arbitrary files.
  * Decode first so percent-encoded traversal cannot slip past a segment check.
  */
-function safeStorageKey(raw: string): string | null {
+/** Exported so the security suite can assert against the real validator, not a copy. */
+export function safeStorageKey(raw: string): string | null {
   let decoded: string
   try {
     decoded = decodeURIComponent(raw)

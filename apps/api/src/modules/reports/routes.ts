@@ -24,7 +24,8 @@ const COLLECTOR_SELECT = { id: true, position: true, user: { select: { id: true,
  * live outbound link or a data-exfiltration call in an operator's spreadsheet.
  * RFC 4180 quoting does not prevent this; the leading character has to be defanged.
  */
-function csvCell(value: unknown): string {
+/** Exported so the security suite can assert against the real escaper, not a copy. */
+export function csvCell(value: unknown): string {
   const raw = value === null || value === undefined ? '' : String(value)
   // A leading space or tab also triggers coercion in several spreadsheet engines.
   if (/^[=+\-@\t\r ]/.test(raw)) return `'${raw}`
