@@ -6,9 +6,17 @@ import { loadTrustContext, requirePermission, type TrustContextRequest } from '.
 import { validateBody, validateParams } from '../../middleware/validate.js'
 import { createTrustSchema, joinByCodeSchema, updateTrustSchema, z, randomCode } from '@pavati/shared'
 import { audit } from '../../services/audit.js'
-import { publicUser } from '../../lib/jwt.js'
 
 const router = Router()
+
+/**
+ * Roles that constitute a trust's committee.
+ *
+ * Any surface that publishes a committee list must scope on these, otherwise an
+ * ordinary member appears in a directory that is meant to describe officers, and an
+ * anonymous caller gets a full roster of the trust's membership.
+ */
+const OFFICER_ROLES = ['PRIMARY_ADMIN', 'ADMIN', 'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'JOINT_SECRETARY', 'TREASURER'] as const
 
 function buildCodes(name: string): { uniqueCode: string; joinCode: string } {
   const word = name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() || 'TRUST'
@@ -108,8 +116,11 @@ router.get(
     }
     const committee = trust.showCommitteePublicly
       ? await prisma.trustMember.findMany({
-          where: { trustId: trust.id, status: 'ACTIVE', role: { in: ['PRIMARY_ADMIN', 'ADMIN', 'PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'JOINT_SECRETARY', 'TREASURER'] } },
-          include: { user: true },
+          where: { trustId: trust.id, status: 'ACTIVE', role: { in: [...OFFICER_ROLES] } },
+          select: {
+            id: true, role: true, position: true, contactVisible: true, introduction: true,
+            user: { select: { id: true, name: true, profileImage: true } },
+          },
         })
       : []
     const donations = trust.showDonorsPublicly
@@ -146,7 +157,9 @@ router.get(
       showDonationAmounts: trust.showDonationAmounts,
       allowAnonymousDonations: trust.allowAnonymousDonations,
       memberCount: trust._count.members,
-      committee: committee.map((m) => ({ id: m.id, role: m.role, position: m.position, contactVisible: m.contactVisible, introduction: m.introduction, user: m.contactVisible ? publicUser(m.user) : { id: m.user.id, name: m.user.name, profileImage: m.user.profileImage } })),
+      // Same rule as GET /:trustId/committee: this endpoint also answers anonymous
+      // callers, so it never publishes member contact columns.
+      committee: committee.map((m) => ({ id: m.id, role: m.role, position: m.position, contactVisible: m.contactVisible, introduction: m.introduction, user: m.user })),
       recentDonations: donations.map((d) => ({ id: d.id, donorName: d.privacy === 'ANONYMOUS' ? 'Anonymous Donor' : d.donorName, amount: trust.showDonationAmounts ? d.amount : null, donationDate: d.donationDate, category: d.category })),
     })
   })
@@ -184,7 +197,12 @@ router.post(
     const member = await prisma.trustMember.upsert({
       where: { trustId_userId: { trustId: trust.id, userId: req.user!.id } },
       create: { trustId: trust.id, userId: req.user!.id, role: 'MEMBER' },
-      update: { status: 'ACTIVE' },
+      // Re-joining must not carry the authority the member previously held. A user
+      // removed as TREASURER who self-joins an OPEN trust would otherwise walk back in
+      // as TREASURER, because a status-only update leaves the revoked role in place.
+      // Demote to the default role and drop any permission override so a later grant
+      // has to go through member:manage_roles again.
+      update: { status: 'ACTIVE', role: 'MEMBER', permissions: [] },
     })
     await audit({ actorId: req.user!.id, trustId: trust.id, action: 'MEMBER_ADDED', entityType: 'TrustMember', entityId: member.id })
     ok(res, { message: 'Joined successfully', member })
@@ -234,16 +252,47 @@ router.post(
 
 router.get(
   '/:trustId/committee',
-  asyncHandler(async (req: TrustContextRequest, res) => {
+  optionalAuth,
+  asyncHandler(async (req: AuthedRequest, res) => {
     const trust = await prisma.trust.findUnique({ where: { id: req.params.trustId } })
     if (!trust) throw new AppError(404, 'Trust not found')
-    const showPublic = trust.showCommitteePublicly
+
+    const callerMember = req.user
+      ? await prisma.trustMember.findFirst({
+          where: { trustId: trust.id, userId: req.user.id, status: 'ACTIVE' },
+          select: { id: true },
+        })
+      : null
+
+    // A public committee page is a directory of officers, not a member roster. It is
+    // only reachable anonymously when the trust has opted in, and it only ever lists
+    // officer roles — otherwise anyone could enumerate every member of every trust by
+    // id and read their contact details.
+    if (!trust.showCommitteePublicly && !callerMember) {
+      throw new AppError(403, 'The committee roster for this trust is not public')
+    }
+
     const committee = await prisma.trustMember.findMany({
-      where: { trustId: trust.id, status: 'ACTIVE' },
-      include: { user: true },
+      where: { trustId: trust.id, status: 'ACTIVE', role: { in: [...OFFICER_ROLES] } },
+      select: {
+        id: true, role: true, position: true, contactVisible: true, introduction: true, joinedAt: true,
+        user: { select: { id: true, name: true, profileImage: true } },
+      },
       orderBy: { joinedAt: 'asc' },
     })
-    ok(res, committee.map((m) => ({ id: m.id, role: m.role, position: m.position, contactVisible: m.contactVisible, introduction: m.introduction, joinedAt: m.joinedAt, user: showPublic ? publicUser(m.user) : { id: m.user.id, name: m.user.name, profileImage: m.user.profileImage } })))
+
+    // Contact columns are withheld entirely on this route. It answers unauthenticated
+    // callers, so a member's contactVisible opt-out must never be the only thing
+    // standing between their phone number and the internet.
+    ok(res, committee.map((m) => ({
+      id: m.id,
+      role: m.role,
+      position: m.position,
+      contactVisible: m.contactVisible,
+      introduction: m.introduction,
+      joinedAt: m.joinedAt,
+      user: m.user,
+    })))
   })
 )
 

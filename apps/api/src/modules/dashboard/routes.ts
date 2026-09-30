@@ -28,7 +28,7 @@ router.get(
         }),
         prisma.donation.count({ where: { trustId, submittedById: memberId, status: 'PENDING' } }),
         prisma.announcement.findMany({ where: { trustId }, orderBy: { publishedAt: 'desc' }, take: 5 }),
-        prisma.paymentCampaign.findMany({ where: { trustId }, orderBy: { createdAt: 'desc' }, take: 5 }),
+        prisma.paymentCampaign.findMany({ where: { trustId, deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 5 }),
       ])
       const myTotal = myDonations.filter((d) => d.status === 'SUCCEEDED').reduce((s, d) => s + d.amount, 0)
       return ok(res, { scope: 'own', myTotal, myPendingCount: myPending, myRecentDonations: myDonations, announcements, campaigns })
@@ -50,8 +50,8 @@ router.get(
         orderBy: { donationDate: 'desc' },
         take: 8,
       }),
-      prisma.trustMember.findMany({ where: { trustId, status: 'ACTIVE' }, include: { user: true }, orderBy: { joinedAt: 'desc' }, take: 5 }),
-      prisma.paymentCampaign.findMany({ where: { trustId }, orderBy: { createdAt: 'desc' }, take: 5 }),
+      prisma.trustMember.findMany({ where: { trustId, status: 'ACTIVE' }, select: { id: true, role: true, joinedAt: true, user: { select: { name: true, profileImage: true } } }, orderBy: { joinedAt: 'desc' }, take: 5 }),
+      prisma.paymentCampaign.findMany({ where: { trustId, deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 5 }),
     ])
 
     ok(res, {

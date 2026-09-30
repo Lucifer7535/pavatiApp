@@ -13,6 +13,19 @@ class ApiError extends Error {
 let accessToken: string | null = null
 let refreshToken: string | null = null
 
+/**
+ * Incremented on every logout.
+ *
+ * A 401 triggers a token refresh, which is awaited by every concurrent request. If the
+ * user clicks Log out while that refresh is in flight, the refresh would still resolve
+ * successfully and call `setTokens` afterwards — writing a fresh access token and
+ * refresh token back into memory and localStorage after the user had signed out. The
+ * store showed a logged-out user while the browser still held a usable session.
+ *
+ * Refresh responses are therefore discarded unless the epoch is unchanged.
+ */
+let sessionEpoch = 0
+
 export function setTokens(access: string, refresh: string) {
   accessToken = access
   refreshToken = refresh
@@ -29,6 +42,7 @@ export function getRefreshToken() {
 }
 
 export function clearTokens() {
+  sessionEpoch += 1
   accessToken = null
   refreshToken = null
   localStorage.removeItem('pp_access')
@@ -40,6 +54,7 @@ let refreshPromise: Promise<boolean> | null = null
 async function tryRefresh(): Promise<boolean> {
   const refresh = getRefreshToken()
   if (!refresh) return false
+  const startedAtEpoch = sessionEpoch
   try {
     const refreshed = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
@@ -47,6 +62,9 @@ async function tryRefresh(): Promise<boolean> {
       body: JSON.stringify({ refreshToken: refresh }),
     })
     if (refreshed.ok) {
+      // A logout landed while this request was in flight. Its tokens are dead now —
+      // storing them would resurrect the session the user just ended.
+      if (sessionEpoch !== startedAtEpoch) return false
       const data = await refreshed.json()
       const s = data.data
       setTokens(s.accessToken, s.refreshToken)

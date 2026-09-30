@@ -2,7 +2,8 @@ import { Router } from 'express'
 import { z } from '@pavati/shared'
 import { Prisma, type PaymentMode } from '@prisma/client'
 import ExcelJS from 'exceljs'
-import { prisma } from '../../lib/prisma.js'
+import { prisma, prismaPublic } from '../../lib/prisma.js'
+import { donationVisibilityFilter } from '../../lib/access.js'
 import { asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
@@ -10,6 +11,31 @@ import { todayStartIn } from '../../config/index.js'
 import { validateQuery } from '../../middleware/validate.js'
 
 const router = Router()
+
+/** Bounded, credential-free collector select. */
+const COLLECTOR_SELECT = { id: true, position: true, user: { select: { id: true, name: true } } } as const
+
+/**
+ * Neutralises spreadsheet formula injection in CSV cells.
+ *
+ * A donor name, address or note is attacker-controllable. Excel, LibreOffice and
+ * Sheets all treat a cell beginning with = + - @ (or a leading tab/CR) as a formula
+ * when the file is opened, so a donor called `=HYPERLINK("http://evil","x")` becomes a
+ * live outbound link or a data-exfiltration call in an operator's spreadsheet.
+ * RFC 4180 quoting does not prevent this; the leading character has to be defanged.
+ */
+/** Exported so the security suite can assert against the real escaper, not a copy. */
+export function csvCell(value: unknown): string {
+  const raw = value === null || value === undefined ? '' : String(value)
+  // A leading space or tab also triggers coercion in several spreadsheet engines.
+  if (/^[=+\-@\t\r ]/.test(raw)) return `'${raw}`
+  return raw.replace(/"/g, '""')
+}
+
+/** Joins one CSV record from already-neutralised cells. */
+function csvRow(cells: unknown[]): string {
+  return cells.map((c) => `"${csvCell(c)}"`).join(',')
+}
 
 const querySchema = z.object({ from: z.string().optional(), to: z.string().optional() })
 
@@ -40,16 +66,20 @@ router.get(
     const dateFilter: Prisma.DonationWhereInput['donationDate'] = from || to ? { ...(from && { gte: from }), ...(to && { lte: to }) } : undefined
 
     const todayStart = todayStartIn()
+    // Reports carry donor contact PII, so the caller's donation visibility governs
+    // every aggregate here rather than only the row-level endpoints.
+    const visible = donationVisibilityFilter(req.trustMember!)
+    const scoped = (extra: Prisma.DonationWhereInput = {}): Prisma.DonationWhereInput => ({ trustId, status: 'SUCCEEDED', AND: [visible], ...extra })
 
     const [totalDonations, sumAgg, today, todayAgg, cashAgg, upiAgg, modeCounts, categoryCounts] = await Promise.all([
-      prisma.donation.count({ where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true } }),
-      prisma.donation.count({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: todayStart } } }),
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: todayStart } }, _sum: { amount: true } }),
-      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, paymentMode: 'CASH' }, _sum: { amount: true } }),
-      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, paymentMode: 'UPI' }, _sum: { amount: true } }),
-      prisma.donationSplit.groupBy({ by: ['paymentMode'], where: { donation: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) } }, _sum: { amount: true }, _count: true }),
-      prisma.donation.groupBy({ by: ['category'], where: { trustId, status: 'SUCCEEDED', ...(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true }, _count: true }),
+      prisma.donation.count({ where: scoped(dateFilter ? { donationDate: dateFilter } : {}) }),
+      prisma.donation.aggregate({ where: scoped(dateFilter ? { donationDate: dateFilter } : {}), _sum: { amount: true } }),
+      prisma.donation.count({ where: scoped({ donationDate: { gte: todayStart } }) }),
+      prisma.donation.aggregate({ where: scoped({ donationDate: { gte: todayStart } }), _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: scoped(dateFilter ? { donationDate: dateFilter } : {}), paymentMode: 'CASH' }, _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: scoped(dateFilter ? { donationDate: dateFilter } : {}), paymentMode: 'UPI' }, _sum: { amount: true } }),
+      prisma.donationSplit.groupBy({ by: ['paymentMode'], where: { donation: scoped(dateFilter ? { donationDate: dateFilter } : {}) }, _sum: { amount: true }, _count: true }),
+      prisma.donation.groupBy({ by: ['category'], where: scoped(dateFilter ? { donationDate: dateFilter } : {}), _sum: { amount: true }, _count: true }),
     ])
     const memberCount = await prisma.trustMember.count({ where: { trustId, status: 'ACTIVE' } })
     ok(res, {
@@ -76,7 +106,7 @@ router.get(
     const q = req.query as { from?: string; to?: string }
     const from = q.from ?? new Date(Date.now() - 30 * 86400000).toISOString()
     const to = q.to ?? new Date().toISOString()
-    const donations = await prisma.donation.findMany({
+    const donations = await prismaPublic.donation.findMany({
       where: { trustId: req.trustId, status: 'SUCCEEDED', donationDate: { gte: new Date(from), lte: new Date(to) } },
       select: { donationDate: true, amount: true },
     })
@@ -103,7 +133,7 @@ router.get(
       _count: true,
     })
     const ids = collectors.map((c) => c.collectorId!).filter(Boolean)
-    const members = await prisma.trustMember.findMany({ where: { id: { in: ids } }, include: { user: true } })
+    const members = await prisma.trustMember.findMany({ where: { id: { in: ids } }, select: { id: true, role: true, user: { select: { name: true } } } })
     ok(res, collectors.map((c) => {
       const m = members.find((mm) => mm.id === c.collectorId)
       return { collectorId: c.collectorId, collectorName: m?.user.name ?? 'Unknown', amount: c._sum.amount ?? 0, count: c._count, role: m?.role }
@@ -117,11 +147,11 @@ router.get(
   validateQuery(detailedQuerySchema),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof detailedQuerySchema>
-    const where = buildDetailedWhere(q, req.trustId!)
+    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!)
     const totalCount = await prisma.donation.count({ where })
-    const donations = await prisma.donation.findMany({
+    const donations = await prismaPublic.donation.findMany({
       where,
-      include: { collector: { include: { user: true } }, campaign: true, receipts: { orderBy: { generatedAt: 'desc' }, take: 1 } },
+      include: { collector: { select: COLLECTOR_SELECT }, campaign: true, receipts: { orderBy: { generatedAt: 'desc' }, take: 1 } },
       orderBy: { donationDate: 'desc' },
       take: 10000,
     })
@@ -146,15 +176,23 @@ router.get(
     if (truncated) {
       rows.push(['', '', '', '', '', `Export truncated at 10,000 records (${totalCount} total). Refine your filters to export all records.`])
     }
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const csv = rows.map((r) => csvRow(r)).join('\n')
     res.setHeader('Content-Type', 'text/csv')
     res.setHeader('Content-Disposition', 'attachment; filename="donations-export.csv"')
     res.send('\uFEFF' + csv)
   })
 )
 
-function buildDetailedWhere(q: z.infer<typeof detailedQuerySchema>, trustId: string): Prisma.DonationWhereInput {
-  const where: Prisma.DonationWhereInput = { trustId, status: 'SUCCEEDED' }
+function buildDetailedWhere(
+  q: z.infer<typeof detailedQuerySchema>,
+  trustId: string,
+  member: NonNullable<TrustContextRequest['trustMember']>,
+): Prisma.DonationWhereInput {
+  // The detailed report and both exports carry donor phone, email and address, so a
+  // report:view holder only ever sees donations they are permitted to see in the
+  // donations list. Filtering here (rather than after fetching) keeps the row count,
+  // the amount total and the pagination honest.
+  const where: Prisma.DonationWhereInput = { trustId, status: 'SUCCEEDED', AND: [donationVisibilityFilter(member)] }
   if (q.from || q.to) {
     where.donationDate = {}
     if (q.from) where.donationDate.gte = new Date(q.from)
@@ -181,7 +219,7 @@ router.get(
   validateQuery(detailedQuerySchema),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof detailedQuerySchema>
-    const where = buildDetailedWhere(q, req.trustId!)
+    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!)
     const page = q.page ?? 1
     const pageSize = q.pageSize ?? 50
 
@@ -190,7 +228,7 @@ router.get(
       prisma.donation.aggregate({ where, _sum: { amount: true } }),
       prisma.donation.findMany({
         where,
-        include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { include: { user: true } } },
+        include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { select: COLLECTOR_SELECT } },
         orderBy: { donationDate: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -227,12 +265,12 @@ router.get(
   validateQuery(detailedQuerySchema),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof detailedQuerySchema>
-    const where = buildDetailedWhere(q, req.trustId!)
+    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!)
     const totalCount = await prisma.donation.count({ where })
 
-    const donations = await prisma.donation.findMany({
+    const donations = await prismaPublic.donation.findMany({
       where,
-      include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { include: { user: true } } },
+      include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { select: COLLECTOR_SELECT } },
       orderBy: { donationDate: 'desc' },
       take: 10000,
     })

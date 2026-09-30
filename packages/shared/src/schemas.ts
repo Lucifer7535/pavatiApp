@@ -234,6 +234,9 @@ export const updateProfileSchema = z.object({
   phone: phoneOrEmpty.optional().nullable(),
   email: email.optional().nullable(),
   profileImage: z.string().optional().nullable(),
+  // Required when phone or email changes: a contact value is only a usable identifier
+  // once the account has proven it holds that contact.
+  currentPassword: z.string().optional(),
 })
 
 export const changePasswordSchema = z.object({

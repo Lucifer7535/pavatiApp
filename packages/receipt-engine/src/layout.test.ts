@@ -15,7 +15,7 @@ const SAMPLE = {
   collectorName: 'Sanjay Kulkarni',
 }
 
-const measure: BuildDrawOpts['measure'] = (text, size) => text.length * size * 0.5
+const measure: BuildDrawOpts['measure'] = (text, size, _bold, _family) => text.length * size * 0.5
 
 describe('pagePx', () => {
   it('returns standard sizes for A4/A5/A6', () => {
@@ -144,5 +144,37 @@ describe('buildDrawOps', () => {
   it('sizes custom pages from widthMm/heightMm', () => {
     const { page } = buildDrawOps({ ...base, pageSize: 'CUSTOM', widthMm: 148, heightMm: 83 } as any, SAMPLE as any, { measure })
     expect(page).toEqual({ width: 559, height: 314 })
+  })
+})
+describe('wrapText resource bounds', () => {
+  const m: BuildDrawOpts['measure'] = (text, size) => text.length * size * 0.6
+
+  it('truncates an oversized field instead of emitting unbounded lines', () => {
+    const lines = wrapText('x '.repeat(500_000), m, 10, false, 60)
+    expect(lines.length).toBeLessThanOrEqual(201)
+    expect(lines.at(-1)).toBe('…')
+  })
+
+  it('bounds the work done for a hostile field', () => {
+    const started = Date.now()
+    wrapText('x '.repeat(500_000), m, 10, false, 60)
+    expect(Date.now() - started).toBeLessThan(2_000)
+  })
+
+  it('refuses a non-positive width rather than measuring per character', () => {
+    expect(wrapText('abcdefghij', m, 10, false, 0)).toEqual([])
+    expect(wrapText('abcdefghij', m, 10, false, -5)).toEqual([])
+    expect(wrapText('abcdefghij', m, 10, false, Number.NaN)).toEqual([])
+  })
+
+  it('still marks truncation when the line cap is hit by a normal-width value', () => {
+    const lines = wrapText('x '.repeat(3_000), m, 10, false, 40)
+    expect(lines.length).toBeLessThanOrEqual(201)
+    expect(lines.at(-1)).toBe('…')
+  })
+
+  it('leaves ordinary values unmarked', () => {
+    const lines = wrapText('Rajesh Patil', m, 10, false, 400)
+    expect(lines).toEqual(['Rajesh Patil'])
   })
 })

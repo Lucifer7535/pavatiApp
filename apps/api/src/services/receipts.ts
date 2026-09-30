@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import type { Donation, ReceiptTemplate, Trust, TrustMember } from '@prisma/client'
+import type { Donation, ReceiptTemplate, Trust } from '@prisma/client'
 import type { ReceiptFieldConfig } from '@pavati/shared'
 import { PAYMENT_MODE_LABELS } from '@pavati/shared'
 import { randomBytes } from 'node:crypto'
@@ -24,7 +24,7 @@ interface GenerateReceiptInput {
   templateId?: string
   trust: Trust
   donation: Donation
-  collector?: (TrustMember & { user?: { name: string } | null }) | null
+  collector?: ReceiptCollector | null
   collectorName?: string | null
   actorId?: string | null
 }
@@ -62,13 +62,26 @@ function toTemplateView(template: ReceiptTemplate): ReceiptTemplateView {
 }
 
 async function findTemplate(trustId: string, templateId?: string): Promise<ReceiptTemplate | null> {
+  // An explicit templateId must still resolve inside the requesting trust, otherwise a
+  // caller from one tenant can render and read another tenant's template.
   return templateId
-    ? await prisma.receiptTemplate.findUnique({ where: { id: templateId } })
+    ? await prisma.receiptTemplate.findFirst({ where: { id: templateId, trustId } })
     : await prisma.receiptTemplate.findFirst({ where: { trustId, active: true } })
 }
 
+/** The only collector fields receipt rendering consumes. */
+export interface ReceiptCollector {
+  position?: string | null
+  user?: { name?: string | null } | null
+}
+
+/** Bounded read: a receipt never needs the member's whole User row. */
+const COLLECTOR_FOR_RECEIPT = {
+  select: { position: true, user: { select: { name: true } } },
+} as const
+
 interface ReceiptBuilderInput {
-  collector?: (TrustMember & { user?: { name: string } | null }) | null
+  collector?: ReceiptCollector | null
   collectorName?: string | null
 }
 
@@ -126,8 +139,63 @@ async function renderAndStoreReceiptPdf(params: {
   return stored.url
 }
 
+/**
+ * Reprints an existing ACTIVE receipt in place.
+ *
+ * Deliberately reuses the receipt row, its receipt number and its verification
+ * token. The token is the public bearer printed into the PDF's QR code, so a
+ * reprint must keep it: rotating it would silently break every already-distributed
+ * copy of that receipt while leaving the new copy on a different, second link.
+ */
+export async function reprintReceiptPdf(
+  receiptId: string,
+  templateId?: string,
+): Promise<{ id: string; receiptNumber: string; pdfUrl: string; verificationToken: string }> {
+  const receipt = await prisma.receipt.findUnique({
+    where: { id: receiptId },
+    include: { donation: true, trust: true },
+  })
+  if (!receipt) throw new AppError(404, 'Receipt not found')
+  if (receipt.status !== 'ACTIVE') throw new AppError(409, 'Only an active receipt can be reprinted')
+
+  const template = await findTemplate(receipt.trustId, templateId ?? receipt.templateId)
+  if (!template) {
+    throw new AppError(400, 'No receipt template configured. Please create and activate a Pāvati template first.')
+  }
+
+  const collector = receipt.donation.collectorId
+    ? await prisma.trustMember.findUnique({ where: { id: receipt.donation.collectorId }, ...COLLECTOR_FOR_RECEIPT })
+    : null
+
+  const data = await buildReceiptData(receipt.trust, receipt.donation, receipt.receiptNumber, { collector })
+  const pdfUrl = await renderAndStoreReceiptPdf({
+    trust: receipt.trust,
+    template: toTemplateView(template),
+    data,
+    verificationToken: receipt.verificationToken,
+  })
+
+  const updated = await prisma.receipt.update({
+    where: { id: receipt.id },
+    data: { pdfUrl, templateId: template.id },
+  })
+
+  return {
+    id: updated.id,
+    receiptNumber: updated.receiptNumber,
+    pdfUrl,
+    verificationToken: receipt.verificationToken,
+  }
+}
+
 export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id: string; receiptNumber: string; pdfUrl: string; verificationToken: string }> {
   const { donation, trust } = input
+
+  // Defence in depth: the route already filters on status, but every future call site
+  // inherits this, so a receipt can never be minted for an unsettled or voided donation.
+  if (donation.status !== 'SUCCEEDED') {
+    throw new AppError(400, 'Receipts can only be issued for a completed donation')
+  }
 
   const template = await findTemplate(trust.id, input.templateId)
 
@@ -152,6 +220,9 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
         templateId: template.id,
         pdfUrl,
         verificationToken,
+        // Explicit rather than relying on the schema default, so the ACTIVE state that
+        // the public verification endpoint reports is never load-bearing.
+        status: 'ACTIVE',
       },
     })
 
@@ -177,10 +248,10 @@ export async function regenerateReceiptPdf(donationId: string): Promise<number> 
   let regenerated = 0
   for (const receipt of receipts) {
     try {
-      const template = await prisma.receiptTemplate.findUnique({ where: { id: receipt.templateId } })
+      const template = await prisma.receiptTemplate.findFirst({ where: { id: receipt.templateId, trustId: receipt.trustId } })
       if (!template) continue
       const collector = receipt.donation.collectorId
-        ? await prisma.trustMember.findUnique({ where: { id: receipt.donation.collectorId }, include: { user: true } })
+        ? await prisma.trustMember.findUnique({ where: { id: receipt.donation.collectorId }, ...COLLECTOR_FOR_RECEIPT })
         : null
       const data = await buildReceiptData(receipt.trust, receipt.donation, receipt.receiptNumber, { collector })
       const pdfUrl = await renderAndStoreReceiptPdf({

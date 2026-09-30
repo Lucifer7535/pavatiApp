@@ -9,8 +9,8 @@ export async function buildAuthResponse(user: User) {
     orderBy: { joinedAt: 'asc' },
   })
   return {
-    accessToken: signAccessToken(user.id),
-    refreshToken: signRefreshToken(user.id),
+    accessToken: signAccessToken(user),
+    refreshToken: signRefreshToken(user),
     user: publicUser(user),
     memberships: memberships.map((m) => ({
       id: m.id,

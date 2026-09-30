@@ -60,7 +60,8 @@ export function isPreviewBot(userAgent: string): boolean {
   return PREVIEW_BOT_MARKERS.some((m) => ua.includes(m))
 }
 
-function escapeHtml(value: string): string {
+/** Exported so the security suite can assert against the real escaper, not a copy. */
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -87,8 +88,14 @@ interface DocParams {
 }
 
 function renderDoc({ title, description, url, image, type, jsonLd, bodyHtml }: DocParams): string {
-  const ogImage = absUrl(image ?? '') || `${config.publicBaseUrl.replace(/\/$/, '')}/logo.png`
-  const ogType = type ?? 'website'
+  // `image` originates from trust.logoUrl / campaign.qrCodeUrl, which a trust admin
+  // sets freely. Title and description were escaped but this attribute was not, so a
+  // logoUrl of `x"><script>…` closed the attribute and injected markup into a document
+  // served back under the site's own origin. Same treatment for the canonical/og:url and
+  // og:type attributes.
+  const ogImage = escapeHtml(absUrl(image ?? '')) || `${config.publicBaseUrl.replace(/\/$/, '')}/logo.png`
+  const ogType = escapeHtml(type ?? 'website')
+  const canonical = escapeHtml(absUrl(url))
   const jsonLdHtml = jsonLd
     ? `\n    <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/<\/script/gi, '<\\/script')}</script>`
     : ''
@@ -99,11 +106,11 @@ function renderDoc({ title, description, url, image, type, jsonLd, bodyHtml }: D
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
-    <link rel="canonical" href="${absUrl(url)}" />
+    <link rel="canonical" href="${canonical}" />
     <meta property="og:site_name" content="P\u0101vati Pustak" />
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
-    <meta property="og:url" content="${absUrl(url)}" />
+    <meta property="og:url" content="${canonical}" />
     <meta property="og:image" content="${ogImage}" />
     <meta property="og:type" content="${ogType}" />
     <meta name="twitter:card" content="summary" />
@@ -165,7 +172,12 @@ async function loadPreviewMeta(path: string): Promise<PreviewMeta | null> {
     const slug = path.replace(/^\/donate\//, '').replace(/\/$/, '')
     const campaign = await prisma.paymentCampaign.findUnique({
       where: { slug },
-      include: { trust: true },
+      // Bounded read: an unmapped `include: { trust: true }` pulls the whole Trust row,
+      // joinCode included, into memory for a public crawler response.
+      select: {
+        name: true, slug: true, description: true, qrCodeUrl: true, active: true,
+        trust: { select: { name: true, logoUrl: true } },
+      },
     })
     if (!campaign || !campaign.active) return null
     const title = `${campaign.name} — Donate to ${campaign.trust.name}`

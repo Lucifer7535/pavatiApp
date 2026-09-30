@@ -82,7 +82,10 @@ export default function MembersPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-stone-800">{m.user.name} {m.position && <span className="text-xs font-normal text-stone-400">· {m.position}</span>}</p>
-                  <p className="truncate text-xs text-stone-400">{m.user.email ?? m.user.phone ?? '—'} · joined {formatDate(m.joinedAt)}</p>
+                  <p className="truncate text-xs text-stone-400">
+                    {m.user.email ?? m.user.phone ?? (m.contactVisible ? '—' : 'contact hidden')}
+                    {' · joined '}{formatDate(m.joinedAt)}
+                  </p>
                 </div>
                 <Badge color={memberStatusColor[m.status] ?? 'default'}>{m.status}</Badge>
                 <Select

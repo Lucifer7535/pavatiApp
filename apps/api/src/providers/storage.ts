@@ -50,7 +50,13 @@ function s3(): S3Client {
 
 export async function saveBuffer(buffer: Buffer, ext: string, subdir = ''): Promise<StoredFile> {
   const filename = `${Date.now()}-${randomCode(6)}.${ext}`
-  const rel = subdir ? `${subdir}/${filename}` : filename
+  // The write path needs the same containment guarantee as the read path: `subdir` is
+  // joined onto uploadDir for the disk driver and used verbatim as the R2 Key. Today's
+  // callers pass literals, but validating here means a future caller cannot turn this
+  // into a write outside the upload root.
+  const safeSubdir = subdir ? safeStorageKey(subdir) : ''
+  if (subdir && !safeSubdir) throw new AppError(400, 'Invalid upload subdirectory')
+  const rel = safeSubdir ? `${safeSubdir}/${filename}` : filename
   if (r2Active()) {
     await s3().send(
       new PutObjectCommand({
@@ -61,7 +67,7 @@ export async function saveBuffer(buffer: Buffer, ext: string, subdir = ''): Prom
       }),
     )
   } else {
-    const dir = subdir ? path.join(config.uploadDir, subdir) : config.uploadDir
+    const dir = safeSubdir ? path.join(config.uploadDir, safeSubdir) : config.uploadDir
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     await fs.promises.writeFile(path.join(dir, filename), buffer)
   }
@@ -74,11 +80,43 @@ export async function savePdf(buffer: Uint8Array, subdir: string): Promise<Store
 
 function keyFromUrl(url: string): string | null {
   if (config.r2PublicUrl && url.startsWith(config.r2PublicUrl + '/')) {
-    return url.slice(config.r2PublicUrl.length + 1)
+    return safeStorageKey(url.slice(config.r2PublicUrl.length + 1))
   }
   const prefix = `${config.publicBaseUrl}${UPLOAD_URL_PREFIX}`
-  if (url.startsWith(prefix)) return url.slice(prefix.length)
+  if (url.startsWith(prefix)) return safeStorageKey(url.slice(prefix.length))
   return null
+}
+
+/**
+ * Rejects any storage key that is not a plain relative path inside the upload root.
+ *
+ * `keyFromUrl` output is attacker-influenced (template background URLs, trust logos),
+ * and it is fed to `path.join(uploadDir, key)` and to the R2 `Key`. A key containing
+ * `..` escapes the upload directory on the disk driver and reaches arbitrary files.
+ * Decode first so percent-encoded traversal cannot slip past a segment check.
+ */
+/** Exported so the security suite can assert against the real validator, not a copy. */
+export function safeStorageKey(raw: string): string | null {
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(raw)
+  } catch {
+    return null
+  }
+  // Reject NUL and any backslash, so the check cannot be bypassed by a
+  // platform-specific separator.
+  if (decoded.includes('\0') || decoded.includes('\\')) return null
+  if (path.isAbsolute(decoded) || /^[A-Za-z]:/.test(decoded)) return null
+  const segments = decoded.split('/')
+  if (segments.some((s) => s === '..' || s === '.')) return null
+  if (!segments.some((s) => s.length > 0)) return null
+  return segments.join('/')
+}
+
+/** True when `candidate` resolves inside `root`. */
+function isInside(root: string, candidate: string): boolean {
+  const rel = path.relative(path.resolve(root), path.resolve(candidate))
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
 }
 
 export async function fileFromUrl(url: string): Promise<{ path: string; buffer: Buffer } | null> {
@@ -96,6 +134,9 @@ export async function fileFromUrl(url: string): Promise<{ path: string; buffer: 
     }
   }
   const full = path.join(config.uploadDir, key)
+  // Belt-and-braces containment check on the resolved path, independent of the segment
+  // validation above, so a future caller cannot reintroduce traversal by other means.
+  if (!isInside(config.uploadDir, full)) throw new AppError(400, 'Invalid file path')
   if (!fs.existsSync(full)) throw new AppError(404, 'File not found')
   return { path: full, buffer: fs.readFileSync(full) }
 }

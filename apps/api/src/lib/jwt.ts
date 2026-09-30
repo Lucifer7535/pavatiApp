@@ -5,18 +5,20 @@ import { config } from '../config/index.js'
 export interface TokenPayload {
   sub: string
   type: 'access' | 'refresh'
+  /** User.tokenVersion at issue time. Bumped on credential change to end live sessions. */
+  ver: number
 }
 
 type ExpiresIn = jwt.SignOptions['expiresIn']
 
-export function signAccessToken(userId: string): string {
-  return jwt.sign({ sub: userId, type: 'access' } satisfies TokenPayload, config.jwtSecret, {
+export function signAccessToken(user: Pick<User, 'id' | 'tokenVersion'>): string {
+  return jwt.sign({ sub: user.id, type: 'access', ver: user.tokenVersion } satisfies TokenPayload, config.jwtSecret, {
     expiresIn: config.jwtExpiresIn as ExpiresIn,
   })
 }
 
-export function signRefreshToken(userId: string): string {
-  return jwt.sign({ sub: userId, type: 'refresh' } satisfies TokenPayload, config.refreshSecret, {
+export function signRefreshToken(user: Pick<User, 'id' | 'tokenVersion'>): string {
+  return jwt.sign({ sub: user.id, type: 'refresh', ver: user.tokenVersion } satisfies TokenPayload, config.refreshSecret, {
     expiresIn: '30d',
   })
 }
