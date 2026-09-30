@@ -105,7 +105,11 @@ ${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</
   app.use('/api/v1/receipts', receiptRoutes)
   app.use('/api/v1/users', userRoutes)
   app.use('/api/v1/uploads', uploadRoutes)
-  app.use('/api/v1/dev', developerRoutes)
+  // The developer console is a local-only surface. It does not exist in production
+  // unless an operator deliberately opts back in via DEV_ROUTES_ENABLED.
+  if (config.devRoutesEnabled) {
+    app.use('/api/v1/dev', developerRoutes)
+  }
 
   app.use(botPrerender())
 

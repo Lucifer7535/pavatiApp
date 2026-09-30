@@ -4,18 +4,35 @@ import { prisma } from '../../lib/prisma.js'
 import { config } from '../../config/index.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireDevAuth } from '../../middleware/dev-auth.js'
+import { assertNotLocked, recordLoginFailure, resetLoginFailures, clientIp } from '../../middleware/rateLimit.js'
+import rateLimit from 'express-rate-limit'
 
 const router = Router()
 
+// Matches the protection the user login path already has. Separate from the
+// public-default root cause above: this closes the abuse-control gap.
+const devLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again later.' },
+})
+
 router.post(
   '/login',
+  devLoginLimiter,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body ?? {}
     if (!email || !password) throw new AppError(422, 'Email and password are required')
 
+    const ip = clientIp(req)
+    assertNotLocked(ip, String(email))
     if (email !== config.devEmail || password !== config.devPassword) {
+      recordLoginFailure(ip, String(email))
       throw new AppError(401, 'Invalid developer credentials')
     }
+    resetLoginFailures(ip, String(email))
 
     const token = jwt.sign({ sub: 'developer', type: 'developer' } satisfies { sub: string; type: 'developer' }, config.jwtSecret, {
       expiresIn: '24h',

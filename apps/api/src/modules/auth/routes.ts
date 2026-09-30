@@ -8,7 +8,7 @@ import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { sendEmail } from '../../lib/email.js'
 import { requireAuth, type AuthedRequest } from '../../middleware/auth.js'
 import { validateBody } from '../../middleware/validate.js'
-import { authRateLimiter, loginRateLimiter, registerRateLimiter, assertNotLocked, recordLoginFailure, resetLoginFailures } from '../../middleware/rateLimit.js'
+import { authRateLimiter, loginRateLimiter, registerRateLimiter, assertNotLocked, recordLoginFailure, resetLoginFailures, clientIp } from '../../middleware/rateLimit.js'
 import {
   forgotPasswordSchema,
   googleAuthSchema,
@@ -17,7 +17,7 @@ import {
   resetPasswordSchema,
 } from '@pavati/shared'
 import { config } from '../../config/index.js'
-import { publicUser, verifyRefreshToken } from '../../lib/jwt.js'
+import { publicUser, verifyRefreshToken, type TokenPayload } from '../../lib/jwt.js'
 import { buildAuthResponse, createRefreshRecord } from '../../lib/session.js'
 import { audit } from '../../services/audit.js'
 
@@ -70,13 +70,16 @@ router.post(
   validateBody(loginSchema),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body
-    assertNotLocked(email)
+    // Lockout is scoped to this caller, not to the account: an account-global counter
+    // let anyone who knew a victim's email lock that person out of password login.
+    const ip = clientIp(req)
+    assertNotLocked(ip, email)
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user?.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
-      recordLoginFailure(email)
+      recordLoginFailure(ip, email)
       throw new AppError(401, 'Invalid email or password')
     }
-    resetLoginFailures(email)
+    resetLoginFailures(ip, email)
     await audit({ actorId: user.id, action: 'LOGIN' })
     const session = await buildAuthResponse(user)
     await createRefreshRecord(user.id, session.refreshToken)
@@ -94,9 +97,18 @@ router.post(
     let name: string
     let picture: string | undefined
 
-    if (config.mockMode && config.env !== 'production') {
+    if (config.mockMode) {
+      // Mock login is only reachable through the explicit ALLOW_INSECURE_MOCK_AUTH opt-in
+      // and only off production (see config.mockModeEnabled). Even then it must never be
+      // able to resolve to a pre-existing account, or a caller-supplied email becomes
+      // unauthenticated takeover of that account.
       const profile = req.body.profile
-      email = profile?.email ?? `${idToken.slice(0, 12)}@mock.google`
+      const requested = (profile?.email ?? '').trim().toLowerCase()
+      if (requested) {
+        const existing = await prisma.user.findUnique({ where: { email: requested } })
+        if (existing) throw new AppError(403, 'Mock login cannot be used for an existing account')
+      }
+      email = requested || `${idToken.slice(0, 12)}@mock.google`
       name = profile?.name ?? 'Google User'
       picture = profile?.picture
     } else {
@@ -140,10 +152,9 @@ router.post(
     if (user) {
       const token = jwt.sign({ sub: user.id, type: 'reset' }, config.jwtSecret, { expiresIn: '30m' })
       const resetUrl = `${config.webOrigin}/reset-password?token=${token}`
-      if (config.mockMode) {
-        ok(res, { message: 'Password reset link sent', devResetUrl: resetUrl })
-        return
-      }
+      // The reset token must never be echoed to an unauthenticated caller: returning it
+      // turns a forgot-password request into password reset for any account by email.
+      // Local development reads it from the API log instead.
       await sendEmail({
         to: email,
         subject: 'Reset your Pāvati Pustak password',
@@ -168,9 +179,15 @@ router.post(
       throw new AppError(400, 'Invalid or expired reset token')
     }
     if (payload.type !== 'reset') throw new AppError(400, 'Invalid token')
+    // Revoke every outstanding session and bump the credential version in the same
+    // transaction as the hash write, so a password reset is the session-termination
+    // point it is assumed to be rather than a 30-day window an attacker keeps renewing.
     const passwordHash = await bcrypt.hash(password, 10)
-    await prisma.user.update({ where: { id: payload.sub }, data: { passwordHash } })
-    ok(res, { message: 'Password updated. You can now log in.' })
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: payload.sub }, data: { passwordHash, tokenVersion: { increment: 1 } } }),
+      prisma.refreshToken.updateMany({ where: { userId: payload.sub, revoked: false }, data: { revoked: true } }),
+    ])
+    ok(res, { message: 'Password updated. All other sessions have been signed out.' })
   })
 )
 
@@ -180,7 +197,16 @@ router.post(
   asyncHandler(async (req, res) => {
     const token = req.body?.refreshToken as string | undefined
     if (!token) throw new AppError(401, 'Refresh token required')
-    const payload = verifyRefreshToken(token)
+    // jwt.verify throws JsonWebTokenError/TokenExpiredError, which asyncHandler cannot
+    // map to a status. Without this the route answered any tampered, expired or
+    // foreign-signed token with a 500 plus a stack trace, both leaking internals and
+    // misreporting a routine client error as a server fault.
+    let payload: TokenPayload
+    try {
+      payload = verifyRefreshToken(token)
+    } catch {
+      throw new AppError(401, 'Invalid or expired refresh token')
+    }
     if (payload.type !== 'refresh') throw new AppError(401, 'Invalid token type')
     const hash = crypto.createHash('sha256').update(token).digest('hex')
     const record = await prisma.refreshToken.findFirst({ where: { tokenHash: hash, revoked: false } })
@@ -200,7 +226,15 @@ router.post(
     const token = req.body?.refreshToken as string | undefined
     if (token) {
       const hash = crypto.createHash('sha256').update(token).digest('hex')
-      await prisma.refreshToken.updateMany({ where: { tokenHash: hash }, data: { revoked: true } })
+      const record = await prisma.refreshToken.findFirst({ where: { tokenHash: hash } })
+      if (record) {
+        // End the account's sessions, not just the presented token's, and bump the
+        // credential version so outstanding access tokens stop verifying too.
+        await prisma.$transaction([
+          prisma.refreshToken.updateMany({ where: { userId: record.userId, revoked: false }, data: { revoked: true } }),
+          prisma.user.update({ where: { id: record.userId }, data: { tokenVersion: { increment: 1 } } }),
+        ])
+      }
     }
     ok(res, { message: 'Logged out' })
   })

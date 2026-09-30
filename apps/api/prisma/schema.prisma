@@ -106,6 +106,12 @@ model User {
   passwordHash  String?
   profileImage  String?
   authProvider  AuthProvider  @default(PHONE)
+  /// Bumped on every credential change so already-issued access tokens stop verifying.
+  tokenVersion  Int           @default(0)
+  /// Set once the account has proven control of the value. A contact is only usable as an
+  /// identifier for a user-scoped read once this is populated.
+  phoneVerifiedAt DateTime?
+  emailVerifiedAt DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -113,6 +119,7 @@ model User {
   announcements Announcement[]
   auditLogs     AuditLog[]
   refreshTokens RefreshToken[]
+  donationsMade Donation[]     @relation("DonorUserDonations")
 }
 
 model RefreshToken {
@@ -213,6 +220,10 @@ model Donation {
   trust         Trust           @relation(fields: [trustId], references: [id], onDelete: Cascade)
   donorId       String?
   donor         Donor?          @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  /// The authenticated principal who made this donation. This is the authorization key
+  /// for user-scoped donation reads — contact strings are mutable and self-assertable.
+  donorUserId   String?
+  donorUser     User?           @relation("DonorUserDonations", fields: [donorUserId], references: [id], onDelete: SetNull)
   donorName     String
   phone         String?
   email         String?
@@ -329,6 +340,10 @@ model PaymentCampaign {
   qrCodeUrl       String?
   active          Boolean         @default(true)
   createdAt       DateTime        @default(now())
+  // Soft delete. A hard DELETE would cascade through the SetNull relation on
+  // Donation.campaignId and silently erase the campaign attribution from every
+  // historical donation and receipt, irreversibly.
+  deletedAt       DateTime?
 
   donations       Donation[]
 }

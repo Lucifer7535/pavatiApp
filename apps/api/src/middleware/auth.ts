@@ -16,6 +16,9 @@ export async function requireAuth(req: AuthedRequest, _res: Response, next: Next
     if (payload.type !== 'access') throw new AppError(401, 'Invalid token type')
     const user = await prisma.user.findUnique({ where: { id: payload.sub } })
     if (!user) throw new AppError(401, 'User not found')
+    // Access tokens are stateless; the credential-version claim is what makes a password
+    // change terminate already-issued sessions instead of leaving them live for 7 days.
+    if (payload.ver !== user.tokenVersion) throw new AppError(401, 'Session has been revoked')
     req.user = user
     next()
   } catch (e) {
@@ -32,7 +35,7 @@ export async function optionalAuth(req: AuthedRequest, _res: Response, next: Nex
       const payload = verifyAccessToken(header.slice(7))
       if (payload.type === 'access') {
         const user = await prisma.user.findUnique({ where: { id: payload.sub } })
-        if (user) req.user = user
+        if (user && payload.ver === user.tokenVersion) req.user = user
       }
     }
   } catch {

@@ -74,11 +74,42 @@ export async function savePdf(buffer: Uint8Array, subdir: string): Promise<Store
 
 function keyFromUrl(url: string): string | null {
   if (config.r2PublicUrl && url.startsWith(config.r2PublicUrl + '/')) {
-    return url.slice(config.r2PublicUrl.length + 1)
+    return safeStorageKey(url.slice(config.r2PublicUrl.length + 1))
   }
   const prefix = `${config.publicBaseUrl}${UPLOAD_URL_PREFIX}`
-  if (url.startsWith(prefix)) return url.slice(prefix.length)
+  if (url.startsWith(prefix)) return safeStorageKey(url.slice(prefix.length))
   return null
+}
+
+/**
+ * Rejects any storage key that is not a plain relative path inside the upload root.
+ *
+ * `keyFromUrl` output is attacker-influenced (template background URLs, trust logos),
+ * and it is fed to `path.join(uploadDir, key)` and to the R2 `Key`. A key containing
+ * `..` escapes the upload directory on the disk driver and reaches arbitrary files.
+ * Decode first so percent-encoded traversal cannot slip past a segment check.
+ */
+function safeStorageKey(raw: string): string | null {
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(raw)
+  } catch {
+    return null
+  }
+  // Reject NUL and any backslash, so the check cannot be bypassed by a
+  // platform-specific separator.
+  if (decoded.includes('\0') || decoded.includes('\\')) return null
+  if (path.isAbsolute(decoded) || /^[A-Za-z]:/.test(decoded)) return null
+  const segments = decoded.split('/')
+  if (segments.some((s) => s === '..' || s === '.')) return null
+  if (!segments.some((s) => s.length > 0)) return null
+  return segments.join('/')
+}
+
+/** True when `candidate` resolves inside `root`. */
+function isInside(root: string, candidate: string): boolean {
+  const rel = path.relative(path.resolve(root), path.resolve(candidate))
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
 }
 
 export async function fileFromUrl(url: string): Promise<{ path: string; buffer: Buffer } | null> {
@@ -96,6 +127,9 @@ export async function fileFromUrl(url: string): Promise<{ path: string; buffer: 
     }
   }
   const full = path.join(config.uploadDir, key)
+  // Belt-and-braces containment check on the resolved path, independent of the segment
+  // validation above, so a future caller cannot reintroduce traversal by other means.
+  if (!isInside(config.uploadDir, full)) throw new AppError(400, 'Invalid file path')
   if (!fs.existsSync(full)) throw new AppError(404, 'File not found')
   return { path: full, buffer: fs.readFileSync(full) }
 }

@@ -35,13 +35,35 @@ export interface MeasureFn {
   (text: string, size: number, bold: boolean, family?: string): number
 }
 
+/**
+ * Hard ceiling on how much of one field reaches the wrap algorithm.
+ *
+ * Every field value here is attacker-influenced — a donor name, address, category or
+ * collector name is typed by whichever member recorded the donation, and the trust
+ * template decides which of them is rendered. Wrapping is O(n) in `measure()` calls,
+ * each of which touches a canvas, so an unbounded field turns receipt generation into
+ * a CPU/memory denial of service for the API worker that renders it.
+ */
+const MAX_WRAP_CHARS = 4_000
+
+/** Ceiling on emitted lines for a single field, so the op array stays bounded. */
+const MAX_WRAP_LINES = 200
+
+/** Marks a value that hit a cap, so the truncation is visible rather than silent. */
+const TRUNCATION_MARK = '…'
+
 export function wrapText(text: string, measure: MeasureFn, size: number, bold: boolean, maxWidth: number, family?: string): string[] {
-  const clean = text.replace(/\s+/g, ' ').trim()
+  // A non-positive width degenerates the splitting loop below into one canvas
+  // measurement per character. Refuse it rather than walking a hostile string.
+  if (!Number.isFinite(maxWidth) || maxWidth <= 0) return []
+  const truncated = text.length > MAX_WRAP_CHARS
+  const clean = text.slice(0, MAX_WRAP_CHARS).replace(/\s+/g, ' ').trim()
   if (!clean) return []
   const words = clean.split(' ')
   const lines: string[] = []
   let current = ''
   for (const word of words) {
+    if (lines.length >= MAX_WRAP_LINES) break
     const candidate = current ? `${current} ${word}` : word
     if (current && measure(candidate, size, bold, family) > maxWidth) {
       lines.push(current)
@@ -59,7 +81,12 @@ export function wrapText(text: string, measure: MeasureFn, size: number, bold: b
       }
     }
   }
-  if (current) lines.push(current)
+  if (lines.length < MAX_WRAP_LINES && current) lines.push(current)
+  // Report the cut rather than presenting a silently incomplete receipt as complete.
+  if (truncated || lines.length >= MAX_WRAP_LINES) {
+    if (lines.length >= MAX_WRAP_LINES) lines.pop()
+    lines.push(TRUNCATION_MARK)
+  }
   return lines
 }
 

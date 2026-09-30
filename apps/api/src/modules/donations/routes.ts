@@ -1,12 +1,13 @@
 import { Router } from 'express'
 import { z } from '@pavati/shared'
 import { Prisma, type DonationStatus, type Trust } from '@prisma/client'
-import { prisma } from '../../lib/prisma.js'
+import { prisma, prismaPublic } from '../../lib/prisma.js'
 import { AppError, asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { validateBody, validateQuery } from '../../middleware/validate.js'
-import { createDonationSchema, selfDonationSchema, updateDonationSchema, PAYMENT_MODE, OFFICIAL_ROLES, type PaymentMode, type TrustRole } from '@pavati/shared'
+import { createDonationSchema, selfDonationSchema, updateDonationSchema, PAYMENT_MODE, type PaymentMode } from '@pavati/shared'
+import { isOfficialMember } from '../../lib/access.js'
 import { generateReceipt, regenerateReceiptPdf } from '../../services/receipts.js'
 import { sendReceiptNotifications, buildReceiptWhatsAppUrl } from '../../services/notifications.js'
 import { audit } from '../../services/audit.js'
@@ -37,7 +38,7 @@ function resolveSplits(body: z.infer<typeof createDonationSchema>): InputSplit[]
 async function issueReceiptForDonation(trust: Trust, donationId: string, actorId?: string | null) {
   const donation = await prisma.donation.findUniqueOrThrow({ where: { id: donationId } })
   const collector = donation.collectorId
-    ? await prisma.trustMember.findUnique({ where: { id: donation.collectorId }, include: { user: true } })
+    ? await prisma.trustMember.findUnique({ where: { id: donation.collectorId }, select: { position: true, user: { select: { name: true } } } })
     : null
   const receipt = await generateReceipt({
     donationId: donation.id,
@@ -71,7 +72,12 @@ router.post(
 
     let campaignId: string | null = null
     if (body.campaignId) {
-      const campaign = await prisma.paymentCampaign.findFirst({ where: { id: body.campaignId, trustId: trust.id } })
+      // An archived campaign keeps its slug and its donation attribution, so the id lookup
+      // must exclude deletedAt explicitly — otherwise donations keep flowing to a campaign
+      // an operator believes they took down.
+      const campaign = await prisma.paymentCampaign.findFirst({
+        where: { id: body.campaignId, trustId: trust.id, deletedAt: null, active: true },
+      })
       if (!campaign) throw new AppError(400, 'Payment link not found')
       campaignId = campaign.id
     }
@@ -96,6 +102,9 @@ router.post(
         privacy: body.privacy,
         donationDate: body.paymentDate ? new Date(body.paymentDate) : new Date(),
         collectorId: req.trustMember!.id,
+        // Bind the donation to the authenticated principal so user-scoped donation
+        // reads can be keyed on identity rather than on self-assertable contact strings.
+        donorUserId: req.user!.id,
         status: donationStatus,
         isOnline: false,
         notes: body.notes ?? null,
@@ -156,10 +165,9 @@ router.get(
     const q = req.query as unknown as z.infer<typeof listQuery>
     const member = req.trustMember!
     const ownOnly = !req.effectivePermissions?.includes('donation:view')
-    const isOfficial = OFFICIAL_ROLES.includes(member.role as TrustRole)
     const where: Prisma.DonationWhereInput = { trustId: req.trustId }
     if (ownOnly) where.submittedById = member.id
-    if (!isOfficial) {
+    if (!isOfficialMember(member)) {
       where.AND = [{ OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] }]
     }
     if (q.from || q.to) {
@@ -176,10 +184,17 @@ router.get(
     const page = q.page ?? 1
     const pageSize = q.pageSize ?? 20
     const [total, items] = await Promise.all([
-      prisma.donation.count({ where }),
-      prisma.donation.findMany({
+      prismaPublic.donation.count({ where }),
+      prismaPublic.donation.findMany({
         where,
-        include: { receipts: { orderBy: { generatedAt: 'desc' }, take: 1 }, collector: { include: { user: true } }, campaign: true, splits: { orderBy: { createdAt: 'asc' } } },
+        include: {
+          receipts: { orderBy: { generatedAt: 'desc' }, take: 1 },
+          // Credential-free user select; contact columns are released per the caller's
+          // own member record rather than unconditionally.
+          collector: { select: { id: true, position: true, contactVisible: true, user: { select: { id: true, name: true, profileImage: true, email: true, phone: true } } } },
+          campaign: true,
+          splits: { orderBy: { createdAt: 'asc' } },
+        },
         orderBy: { donationDate: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -195,15 +210,19 @@ router.get(
   asyncHandler(async (req: TrustContextRequest, res) => {
     const member = req.trustMember!
     const ownOnly = !req.effectivePermissions?.includes('donation:view')
-    const isOfficial = OFFICIAL_ROLES.includes(member.role as TrustRole)
-    const donation = await prisma.donation.findFirst({
+    const donation = await prismaPublic.donation.findFirst({
       where: {
         id: req.params.donationId,
         trustId: req.trustId,
         ...(ownOnly ? { submittedById: member.id } : {}),
-        ...(isOfficial ? {} : { OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] }),
+        ...(isOfficialMember(member) ? {} : { OR: [{ privacy: 'PUBLIC' }, { submittedById: member.id }, { collectorId: member.id }] }),
       },
-      include: { receipts: true, collector: { include: { user: true } }, campaign: true, splits: { orderBy: { createdAt: 'asc' }, include: { verifiedBy: { include: { user: true } } } } },
+      include: {
+        receipts: true,
+        collector: { select: { id: true, position: true, contactVisible: true, user: { select: { id: true, name: true, profileImage: true, email: true, phone: true } } } },
+        campaign: true,
+        splits: { orderBy: { createdAt: 'asc' }, include: { verifiedBy: { select: { id: true, position: true, contactVisible: true, user: { select: { id: true, name: true, profileImage: true, email: true, phone: true } } } } } },
+      },
     })
     if (!donation) throw new AppError(404, 'Donation not found')
     ok(res, donation)
@@ -308,7 +327,22 @@ router.post(
       receipt = await issueReceiptForDonation(trust, donation.id, req.user!.id)
     }
 
-    const result = await prisma.donation.findUnique({ where: { id: donation.id }, include: { splits: { orderBy: { createdAt: 'asc' }, include: { verifiedBy: { include: { user: true } } } } } })
+    // This response is returned verbatim, so the verifier's User must be a bounded
+    // projection. `select: { position: true, user: { select: { name: true } } }` here published passwordHash and tokenHash
+    // to any caller holding donation:verify.
+    const result = await prismaPublic.donation.findUnique({
+      where: { id: donation.id },
+      select: {
+        id: true, trustId: true, donorName: true, amount: true, status: true,
+        splits: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true, amount: true, paymentMode: true, verifiedAt: true,
+            verifiedBy: { select: { id: true, position: true, user: { select: { id: true, name: true } } } },
+          },
+        },
+      },
+    })
     ok(res, { donation: result, receipt })
   })
 )
@@ -324,7 +358,12 @@ router.post(
 
     let campaignId: string | null = null
     if (body.campaignId) {
-      const campaign = await prisma.paymentCampaign.findFirst({ where: { id: body.campaignId, trustId: trust.id } })
+      // An archived campaign keeps its slug and its donation attribution, so the id lookup
+      // must exclude deletedAt explicitly — otherwise donations keep flowing to a campaign
+      // an operator believes they took down.
+      const campaign = await prisma.paymentCampaign.findFirst({
+        where: { id: body.campaignId, trustId: trust.id, deletedAt: null, active: true },
+      })
       if (!campaign) throw new AppError(400, 'Payment link not found')
       campaignId = campaign.id
     }
@@ -345,6 +384,7 @@ router.post(
         isOnline: true,
         campaignId,
         submittedById: req.trustMember!.id,
+        donorUserId: req.user!.id,
         splits: {
           create: [{
             paymentMode: 'UPI',
