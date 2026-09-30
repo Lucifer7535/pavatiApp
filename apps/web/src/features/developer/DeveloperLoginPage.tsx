@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,11 +16,18 @@ const schema = z.object({
 type Form = z.infer<typeof schema>
 
 export default function DeveloperLoginPage() {
-  if (getDevToken()) return <Navigate to="/dev/dashboard" replace />
-
   const navigate = useNavigate()
+  const location = useLocation()
   const [loading, setLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema) as any })
+  const sessionExpired = location.state?.expired === true
+
+  useEffect(() => {
+    if (!sessionExpired) return
+    navigate(location.pathname, { replace: true, state: null })
+  }, [sessionExpired, navigate, location.pathname])
+
+  if (getDevToken()) return <Navigate to="/dev/dashboard" replace />
 
   const onSubmit = async (data: Form) => {
     setLoading(true)
@@ -31,7 +38,12 @@ export default function DeveloperLoginPage() {
         body: JSON.stringify(data),
       })
       const body = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(body?.error ?? 'Login failed')
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('The developer console is not enabled on this deployment.')
+        }
+        throw new Error(body?.error ?? 'Login failed')
+      }
       setDevToken(body.data.token)
       toast.success('Developer access granted')
       navigate('/dev/dashboard')
@@ -57,6 +69,11 @@ export default function DeveloperLoginPage() {
           <p className="mt-1 text-sm text-stone-400">Platform analytics & administration panel</p>
         </div>
         <Card className="border-stone-800 bg-stone-900/80 p-6">
+          {sessionExpired && (
+            <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-200">
+              Your session has expired. Please sign in again.
+            </div>
+          )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="label text-stone-300">Developer Email</label>

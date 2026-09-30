@@ -104,7 +104,6 @@ router.get(
       usersByDay,
       trustsByDay,
       trustBreakdown,
-      recentUsers,
     ] = await Promise.all([
       prisma.user.count({ where: dayWhere }),
       prisma.trust.count({ where: dayWhere }),
@@ -118,7 +117,6 @@ router.get(
       prisma.donation.groupBy({
         by: ['status'],
         _count: { id: true },
-        _sum: { amount: true },
         where: donationDateWhere,
       }),
       prisma.$queryRawUnsafe<{ date: string; count: bigint }[]>(
@@ -138,38 +136,27 @@ router.get(
         name: string
         member_count: bigint
         donation_count: bigint
-        total_amount: bigint
       }[]>`
         SELECT
           t."id",
           t."name",
           (SELECT COUNT(*)::int FROM "TrustMember" tm WHERE tm."trustId" = t."id") AS member_count,
-          (SELECT COUNT(*)::int FROM "Donation" d WHERE d."trustId" = t."id") AS donation_count,
-          (SELECT COALESCE(SUM(d."amount"), 0)::int FROM "Donation" d WHERE d."trustId" = t."id" AND d."status" = 'SUCCEEDED') AS total_amount
+          (SELECT COUNT(*)::int FROM "Donation" d WHERE d."trustId" = t."id") AS donation_count
         FROM "Trust" t
-        ORDER BY total_amount DESC
+        ORDER BY donation_count DESC
       `,
-      prisma.user.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-        select: { id: true, name: true, email: true, phone: true, createdAt: true },
-      }),
     ])
 
     const donationByStatus = donationStats.map((d) => ({
       status: d.status,
       count: d._count.id,
-      totalAmount: d._sum.amount ?? 0,
     }))
-
-    const totalDonationAmount = donationByStatus.find((d) => d.status === 'SUCCEEDED')?.totalAmount ?? 0
 
     const trustBreakdownFormatted = trustBreakdown.map((t) => ({
       id: t.id,
       name: t.name,
       memberCount: Number(t.member_count),
       donationCount: Number(t.donation_count),
-      totalAmount: Number(t.total_amount),
     }))
 
     ok(res, {
@@ -178,7 +165,6 @@ router.get(
         totalTrusts,
         totalMembers,
         totalDonations,
-        totalDonationAmount,
         totalReceipts,
         totalCampaigns,
         totalAnnouncements,
@@ -189,7 +175,6 @@ router.get(
       usersByDay: usersByDay.map((d) => ({ date: d.date, count: Number(d.count) })),
       trustsByDay: trustsByDay.map((d) => ({ date: d.date, count: Number(d.count) })),
       trustBreakdown: trustBreakdownFormatted,
-      recentUsers,
     })
   })
 )
