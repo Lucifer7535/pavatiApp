@@ -8,9 +8,10 @@ import { loadTrustContext, requirePermission, type TrustContextRequest } from '.
 import { validateBody, validateQuery } from '../../middleware/validate.js'
 import { createDonationSchema, selfDonationSchema, updateDonationSchema, PAYMENT_MODE, type PaymentMode } from '@pavati/shared'
 import { isOfficialMember } from '../../lib/access.js'
-import { generateReceipt, regenerateReceiptPdf } from '../../services/receipts.js'
+import { generateReceipt, regenerateReceiptPdf, requireReceiptTemplate } from '../../services/receipts.js'
 import { sendReceiptNotifications, buildReceiptWhatsAppUrl } from '../../services/notifications.js'
 import { audit } from '../../services/audit.js'
+import { fyWindowForDate } from '../../lib/financialYear.js'
 
 const router = Router()
 
@@ -88,6 +89,41 @@ router.post(
     const now = new Date()
     const donationStatus = body.awaitingPayment && inputSplits.some((s) => s.paymentMode !== 'CASH') ? 'PENDING' : 'SUCCEEDED'
 
+    // A donation whose payment date falls inside an already-closed financial year can
+    // only be recorded by an operator with donation:post-close; it is flagged so the
+    // closed snapshot stays frozen yet the live ledger keeps the entry visible.
+    const donationDate = body.paymentDate ? new Date(body.paymentDate) : new Date()
+    let postClosingAdjustment = false
+    const donationWindow = fyWindowForDate(trust, donationDate)
+    const closedYear = await prisma.financialYearClose.findUnique({
+      where: { trustId_year: { trustId: trust.id, year: donationWindow.label } },
+    })
+    if (closedYear) {
+      const allowed = (req.effectivePermissions ?? []).includes('donation:post-close')
+      if (!allowed) {
+        throw new AppError(
+          403,
+          `Donations dated in financial year ${donationWindow.label} are closed. Only an operator with post-closing adjustment permission can add entries to it.`,
+        )
+      }
+      postClosingAdjustment = true
+      await audit({
+        actorId: req.user!.id,
+        trustId: trust.id,
+        action: 'DONATION_ADJUSTED_CLOSED_FY',
+        entityType: 'Donation',
+        metadata: { year: donationWindow.label, amount: Math.round(body.amount) },
+      })
+    }
+
+    // A SUCCEEDED donation gets its receipt in this same request, so the template must
+    // resolve BEFORE the row is written — otherwise generateReceipt's failure would
+    // return a 400 but leave a saved donation without a receipt. PENDING donations skip
+    // the check; their receipt is minted later at split verification.
+    if (donationStatus === 'SUCCEEDED') {
+      await requireReceiptTemplate(trust.id)
+    }
+
     const donation = await prisma.donation.create({
       data: {
         trustId: trust.id,
@@ -100,7 +136,7 @@ router.post(
         paymentMode: paymentMode as never,
         transactionRef: inputSplits.length === 1 ? inputSplits[0].transactionRef ?? null : null,
         privacy: body.privacy,
-        donationDate: body.paymentDate ? new Date(body.paymentDate) : new Date(),
+        donationDate,
         collectorId: req.trustMember!.id,
         // Bind the donation to the authenticated principal so user-scoped donation
         // reads can be keyed on identity rather than on self-assertable contact strings.
@@ -108,6 +144,7 @@ router.post(
         status: donationStatus,
         isOnline: false,
         notes: body.notes ?? null,
+        postClosingAdjustment,
         campaignId,
         splits: {
           create: inputSplits.map((s) => ({
@@ -322,6 +359,10 @@ router.post(
     let receipt = null
     const remaining = await prisma.donationSplit.count({ where: { donationId: donation.id, verifiedAt: null } })
     if (remaining === 0 && donation.status === 'PENDING') {
+      // The last split verification settles the donation and mints its receipt; validating
+      // the template here (before the SUCCEEDED transition) prevents a settled donation
+      // with no receipt from ever being committed.
+      await requireReceiptTemplate(donation.trustId)
       await prisma.donation.update({ where: { id: donation.id }, data: { status: 'SUCCEEDED' } })
       const trust = await prisma.trust.findUniqueOrThrow({ where: { id: req.trustId! } })
       receipt = await issueReceiptForDonation(trust, donation.id, req.user!.id)

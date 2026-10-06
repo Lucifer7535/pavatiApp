@@ -69,6 +69,19 @@ async function findTemplate(trustId: string, templateId?: string): Promise<Recei
     : await prisma.receiptTemplate.findFirst({ where: { trustId, active: true } })
 }
 
+/**
+ * Resolves the receipt template a donation would render against, or throws the
+ * canonical 400. Routes call this BEFORE any state mutation so a missing template
+ * can never leave a saved donation without a receipt.
+ */
+export async function requireReceiptTemplate(trustId: string, templateId?: string): Promise<ReceiptTemplate> {
+  const template = await findTemplate(trustId, templateId)
+  if (!template) {
+    throw new AppError(400, 'No receipt template configured. Please create and activate a Pāvati template first.')
+  }
+  return template
+}
+
 /** The only collector fields receipt rendering consumes. */
 export interface ReceiptCollector {
   position?: string | null
@@ -197,11 +210,7 @@ export async function generateReceipt(input: GenerateReceiptInput): Promise<{ id
     throw new AppError(400, 'Receipts can only be issued for a completed donation')
   }
 
-  const template = await findTemplate(trust.id, input.templateId)
-
-  if (!template) {
-    throw new AppError(400, 'No receipt template configured. Please create and activate a Pāvati template first.')
-  }
+  const template = await requireReceiptTemplate(trust.id, input.templateId)
 
   const year = new Date(donation.donationDate).getFullYear().toString()
   const receiptNumber = await getNextReceiptNumber(trust.id, year)
