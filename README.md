@@ -154,7 +154,7 @@ Optional:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/pavati-app.git
+git clone https://github.com/Lucifer7535/pavatiApp.git
 cd pavati-app
 ```
 
