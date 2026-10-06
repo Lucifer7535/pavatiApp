@@ -4,16 +4,49 @@ import { Prisma, type PaymentMode } from '@prisma/client'
 import ExcelJS from 'exceljs'
 import { prisma, prismaPublic } from '../../lib/prisma.js'
 import { donationVisibilityFilter } from '../../lib/access.js'
-import { asyncHandler, ok } from '../../lib/http.js'
+import { asyncHandler, ok, AppError } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, requirePermission, type TrustContextRequest } from '../../middleware/rbac.js'
 import { todayStartIn } from '../../config/index.js'
 import { validateQuery } from '../../middleware/validate.js'
+import { type FYWindow, windowDateFilter } from '../../lib/financialYear.js'
+import { openWindowForTrust } from '../../lib/financialWindow.js'
 
 const router = Router()
 
 /** Bounded, credential-free collector select. */
 const COLLECTOR_SELECT = { id: true, position: true, user: { select: { id: true, name: true } } } as const
+
+/**
+ * Resolves a `?year` selector to a concrete window. Only closed years are addressable
+ * by label (their frozen bounds define the range); `current` is the live window, and
+ * the trust-less fallback produces no date constraint.
+ */
+async function resolveYearWindow(
+  trustId: string,
+  trust: { financialYearStartDate?: Date | string | null; financialYearEndDate?: Date | string | null },
+  year?: string,
+): Promise<FYWindow | null> {
+  if (!year) return null
+  if (year === 'current') return openWindowForTrust(trustId, trust)
+  const close = await prisma.financialYearClose.findUnique({ where: { trustId_year: { trustId, year } } })
+  if (!close) throw new AppError(400, `Financial year ${year} is not a closed year on this trust`)
+  return { label: close.year, start: close.startDate, end: close.endDate }
+}
+
+/**
+ * Default date constraint for detailed/export reports: the current financial year,
+ * or the frozen bounds of a closed year named via `?year`. Explicit from/to ranges
+ * always win and are handled by the caller.
+ */
+async function defaultReportRange(req: TrustContextRequest): Promise<Prisma.DonationWhereInput['donationDate']> {
+  const q = req.query as { from?: string; to?: string; year?: string }
+  if (q.from || q.to || !req.trustId) return undefined
+  const trust = await prisma.trust.findUnique({ where: { id: req.trustId } })
+  if (!trust) return undefined
+  const window = q.year ? await resolveYearWindow(req.trustId, trust, q.year) : await openWindowForTrust(trust.id, trust)
+  return window ? windowDateFilter(window) : undefined
+}
 
 /**
  * Neutralises spreadsheet formula injection in CSV cells.
@@ -37,11 +70,12 @@ function csvRow(cells: unknown[]): string {
   return cells.map((c) => `"${csvCell(c)}"`).join(',')
 }
 
-const querySchema = z.object({ from: z.string().optional(), to: z.string().optional() })
+const querySchema = z.object({ from: z.string().optional(), to: z.string().optional(), year: z.string().optional() })
 
 const detailedQuerySchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
+  year: z.string().optional(),
   paymentMode: z.enum(['CASH', 'UPI', 'MIXED']).optional(),
   receiptStatus: z.enum(['ACTIVE', 'VOID']).optional(),
   addressContains: z.string().optional(),
@@ -60,10 +94,20 @@ router.get(
   requirePermission('report:view'),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const trustId = req.trustId!
-    const q = req.query as { from?: string; to?: string }
+    const trust = await prisma.trust.findUnique({ where: { id: trustId } })
+    const q = req.query as { from?: string; to?: string; year?: string }
     const from = q.from ? new Date(q.from) : undefined
     const to = q.to ? new Date(q.to) : undefined
-    const dateFilter: Prisma.DonationWhereInput['donationDate'] = from || to ? { ...(from && { gte: from }), ...(to && { lte: to }) } : undefined
+    // Without an explicit range the report defaults to the trust's current financial
+    // year; ?year=<label> narrows it to a previously closed year.
+    const effectiveWindow: FYWindow | null = trust
+      ? (q.year ? await resolveYearWindow(trustId, trust, q.year) : await openWindowForTrust(trustId, trust))
+      : null
+    const dateFilter: Prisma.DonationWhereInput['donationDate'] = from || to
+      ? { ...(from && { gte: from }), ...(to && { lte: to }) }
+      : effectiveWindow
+        ? windowDateFilter(effectiveWindow)
+        : undefined
 
     const todayStart = todayStartIn()
     // Reports carry donor contact PII, so the caller's donation visibility governs
@@ -82,7 +126,14 @@ router.get(
       prisma.donation.groupBy({ by: ['category'], where: scoped(dateFilter ? { donationDate: dateFilter } : {}), _sum: { amount: true }, _count: true }),
     ])
     const memberCount = await prisma.trustMember.count({ where: { trustId, status: 'ACTIVE' } })
+    const closedYears = await prisma.financialYearClose.findMany({
+      where: { trustId },
+      orderBy: { startDate: 'asc' },
+      select: { year: true, totalAmount: true, donationCount: true, startDate: true, endDate: true },
+    })
     ok(res, {
+      financialYear: from || to ? null : (effectiveWindow?.label ?? null),
+      years: closedYears.map((c) => ({ year: c.year, totalAmount: c.totalAmount, donationCount: c.donationCount })),
       totalDonations,
       totalCollected: sumAgg._sum.amount ?? 0,
       todayDonations: today,
@@ -147,7 +198,7 @@ router.get(
   validateQuery(detailedQuerySchema),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof detailedQuerySchema>
-    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!)
+    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!, await defaultReportRange(req))
     const totalCount = await prisma.donation.count({ where })
     const donations = await prismaPublic.donation.findMany({
       where,
@@ -187,6 +238,7 @@ function buildDetailedWhere(
   q: z.infer<typeof detailedQuerySchema>,
   trustId: string,
   member: NonNullable<TrustContextRequest['trustMember']>,
+  defaultRange?: Prisma.DonationWhereInput['donationDate'],
 ): Prisma.DonationWhereInput {
   // The detailed report and both exports carry donor phone, email and address, so a
   // report:view holder only ever sees donations they are permitted to see in the
@@ -197,6 +249,8 @@ function buildDetailedWhere(
     where.donationDate = {}
     if (q.from) where.donationDate.gte = new Date(q.from)
     if (q.to) where.donationDate.lte = new Date(q.to)
+  } else if (defaultRange) {
+    where.donationDate = defaultRange
   }
   if (q.paymentMode) where.paymentMode = q.paymentMode as PaymentMode
   if (q.addressContains) where.address = { contains: q.addressContains, mode: 'insensitive' }
@@ -219,7 +273,7 @@ router.get(
   validateQuery(detailedQuerySchema),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof detailedQuerySchema>
-    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!)
+    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!, await defaultReportRange(req))
     const page = q.page ?? 1
     const pageSize = q.pageSize ?? 50
 
@@ -265,7 +319,7 @@ router.get(
   validateQuery(detailedQuerySchema),
   asyncHandler(async (req: TrustContextRequest, res) => {
     const q = req.query as unknown as z.infer<typeof detailedQuerySchema>
-    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!)
+    const where = buildDetailedWhere(q, req.trustId!, req.trustMember!, await defaultReportRange(req))
     const totalCount = await prisma.donation.count({ where })
 
     const donations = await prismaPublic.donation.findMany({

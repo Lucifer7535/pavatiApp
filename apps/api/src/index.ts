@@ -25,6 +25,7 @@ import userRoutes from './modules/users/routes.js'
 import dashboardRoutes from './modules/dashboard/routes.js'
 import uploadRoutes from './modules/uploads/routes.js'
 import developerRoutes from './modules/developer/routes.js'
+import financialYearRoutes from './modules/financial-years/routes.js'
 
 export function createApp() {
   const app = express()
@@ -107,6 +108,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</
   app.use('/api/v1/trusts', notificationRoutes)
   app.use('/api/v1/trusts', reportRoutes)
   app.use('/api/v1/trusts', dashboardRoutes)
+  app.use('/api/v1/trusts', financialYearRoutes)
   app.use('/api/v1/payments', donationRoutes)
   app.use('/api/v1/campaigns', campaignRoutes)
   app.use('/api/v1/receipts', receiptRoutes)

@@ -33,6 +33,8 @@ export const PERMISSION = {
   AUDIT_VIEW: 'audit:view',
   DONATE: 'donate',
   MEMBER_VIEW_OWN: 'member:view_own',
+  FINANCIAL_YEAR_CLOSE: 'financialYear:close',
+  DONATION_POST_CLOSE: 'donation:post-close',
 } as const
 export type Permission = (typeof PERMISSION)[keyof typeof PERMISSION]
 
@@ -97,6 +99,8 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
     PERMISSION.SETTINGS_UPDATE,
     PERMISSION.NOTIFICATION_MANAGE,
     PERMISSION.AUDIT_VIEW,
+    PERMISSION.FINANCIAL_YEAR_CLOSE,
+    PERMISSION.DONATION_POST_CLOSE,
     PERMISSION.DONATE,
     PERMISSION.MEMBER_VIEW_OWN,
   ],
@@ -139,6 +143,8 @@ export const ROLE_PERMISSIONS: Record<TrustRole, Permission[]> = {
     PERMISSION.DONATION_VOID,
     PERMISSION.DONATION_VERIFY,
     PERMISSION.RECEIPT_VOID,
+    PERMISSION.FINANCIAL_YEAR_CLOSE,
+    PERMISSION.DONATION_POST_CLOSE,
   ],
   [ROLE.COMMITTEE_MEMBER]: [...everyone, ...ops, PERMISSION.DONATION_VIEW, PERMISSION.MEMBER_VIEW, PERMISSION.REPORT_VIEW],
   [ROLE.MEMBER]: everyone,
@@ -183,4 +189,6 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'donation:verify': 'Verify UPI payments',
   donate: 'Make donations',
   'member:view_own': 'View own membership',
+  'financialYear:close': 'Close financial year',
+  'donation:post-close': 'Record post-closing adjustments',
 }

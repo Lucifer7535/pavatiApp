@@ -4,6 +4,8 @@ import { asyncHandler, ok } from '../../lib/http.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { loadTrustContext, type TrustContextRequest } from '../../middleware/rbac.js'
 import { todayStartIn } from '../../config/index.js'
+import { type FYWindow, windowDateFilter } from '../../lib/financialYear.js'
+import { openWindowForTrust } from '../../lib/financialWindow.js'
 
 const router = Router()
 
@@ -35,12 +37,22 @@ router.get(
     }
 
     const todayStart = todayStartIn()
+    const trust = await prisma.trust.findUnique({ where: { id: trustId } })
+    // Default to the current financial year; `?year=<label>` switches the board to a
+    // closed year's frozen snapshot so admins can compare periods.
+    let window: FYWindow | null = trust ? await openWindowForTrust(trust.id, trust) : null
+    const yearParam = req.query.year ? String(req.query.year) : undefined
+    if (trust && window && yearParam && yearParam !== window.label) {
+      const closed = await prisma.financialYearClose.findUnique({ where: { trustId_year: { trustId, year: yearParam } } })
+      if (closed) window = { label: closed.year, start: closed.startDate, end: closed.endDate }
+    }
+    const fyFilter = window ? { donationDate: windowDateFilter(window) } : {}
 
     const [totalAgg, donorCount, cashAgg, upiAgg, todayAgg, pendingCount, memberCount, recentTransactions, recentMembers, campaigns] = await Promise.all([
-      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED' }, _sum: { amount: true } }),
-      prisma.donation.groupBy({ by: ['donorName', 'phone'], where: { trustId, status: 'SUCCEEDED' } }),
-      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED' }, paymentMode: 'CASH' }, _sum: { amount: true } }),
-      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED' }, paymentMode: 'UPI' }, _sum: { amount: true } }),
+      prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', ...fyFilter }, _sum: { amount: true } }),
+      prisma.donation.groupBy({ by: ['donorName', 'phone'], where: { trustId, status: 'SUCCEEDED', ...fyFilter } }),
+      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED', ...fyFilter }, paymentMode: 'CASH' }, _sum: { amount: true } }),
+      prisma.donationSplit.aggregate({ where: { donation: { trustId, status: 'SUCCEEDED', ...fyFilter }, paymentMode: 'UPI' }, _sum: { amount: true } }),
       prisma.donation.aggregate({ where: { trustId, status: 'SUCCEEDED', donationDate: { gte: todayStart } }, _sum: { amount: true } }),
       prisma.donation.count({ where: { trustId, status: 'PENDING' } }),
       prisma.trustMember.count({ where: { trustId, status: 'ACTIVE' } }),
@@ -56,6 +68,7 @@ router.get(
 
     ok(res, {
       scope: 'all',
+      financialYear: window?.label ?? trust?.financialYear ?? null,
       totalCollected: totalAgg._sum.amount ?? 0,
       totalDonors: donorCount.length,
       cashCollected: cashAgg._sum.amount ?? 0,

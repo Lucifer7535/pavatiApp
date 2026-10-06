@@ -42,6 +42,8 @@ export interface Trust {
   website: string | null
   upiId: string | null
   financialYear: string | null
+  financialYearStartDate: string | null
+  financialYearEndDate: string | null
   festivalStartDate: string | null
   festivalEndDate: string | null
   joinMode: JoinMode
@@ -94,10 +96,25 @@ export interface Donation {
   notes: string | null
   isOnline: boolean
   campaignId: string | null
+  postClosingAdjustment?: boolean
   createdAt: string
   donor?: Donor
   collector?: TrustMember
   receipts?: Receipt[]
+}
+
+export interface FinancialYearClose {
+  id: string
+  trustId: string
+  year: string
+  startDate: string
+  endDate: string
+  totalAmount: number
+  donationCount: number
+  donorCount: number
+  byMode: Record<string, { amount: number; count: number }>
+  byCategory: Array<{ category: string; amount: number; count: number }>
+  closedAt: string
 }
 
 export interface Receipt {

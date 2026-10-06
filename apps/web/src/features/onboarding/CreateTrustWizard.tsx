@@ -28,6 +28,10 @@ const schema = z.object({
   upiId: z.string().optional(),
   joinMode: z.enum(['OPEN', 'APPROVAL', 'INVITE_ONLY']).default('OPEN'),
   financialYear: z.string().optional(),
+  financialYearStartDate: z.string().optional(),
+  financialYearEndDate: z.string().optional(),
+  festivalStartDate: z.string().optional(),
+  festivalEndDate: z.string().optional(),
 })
 type Form = z.infer<typeof schema>
 
@@ -139,10 +143,22 @@ export default function CreateTrustWizard() {
                   <label className="label">PIN code</label>
                   <Input placeholder="411038" {...register('pinCode')} />
                 </div>
-                <div>
-                  <label className="label">Financial year</label>
-                  <Input placeholder="2026-2027" {...register('financialYear')} />
+              </div>
+              <div>
+                <label className="label">Financial year (optional)</label>
+                <p className="mb-2 text-xs text-stone-500">Your books start fresh every financial year. Leave blank to use the Indian financial year (1 Apr – 31 Mar).</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="label text-xs">Starts on</label>
+                    <Input type="date" {...register('financialYearStartDate')} />
+                  </div>
+                  <div>
+                    <label className="label text-xs">Ends on</label>
+                    <Input type="date" {...register('financialYearEndDate')} />
+                  </div>
                 </div>
+                {errors.financialYearStartDate?.message && <p className="mt-1 text-xs text-red-600">{errors.financialYearStartDate.message}</p>}
+                {errors.financialYearEndDate?.message && <p className="mt-1 text-xs text-red-600">{errors.financialYearEndDate.message}</p>}
               </div>
               <div>
                 <label className="label">Address</label>

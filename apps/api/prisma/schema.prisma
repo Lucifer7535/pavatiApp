@@ -153,6 +153,11 @@ model Trust {
   website               String?
   upiId                 String?
   financialYear         String?
+  /// Anchor dates of the trust's custom financial year window. When unset, the
+  /// standard Indian FY (Apr 1 - Mar 31) is used. The year increments in whole
+  /// windows of (financialYearEndDate - financialYearStartDate + 1 day).
+  financialYearStartDate DateTime?
+  financialYearEndDate   DateTime?
   festivalStartDate     DateTime?
   festivalEndDate       DateTime?
   joinMode              JoinMode   @default(OPEN)
@@ -177,6 +182,32 @@ model Trust {
   auditLogs   AuditLog[]
   invites     TrustInvite[]
   joinRequests JoinRequest[]
+  financialYearCloses FinancialYearClose[]
+}
+
+/**
+ * A frozen snapshot of a trust's collected donations the day its financial year was
+ * closed. Immutable by design: post-close adjustments to the ledger are flagged on the
+ * donation itself and never rewrite this record, so the snapshot stays a fixed,
+ * auditable close-of-book figure.
+ */
+model FinancialYearClose {
+  id             String   @id @default(uuid())
+  trustId        String
+  trust          Trust    @relation(fields: [trustId], references: [id], onDelete: Cascade)
+  year           String
+  startDate      DateTime
+  endDate        DateTime
+  totalAmount    Int
+  donationCount  Int
+  donorCount     Int
+  byMode         Json
+  byCategory     Json
+  closedById     String
+  closedAt       DateTime @default(now())
+
+  @@unique([trustId, year])
+  @@index([trustId])
 }
 
 model TrustMember {
@@ -243,6 +274,10 @@ model Donation {
   campaignId    String?
   campaign      PaymentCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   notes         String?
+  /// True when the donation was recorded into an already-closed financial year by
+  /// an operator with the donation:post-close permission. Such entries never change
+  /// a closed year's frozen snapshot; they remain visible in the live ledger.
+  postClosingAdjustment Boolean    @default(false)
   createdAt     DateTime        @default(now())
 
   receipts      Receipt[]

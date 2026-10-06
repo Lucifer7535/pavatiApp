@@ -67,7 +67,7 @@ export const googleAuthSchema = z.object({
   idToken: z.string().min(1),
 })
 
-export const createTrustSchema = z.object({
+const trustFields = {
   name: z.string().min(2, 'Trust name must be at least 2 characters'),
   logoUrl: z.string().optional().nullable(),
   festivalTypes: z.array(z.string().trim().min(1, 'Festival name is required').max(50)).min(1, 'Select at least one festival').max(20),
@@ -83,12 +83,30 @@ export const createTrustSchema = z.object({
   website: z.string().url('Enter a valid URL').optional().nullable().or(z.literal('')),
   upiId: z.string().optional().nullable(),
   financialYear: z.string().optional().nullable(),
+  financialYearStartDate: z.string().optional().nullable(),
+  financialYearEndDate: z.string().optional().nullable(),
   festivalStartDate: z.string().optional().nullable(),
   festivalEndDate: z.string().optional().nullable(),
   joinMode: z.enum(vals(JOIN_MODE)).default('OPEN'),
-})
+} satisfies Record<string, z.ZodTypeAny>
 
-export const updateTrustSchema = createTrustSchema.partial()
+function financialYearRefine(data: { financialYearStartDate?: string | null; financialYearEndDate?: string | null }, ctx: z.RefinementCtx): void {
+  if (data.financialYearStartDate && data.financialYearEndDate) {
+    const start = Date.parse(data.financialYearStartDate)
+    const end = Date.parse(data.financialYearEndDate)
+    if (Number.isNaN(start) || Number.isNaN(end)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['financialYearEndDate'], message: 'Financial year dates must be valid dates' })
+    } else if (end <= start) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['financialYearEndDate'], message: 'Financial year must end after it starts' })
+    } else if (end - start > 400 * 86400000) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['financialYearEndDate'], message: 'Financial year window cannot exceed 400 days' })
+    }
+  }
+}
+
+export const createTrustSchema = z.object(trustFields).superRefine(financialYearRefine)
+
+export const updateTrustSchema = z.object(trustFields).partial().superRefine(financialYearRefine)
 
 export const joinByCodeSchema = z.object({ code: z.string().min(3).max(20).optional() })
 

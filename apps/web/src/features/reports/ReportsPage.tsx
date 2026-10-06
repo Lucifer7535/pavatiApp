@@ -13,6 +13,8 @@ import { PAYMENT_MODE_LABELS } from '@pavati/shared'
 const COLORS = ['#f97316', '#9f1239', '#d4af37', '#0d9488', '#7c3aed', '#0284c7']
 
 interface Summary {
+  financialYear?: string | null
+  years?: { year: string; totalAmount: number; donationCount: number }[]
   totalDonations: number
   totalCollected: number
   todayDonations: number
@@ -47,10 +49,13 @@ export default function ReportsPage() {
   const active = useActiveTrust()!
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [year, setYear] = useState('current')
+  // An explicit date range overrides the default (current financial year) scope.
+  const effectiveYear = from || to ? undefined : year === 'current' ? undefined : year
 
   const { data: summary, isLoading } = useQuery({
-    queryKey: ['reports-summary', active.trustId, from, to],
-    queryFn: () => api.get<Summary>(`/trusts/${active.trustId}/reports/summary`, { from: from || undefined, to: to || undefined }),
+    queryKey: ['reports-summary', active.trustId, from, to, year],
+    queryFn: () => api.get<Summary>(`/trusts/${active.trustId}/reports/summary`, { from: from || undefined, to: to || undefined, year: effectiveYear }),
   })
 
   const { data: daily } = useQuery({
@@ -76,6 +81,7 @@ export default function ReportsPage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   const detailFilters = useMemo(() => ({
+    year: effectiveYear,
     from: from || undefined,
     to: to || undefined,
     paymentMode: paymentModeFilter || undefined,
@@ -87,7 +93,7 @@ export default function ReportsPage() {
     amountEquals: amountEquals || undefined,
     page: detailPage,
     pageSize: 50,
-  }), [from, to, paymentModeFilter, receiptStatusFilter, addressContains, addressEquals, amountMin, amountMax, amountEquals, detailPage])
+  }), [from, to, effectiveYear, paymentModeFilter, receiptStatusFilter, addressContains, addressEquals, amountMin, amountMax, amountEquals, detailPage])
 
   const { data: detailed, isLoading: detailedLoading } = useQuery({
     queryKey: ['reports-detailed', active.trustId, detailFilters],
@@ -131,6 +137,7 @@ export default function ReportsPage() {
   }
 
   const exportFilters = useMemo(() => ({
+    year: effectiveYear,
     from: from || undefined,
     to: to || undefined,
     paymentMode: paymentModeFilter || undefined,
@@ -140,7 +147,7 @@ export default function ReportsPage() {
     amountMin: amountMin || undefined,
     amountMax: amountMax || undefined,
     amountEquals: amountEquals || undefined,
-  }), [from, to, paymentModeFilter, receiptStatusFilter, addressContains, addressEquals, amountMin, amountMax, amountEquals])
+  }), [effectiveYear, from, to, paymentModeFilter, receiptStatusFilter, addressContains, addressEquals, amountMin, amountMax, amountEquals])
 
   return (
     <AppLayout>
@@ -160,9 +167,19 @@ export default function ReportsPage() {
       />
 
       <div className="mb-5 flex flex-wrap items-end gap-3">
+        <div>
+          <label className="label">Financial year</label>
+          <Select value={year} onChange={(e) => { setYear(e.target.value); setDetailPage(1) }} className="w-48">
+            <option value="current">Current year{summary?.financialYear ? ` (${summary.financialYear})` : ''}</option>
+            {(summary?.years ?? []).map((y) => (
+              <option key={y.year} value={y.year}>{y.year} · ₹{(y.totalAmount / 100).toLocaleString('en-IN')}</option>
+            ))}
+          </Select>
+        </div>
         <div><label className="label">From</label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-44" /></div>
         <div><label className="label">To</label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-44" /></div>
         {(from || to) && <Button variant="ghost" size="sm" onClick={() => { setFrom(''); setTo('') }}>Clear</Button>}
+        {(from || to) && <p className="pb-1 text-xs text-stone-400">Custom range overrides the year selector</p>}
       </div>
 
       {isLoading || !summary ? <Spinner /> : (

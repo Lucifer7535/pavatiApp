@@ -19,6 +19,29 @@ export default function TrustSettingsPage() {
   const [trust, setTrust] = useState<any>(null)
   const [form, setForm] = useState<any>({})
   const [confirmName, setConfirmName] = useState('')
+  const [confirmClose, setConfirmClose] = useState(false)
+
+  const canManageFinances =
+    active.role === 'PRIMARY_ADMIN' || active.role === 'ADMIN' || active.role === 'TREASURER'
+
+  const fyInfo = useQuery({
+    queryKey: ['financial-years', active.trustId],
+    enabled: canManageFinances,
+    queryFn: async () => api.get<any>(`/trusts/${active.trustId}/financial-years`),
+  })
+
+  const closeYear = useMutation({
+    mutationFn: () => api.post(`/trusts/${active.trustId}/financial-years/close`, {}),
+    onSuccess: () => {
+      toast.success('Financial year closed. The new year starts from zero.')
+      setConfirmClose(false)
+      qc.invalidateQueries({ queryKey: ['trust', active.trustId] })
+      qc.invalidateQueries({ queryKey: ['financial-years', active.trustId] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['reports'] })
+    },
+    onError: (e: any) => toast.error(e.message),
+  })
 
   useQuery({
     queryKey: ['trust', active.trustId],
@@ -31,6 +54,8 @@ export default function TrustSettingsPage() {
         contactPhone: t.contactPhone ?? '', contactEmail: t.contactEmail ?? '', website: t.website ?? '',
         upiId: t.upiId ?? '', financialYear: t.financialYear ?? '', joinMode: t.joinMode,
         festivalTypes: t.festivalTypes,
+        financialYearStartDate: t.financialYearStartDate?.slice(0, 10) ?? '',
+        financialYearEndDate: t.financialYearEndDate?.slice(0, 10) ?? '',
       })
       return t
     },
@@ -89,8 +114,22 @@ export default function TrustSettingsPage() {
             <div><label className="label">Description</label><Textarea value={form.description ?? ''} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div><label className="label">Registration no.</label><Input value={form.registrationNumber ?? ''} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>
-              <div><label className="label">Financial year</label><Input value={form.financialYear ?? ''} onChange={(e) => setForm({ ...form, financialYear: e.target.value })} /></div>
               <div><label className="label">UPI ID</label><Input value={form.upiId ?? ''} onChange={(e) => setForm({ ...form, upiId: e.target.value })} /></div>
+              <div />
+            </div>
+            <div className="rounded-xl bg-stone-50 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Financial year</p>
+                  <p className="text-sm font-semibold text-stone-800">{form.financialYear || 'Indian financial year (1 Apr – 31 Mar)'}</p>
+                </div>
+                <Badge color="saffron">Starts fresh at close</Badge>
+              </div>
+              <p className="mt-1 text-xs text-stone-500">Dashboard totals and reports reset to the current window. Donations dated in a closed year are blocked unless an operator has post-closing adjustment permission.</p>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                <div><label className="label text-xs">Starts on</label><Input type="date" value={form.financialYearStartDate ?? ''} onChange={(e) => setForm({ ...form, financialYearStartDate: e.target.value })} /></div>
+                <div><label className="label text-xs">Ends on</label><Input type="date" value={form.financialYearEndDate ?? ''} onChange={(e) => setForm({ ...form, financialYearEndDate: e.target.value })} /></div>
+              </div>
             </div>
           </div>
         </Card>
@@ -144,6 +183,55 @@ export default function TrustSettingsPage() {
       <div className="mt-6 flex justify-end">
         <Button className="px-8" onClick={() => save.mutate()} loading={save.isPending}><Settings className="h-4 w-4" /> Save all settings</Button>
       </div>
+
+      {canManageFinances && (
+        <Card className="mt-6">
+          <CardHeader title="Financial year" subtitle="Freeze the current period and start the next from ₹0" />
+          <div className="p-6">
+            {fyInfo.isLoading ? (
+              <Spinner />
+            ) : fyInfo.data?.canClose ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-stone-800">
+                    Close financial year <span className="text-saffron-600">{fyInfo.data.current.label}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-stone-500">
+                    {fyInfo.data.current.startDate.slice(0, 10)} → {fyInfo.data.current.endDate.slice(0, 10)}. Snapshot totals are frozen; the dashboard and reports move to the next year. This cannot be undone.
+                  </p>
+                </div>
+                {confirmClose ? (
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setConfirmClose(false)}>Cancel</Button>
+                    <Button variant="danger" loading={closeYear.isPending} onClick={() => closeYear.mutate()}>Confirm close</Button>
+                  </div>
+                ) : (
+                  <Button variant="danger" onClick={() => setConfirmClose(true)}><AlertTriangle className="h-4 w-4" /> Close now</Button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm font-semibold text-stone-800">
+                  Current financial year: <span className="text-saffron-600">{fyInfo.data?.current.label ?? '—'}</span>
+                </p>
+                {fyInfo.data?.closed?.length ? (
+                  <ul className="mt-3 space-y-2">
+                    {fyInfo.data.closed.map((c: any) => (
+                      <li key={c.id} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-sm">
+                        <span className="font-medium text-stone-700">{c.year}</span>
+                        <span className="text-stone-500">₹{c.totalAmount.toLocaleString('en-IN')} · {c.donationCount} donations · {c.donorCount} donors</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-xs text-stone-500">No closed years on record yet.</p>
+                )}
+                {!fyInfo.data?.canClose && <p className="mt-2 text-xs text-stone-400">Only an admin can close the financial year.</p>}
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {active.role === 'PRIMARY_ADMIN' && (
         <Card className="mt-6 border-red-200">

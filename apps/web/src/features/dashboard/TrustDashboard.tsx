@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Wallet, Users, TrendingUp, Clock, PlusCircle, Megaphone, Link2, ReceiptText, HeartHandshake, CheckCircle2 } from 'lucide-react'
@@ -10,6 +11,7 @@ import { PAYMENT_MODE_LABELS } from '@pavati/shared'
 interface Dashboard {
   scope?: 'all' | 'own'
   // scope: all
+  financialYear?: string | null
   totalCollected: number
   totalDonors: number
   cashCollected: number
@@ -35,9 +37,15 @@ const statusBadge: Record<string, { color: 'green' | 'gold' | 'default'; label: 
 }
 
 export default function TrustDashboard({ trustId }: { trustId: string }) {
+  const [year, setYear] = useState('current')
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['dashboard', trustId],
-    queryFn: () => api.get<Dashboard>(`/trusts/${trustId}/dashboard`),
+    queryKey: ['dashboard', trustId, year],
+    queryFn: () => api.get<Dashboard>(`/trusts/${trustId}/dashboard${year !== 'current' ? `?year=${encodeURIComponent(year)}` : ''}`),
+  })
+  const fyInfo = useQuery({
+    queryKey: ['financial-years', trustId],
+    enabled: data?.scope === 'all',
+    queryFn: () => api.get<{ current: { label: string; startDate: string; endDate: string }; closed: any[] }>(`/trusts/${trustId}/financial-years`),
   })
 
   if (isError) {
@@ -121,6 +129,23 @@ export default function TrustDashboard({ trustId }: { trustId: string }) {
         </div>
       ) : (
         <div className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-stone-600">
+              Showing <span className="font-bold text-stone-900">{data.financialYear ?? 'financial year'}</span>
+            </p>
+            {fyInfo.data && (
+              <select
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 focus:border-saffron-400 focus:outline-none"
+              >
+                <option value="current">Current year</option>
+                {fyInfo.data.closed.map((c: any) => (
+                  <option key={c.id} value={c.year}>{c.year}</option>
+                ))}
+              </select>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Total collected" value={formatINR(data.totalCollected)} icon={<TrendingUp className="h-5 w-5" />} accent="saffron" sub={`${data.totalDonors} donors`} />
             <StatCard label="Today" value={formatINR(data.todayCollected)} icon={<Clock className="h-5 w-5" />} accent="gold" sub="since midnight" />
