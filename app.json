@@ -24,14 +24,6 @@
     "WEB_DIST_DIR": {
       "value": "apps/web/dist"
     },
-    "MOCK_MODE": {
-      "value": "false",
-      "description": "Mock *authentication* also needs ALLOW_INSECURE_MOCK_AUTH=true and is refused when NODE_ENV=production, because that branch accepts a caller-supplied identity."
-    },
-    "ALLOW_INSECURE_MOCK_AUTH": {
-      "value": "false",
-      "description": "Leave false in any shared environment."
-    },
     "DEV_EMAIL": {
       "description": "Developer console login. Must be set to a non-default value before enabling the console in production."
     },

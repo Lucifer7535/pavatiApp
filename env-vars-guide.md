@@ -28,8 +28,6 @@ This guide explains every environment variable used by Pāvati Pustak and how to
   - [RESEND_FROM_EMAIL](#resend_from_email)
   - [WEB_DIST_DIR](#web_dist_dir)
   - [LOG_LEVEL](#log_level)
-  - [MOCK_MODE](#mock_mode)
-  - [ALLOW_INSECURE_MOCK_AUTH](#allow_insecure_mock_auth)
   - [DEV_EMAIL](#dev_email)
   - [DEV_PASSWORD](#dev_password)
   - [DEV_ROUTES_ENABLED](#dev_routes_enabled)
@@ -375,40 +373,6 @@ openssl rand -base64 48
 
 ---
 
-### MOCK_MODE
-
-| | |
-|---|---|
-| **Required** | No |
-| **Default** | `false` |
-| **Example** | `false` |
-
-**What it does:** Enables the mock payment providers instead of real payment gateways. Useful for local development and testing.
-
-> **This flag alone no longer enables mock authentication.** The mock *login* branch accepts a caller-supplied email, so it is now gated behind a second explicit opt-in. See [ALLOW_INSECURE_MOCK_AUTH](#allow_insecure_mock_auth) below.
-
----
-
-### ALLOW_INSECURE_MOCK_AUTH
-
-| | |
-|---|---|
-| **Required** | No |
-| **Default** | `false` |
-| **Example** | `false` |
-
-**What it does:** Second, independent opt-in required before the Google mock-login branch will run. That branch signs a session for any email the caller supplies, so it is treated as an authentication bypass rather than a testing convenience.
-
-**How it works:** Mock authentication runs only when **all three** conditions hold:
-
-1. `MOCK_MODE=true`, **and**
-2. `ALLOW_INSECURE_MOCK_AUTH=true`, **and**
-3. `NODE_ENV` is **not** `production`
-
-> **Leave this `false` in any shared, staging, or production environment.** It exists for local development only. There is no supported way to enable it in production, by design.
-
----
-
 ### DEV_EMAIL
 
 | | |
@@ -543,8 +507,6 @@ node -e "for (const k of ['JWT_SECRET','REFRESH_SECRET']) { const v=process.env[
 | `RESEND_FROM_EMAIL` | Resend verified domain | No |
 | `WEB_DIST_DIR` | Path to Vite build output | No (needed for single-dyno deploys) |
 | `LOG_LEVEL` | Any Pino level | No (default: `info`) |
-| `MOCK_MODE` | `true` or `false` | No (default: `false`) |
-| `ALLOW_INSECURE_MOCK_AUTH` | `true` or `false` | No (default: `false`) |
 | `DEV_EMAIL` | Any non-default email | Only if the console is mounted |
 | `DEV_PASSWORD` | `openssl rand -base64 24` | Only if the console is mounted |
 | `DEV_ROUTES_ENABLED` | `true` mounts `/api/v1/dev` in production | No (default: off in production) |

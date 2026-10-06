@@ -65,13 +65,6 @@ export const resetPasswordSchema = z.object({
 
 export const googleAuthSchema = z.object({
   idToken: z.string().min(1),
-  profile: z
-    .object({
-      name: z.string().optional(),
-      email: z.string().optional().refine((v) => !v || /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v), 'Invalid email'),
-      picture: z.string().optional(),
-    })
-    .optional(),
 })
 
 export const createTrustSchema = z.object({

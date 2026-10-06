@@ -2,6 +2,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, ReceiptText, ShieldCheck, Users, Wallet, Landmark, Smartphone, Bell } from 'lucide-react'
 import { Badge } from '../../components/ui'
 import AppLogo from '../../components/AppLogo'
+import SiteFooter from '../../components/SiteFooter'
 import { Seo, DEFAULTS } from '../../lib/seo'
 
 const features = [
@@ -47,6 +48,8 @@ export default function LandingPage() {
             </div>
           </Link>
           <nav className="flex items-center gap-2">
+            <Link to="/about" className="btn-ghost hidden md:inline-flex">About Us</Link>
+            <Link to="/contact" className="btn-ghost hidden md:inline-flex">Contact Us</Link>
             <Link to="/login" className="btn-ghost inline-flex">Log in</Link>
             <Link to="/signup" className="btn-primary">Get started</Link>
           </nav>
@@ -125,9 +128,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="py-8 text-center text-sm text-stone-400">
-        Pāvati Pustak · Digital Trust, Donation &amp; Receipt Management · Made with 🪔 for mandals across Maharashtra
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

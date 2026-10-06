@@ -13,15 +13,13 @@ type Form = z.infer<typeof schema>
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
-  const [devUrl, setDevUrl] = useState<string | null>(null)
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema) as any })
 
   const onSubmit = async (data: Form) => {
     setLoading(true)
     try {
-      const res = await api.post<{ devResetUrl?: string }>('/auth/forgot-password', data)
-      setDevUrl(res.devResetUrl ?? null)
-      toast.success(res.devResetUrl ? 'Reset link generated (mock mode)' : 'If an account exists, a reset link was sent.')
+      await api.post('/auth/forgot-password', data)
+      toast.success('If an account exists, a reset link was sent.')
     } catch (e: any) {
       toast.error(e.message)
     } finally {
@@ -41,22 +39,14 @@ export default function ForgotPasswordPage() {
           <p className="mt-1 text-sm text-stone-500">We'll email you a secure reset link</p>
         </div>
         <Card className="p-6">
-          {devUrl ? (
-            <div className="text-center">
-              <p className="text-sm text-stone-600">Mock mode reset link:</p>
-              <a href={devUrl} className="mt-2 block break-all text-sm font-semibold text-saffron-600 hover:underline">{devUrl}</a>
-              <Link to="/login" className="btn-outline mt-4 w-full">Back to login</Link>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="label">Email</label>
+              <Input type="email" placeholder="you@example.com" {...register('email')} autoFocus />
+              {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
             </div>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label className="label">Email</label>
-                <Input type="email" placeholder="you@example.com" {...register('email')} autoFocus />
-                {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
-              </div>
-              <Button type="submit" className="w-full" loading={loading}>Send reset link</Button>
-            </form>
-          )}
+            <Button type="submit" className="w-full" loading={loading}>Send reset link</Button>
+          </form>
         </Card>
       </div>
     </div>

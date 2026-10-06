@@ -61,27 +61,6 @@ export default function LoginPage() {
     }
   }
 
-  const mockGoogle = async () => {
-    if (import.meta.env.PROD) {
-      toast.error('Google sign-in is not configured')
-      return
-    }
-    setLoading(true)
-    try {
-      const res = await api.post('/auth/google', {
-        idToken: 'mock-google-token',
-        profile: { name: 'Demo Google User', email: `google.demo${Date.now()}@mock.google` },
-      })
-      await applySession(res)
-      toast.success('Signed in with Google (mock)')
-      navigate('/app')
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cream-50 via-saffron-50 to-maroon-700/10 p-4">
       <Seo title="Log in — Pāvati Pustak" path="/login" noindex />
@@ -112,15 +91,13 @@ export default function LoginPage() {
             </div>
             <Button type="submit" className="w-full" loading={loading}>Log in</Button>
           </form>
-          <div className="my-4 flex items-center gap-3 text-xs text-stone-400">
-            <span className="h-px flex-1 bg-stone-200" /> or <span className="h-px flex-1 bg-stone-200" />
-          </div>
-          {googleClientId ? (
-            <GoogleSignInButton clientId={googleClientId} onCredential={handleGoogleCredential} onError={() => toast.error('Could not load Google sign-in')} />
-          ) : (
-            <Button type="button" variant="outline" onClick={mockGoogle} disabled={loading} className="w-full">
-              <span className="text-base">G</span> Continue with Google
-            </Button>
+          {googleClientId && (
+            <>
+              <div className="my-4 flex items-center gap-3 text-xs text-stone-400">
+                <span className="h-px flex-1 bg-stone-200" /> or <span className="h-px flex-1 bg-stone-200" />
+              </div>
+              <GoogleSignInButton clientId={googleClientId} onCredential={handleGoogleCredential} onError={() => toast.error('Could not load Google sign-in')} />
+            </>
           )}
         </Card>
       </div>

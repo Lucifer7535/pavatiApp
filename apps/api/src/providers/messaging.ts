@@ -1,4 +1,3 @@
-import { logger } from '../lib/logger.js'
 import { sendEmail } from '../lib/email.js'
 
 export interface SendResult {
@@ -8,21 +7,6 @@ export interface SendResult {
 
 export interface MessageSender {
   send(to: string, message: string, receiptLink?: string): Promise<SendResult>
-}
-
-export class MockSmsProvider implements MessageSender {
-  async send(to: string, message: string, _receiptLink?: string): Promise<SendResult> {
-    logger.info({ to, message }, '[SMS] mock message')
-    return { ok: true, providerResponse: `mock-sms-id-${Date.now()}` }
-  }
-}
-
-export class MockWhatsAppProvider implements MessageSender {
-  async send(to: string, message: string, _receiptLink?: string): Promise<SendResult> {
-    const waLink = `https://wa.me/91${to.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
-    logger.info({ to, waLink }, '[WHATSAPP] mock message')
-    return { ok: true, providerResponse: waLink }
-  }
 }
 
 function escapeHtml(value: string): string {
@@ -46,6 +30,4 @@ export class ResendEmailProvider implements MessageSender {
   }
 }
 
-export const smsProvider: MessageSender = new MockSmsProvider()
-export const whatsappProvider: MessageSender = new MockWhatsAppProvider()
 export const emailProvider: MessageSender = new ResendEmailProvider()

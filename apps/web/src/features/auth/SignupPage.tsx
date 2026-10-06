@@ -15,6 +15,7 @@ const schema = z.object({
   name: z.string().min(2, 'Enter your full name'),
   email: z.string().email('Enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  agree: z.boolean().refine((v) => v, 'You must accept the Terms & Privacy Policy'),
 })
 type Form = z.infer<typeof schema>
 
@@ -68,6 +69,22 @@ export default function SignupPage() {
               <label className="label">Password</label>
               <Input type="password" placeholder="At least 6 characters" {...register('password')} />
               {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
+            </div>
+            <div>
+              <label className="flex items-start gap-2 text-sm text-stone-600">
+                <input
+                  type="checkbox"
+                  {...register('agree')}
+                  className="mt-0.5 h-4 w-4 rounded border-stone-300 text-saffron-600 focus:ring-saffron-500"
+                />
+                <span>
+                  I agree to the{' '}
+                  <Link to="/terms" className="font-semibold text-saffron-600 hover:underline">Terms &amp; Conditions</Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" className="font-semibold text-saffron-600 hover:underline">Privacy Policy</Link>
+                </span>
+              </label>
+              {errors.agree && <p className="mt-1 text-xs text-red-600">{errors.agree.message}</p>}
             </div>
             <Button type="submit" className="w-full" loading={loading}>Create account</Button>
           </form>

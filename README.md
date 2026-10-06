@@ -325,11 +325,6 @@ Clicking the button opens Heroku, creates the app, provisions a PostgreSQL datab
    heroku config:set WEB_DIST_DIR=apps/web/dist
    ```
 
-   > `MOCK_MODE` is intentionally not set here. Mock *authentication* requires a second
-   > opt-in, `ALLOW_INSECURE_MOCK_AUTH=true`, and is refused when `NODE_ENV=production`
-   > because that branch signs a session for any email the caller supplies. See
-   > [env-vars-guide.md](./env-vars-guide.md#mock_mode).
-
    Optional — expose the developer console (`/developer`) at `/api/v1/dev`. Off by default
    in production; see [DEV_ROUTES_ENABLED](./env-vars-guide.md#dev_routes_enabled).
 
@@ -339,7 +334,7 @@ Clicking the button opens Heroku, creates the app, provisions a PostgreSQL datab
    heroku config:set DEV_PASSWORD="$(openssl rand -base64 24)"
    ```
 
-   Optional — enable real integrations instead of the default local/mock providers:
+   Optional — enable real integrations instead of the local defaults:
 
    ```bash
    heroku config:set R2_ACCOUNT_ID=your-cloudflare-account-id

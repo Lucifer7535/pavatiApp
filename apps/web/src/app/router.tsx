@@ -39,6 +39,10 @@ const TrustSettingsPage = lazy(() => import('../features/settings/TrustSettingsP
 const AuditLogPage = lazy(() => import('../features/audit/AuditLogPage'))
 const DeveloperLoginPage = lazy(() => import('../features/developer/DeveloperLoginPage'))
 const DeveloperDashboard = lazy(() => import('../features/developer/DeveloperDashboard'))
+const AboutPage = lazy(() => import('../features/legal/AboutPage'))
+const ContactPage = lazy(() => import('../features/legal/ContactPage'))
+const PrivacyPage = lazy(() => import('../features/legal/PrivacyPage'))
+const TermsPage = lazy(() => import('../features/legal/TermsPage'))
 
 function AppShell() {
   return (
@@ -150,6 +154,10 @@ export const router = createBrowserRouter([
       { path: '/donate', element: <DonatePage /> },
       { path: '/trust/:trustId', element: <TrustPublicProfile /> },
       { path: '/receipt/verify/:token', element: <ReceiptVerifyPage /> },
+      { path: '/about', element: <AboutPage /> },
+      { path: '/contact', element: <ContactPage /> },
+      { path: '/privacy', element: <PrivacyPage /> },
+      { path: '/terms', element: <TermsPage /> },
 
       { path: '/dev/login', element: <DeveloperLoginPage /> },
       {

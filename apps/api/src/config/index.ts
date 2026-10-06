@@ -14,20 +14,6 @@ export function todayStartIn(tzOffsetHours: number = IST_OFFSET_HOURS): Date {
 }
 
 /**
- * Whether the caller-supplied mock branches (Google mock login) may run at all.
- *
- * The previous gate was `config.mockMode && config.env !== 'production'`, which meant a
- * host with MOCK_MODE=true and NODE_ENV unset served mock logins that accepted an
- * arbitrary caller-supplied email. Mock mode now requires an explicit, dedicated opt-in
- * so no combination of ordinary config values can reach it.
- */
-function mockModeEnabled(): boolean {
-  if (process.env.MOCK_MODE !== 'true') return false
-  if (isProd) return false
-  return process.env.ALLOW_INSECURE_MOCK_AUTH === 'true'
-}
-
-/**
  * Fail-closed secret loading, applied on EVERY host, not just production.
  *
  * Previously this was keyed on `isProd`, so a host that simply forgot NODE_ENV booted
@@ -98,7 +84,6 @@ export const config = {
   r2Bucket: process.env.R2_BUCKET ?? '',
   r2PublicUrl: process.env.R2_PUBLIC_URL ?? '',
   webDistDir: process.env.WEB_DIST_DIR ?? '',
-  mockMode: mockModeEnabled(),
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
   resendApiKey: process.env.RESEND_API_KEY ?? '',
   resendFromEmail: process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev',

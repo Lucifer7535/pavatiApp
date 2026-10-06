@@ -97,37 +97,18 @@ router.post(
     let name: string
     let picture: string | undefined
 
-    if (config.mockMode) {
-      // Mock login is only reachable through the explicit ALLOW_INSECURE_MOCK_AUTH opt-in
-      // and only off production (see config.mockModeEnabled). Even then it must never be
-      // able to resolve to a pre-existing account, or a caller-supplied email becomes
-      // unauthenticated takeover of that account.
-      const profile = req.body.profile
-      const requested = (profile?.email ?? '').trim().toLowerCase()
-      if (requested) {
-        const existing = await prisma.user.findUnique({ where: { email: requested } })
-        if (existing) throw new AppError(403, 'Mock login cannot be used for an existing account')
-      }
-      email = requested || `${idToken.slice(0, 12)}@mock.google`
-      name = profile?.name ?? 'Google User'
-      picture = profile?.picture
-    } else {
-      if (config.mockMode && config.env === 'production') {
-        throw new AppError(403, 'Mock mode is disabled in production')
-      }
-      if (!config.googleClientId) throw new AppError(503, 'Google login is not configured')
-      try {
-        const ticket = await googleOAuthClient().verifyIdToken({ idToken, audience: config.googleClientId })
-        const payload = ticket.getPayload()
-        if (!payload?.email) throw new AppError(401, 'Google account has no email')
-        if (!payload.email_verified) throw new AppError(401, 'Google email is not verified')
-        email = payload.email
-        name = payload.name ?? 'Google User'
-        picture = payload.picture
-      } catch (e) {
-        if (e instanceof AppError) throw e
-        throw new AppError(401, 'Invalid Google token')
-      }
+    if (!config.googleClientId) throw new AppError(503, 'Google login is not configured')
+    try {
+      const ticket = await googleOAuthClient().verifyIdToken({ idToken, audience: config.googleClientId })
+      const payload = ticket.getPayload()
+      if (!payload?.email) throw new AppError(401, 'Google account has no email')
+      if (!payload.email_verified) throw new AppError(401, 'Google email is not verified')
+      email = payload.email
+      name = payload.name ?? 'Google User'
+      picture = payload.picture
+    } catch (e) {
+      if (e instanceof AppError) throw e
+      throw new AppError(401, 'Invalid Google token')
     }
 
     const user = await findOrCreateUser({
